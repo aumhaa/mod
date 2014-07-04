@@ -7,7 +7,7 @@ var patch_type = jsarguments[1]||'info';
 var unique = jsarguments[2]||'';
 var wiki_addy = 'http://www.aumhaa.com/wiki/index.php?title='+patch_type;
 var script = this;
-var DEBUG = true;
+var DEBUG = false;
 var MONOMODULAR=new RegExp(/(monomodular)/);
 var FUNCTION = new RegExp(/(function)/);
 var PROPERTY = new RegExp(/(property)/);
