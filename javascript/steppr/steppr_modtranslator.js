@@ -9,11 +9,14 @@ setoutletassist(0,"latch messages, msgs from pattrstorage, etc.");
 setoutletassist(1,"to mods");
 setinletassist(0,"to pattrstorage");
 
-var DEBUG = false;
+var DEBUG = true;
 var DEBUG_UPDT = false;
 var DEBUG_LCD = false;
-var DEBUG_NEW = true;
-var FORCELOAD = false;
+var DEBUG_NEW = false;
+var FORCELOAD = true;
+
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 var unique = jsarguments[1];
 
@@ -36,24 +39,16 @@ var ctlr = new Object;
 ctlr.ctls = new Object; //the control names, like "key 0" or "ring 2 2 0"
 ctlr.msgs = new Object; //messages 
 
+var GRIDMAP =[	[undefined, undefined, undefined, undefined, 'pads_0', 'pads_1', 'pads_2', 'pads_3'],
+				['buttons_0', 'buttons_1', 'buttons_2', 'buttons_3', 'pads_4', 'pads_5', 'pads_6', 'pads_7'],
+				['buttons_4', 'buttons_5', 'buttons_6', 'buttons_7', 'pads_8', 'pads_9', 'pads_10', 'pads_11'],
+				[undefined, undefined, undefined, undefined, 'pads_12', 'pads_13', 'pads_14', 'pads_15'],
+				['keys_0', 'keys_1', 'keys_2', 'keys_3', 'keys_4', 'keys_5', 'keys_6', 'keys_7'],
+				['keys2_0', 'keys2_1', 'keys2_2', 'keys2_3', 'keys2_4', 'keys2_5', 'keys2_6', 'keys2_7'],
+				['keys_8', 'keys_9', 'keys_10', 'keys_11', 'keys_12', 'keys_13', 'keys_14', 'keys_15'],
+				['keys2_8', 'keys2_9', 'keys2_10', 'keys2_11', 'keys2_12', 'keys2_13', 'keys2_14', 'keys2_15']]
+
 var Ctl_to_Trans= {};
-
-function Debug()
-{
-	var args = arrayfromargs(arguments);
-	for(var i in args)
-	{
-		if(args[i] instanceof Array)
-		{
-			args[i] = args[i].join(' ');
-		}
-	}
-	post('debug->', args, '\n');
-}
-
-function debug(){}
-
-if(DEBUG){script['debug'] = script['Debug'];}
 
 function init()
 {
@@ -64,6 +59,7 @@ function init()
 	update_all();
 	messnamed(unique+'loadbang', 'bang');
 	if(!SYNTH){ctl('pads_12', 1);}
+	outlet(0, 'receive_translation', 'keys2_8', 'value', 1);
 }
 
 function setup_translations()
@@ -108,6 +104,23 @@ function setup_translations()
 	outlet(0, 'add_translation', 'buttons_batch', 'cntrlr_encoder_button_grid', 'cntrlr_buttons');
 	outlet(0, 'add_translation', 'extras_batch', 'cntrlr_encoder_button_grid', 'cntrlr_extras');
 
+	//Ohm stuff:
+	for(var i = 0;i < 16;i++)
+	{
+		outlet(0, 'add_translation', 'pads_'+i, 'grid', 'ohm_pads', (i%4)+4, Math.floor(i/4));
+		outlet(0, 'add_translation', 'keys_'+i, 'grid', 'ohm_keys', i%8, (i < 8 ? 4 : 6));
+		outlet(0, 'add_translation', 'keys2_'+i, 'grid', 'ohm_keys2', i%8, (i < 8 ? 5 : 7));
+	}
+	//outlet(0, 'add_translation', 'pads_batch', 'grid', 'ohm_pads', 0);
+	//outlet(0, 'add_translation', 'keys_batch', 'grid', 'ohm_keys', 2);
+	//outlet(0, 'add_translation', 'keys2_batch', 'grid', 'ohm_keys2', 4); 
+	for(var i=0;i<8;i++)
+	{
+		outlet(0, 'add_translation', 'buttons_'+i, 'grid', 'ohm_buttons', i%4, Math.floor(i/4)+1);
+		//outlet(0, 'add_translation', 'extras_'+i, 'grid', 'ohm_extras', i, 7);
+	}
+	//outlet(0, 'add_translation', 'buttons_batch', 'grid', 'ohm_buttons', 6);
+	//outlet(0, 'add_translation', 'extras_batch', 'grid', 'ohm_extras', 7);
 }
 
 function setup_modtranslations()
@@ -155,20 +168,13 @@ function setup_modtranslations()
 
 function base_grid(x, y, val)
 {
-	if(DEBUG){post('base_grid', x, y, val);}
+	debug('base_grid', x, y, val);
 	{
 		if(!shifted)
 		{
 			if(y < 2)
 			{
-				//if(!SYNTH)
-				//{
-					ctl('pads_'+(x + (y*8)), val);
-				/*}
-				else
-				{
-					ctl('keys_'+(x + (y*8)), val);
-				}*/
+				ctl('pads_'+(x + (y*8)), val);
 			}
 			else
 			{
@@ -179,14 +185,7 @@ function base_grid(x, y, val)
 		{
 			if(y < 2)
 			{
-				//if(!SYNTH)
-				//{
-					ctl('keys_'+(x + (y*8)), val);
-				/*}
-				else
-				{
-					ctl('pads_'+(x + (y*8)), val);
-				}*/
+				ctl('keys_'+(x + (y*8)), val);
 			}
 			else if(y==2)
 			{
@@ -217,6 +216,18 @@ function cntrlr_key(x, y, val)
 function cntrlr_encoder_button_grid(x, y, val)
 {
 	ctl('buttons_'+(x + (y*4)), val);
+}
+
+function grid(x, y, val)
+{
+	debug('grid', x, y, val);
+	{
+		var msg = GRIDMAP[y][x];
+		if(msg)
+		{
+			ctl(msg, val);
+		}
+	}
 }
 
 function shift(val)
@@ -578,6 +589,7 @@ function ctlout(){
 	}
 	var keyout = a[0];
 	var valout = a[1];
+	debug('ctlout', keyout, valout);
 	outlet(0, 'receive_translation', keyout, 'value', valout);
 	
 }
@@ -814,7 +826,7 @@ function callback(){};
 
 function init_device()
 {
-	outlet(0, 'receive_device', 'set_mod_device_type', SYNTH ? 'DrumSteppr' : 'SynthSteppr');
+	outlet(0, 'receive_device', 'set_mod_device_type', SYNTH ? 'SynthSteppr' : 'DrumSteppr');
 	outlet(0, 'receive_device', 'set_number_params', 12);
 	found_device = 0;
 	stepseq = this.patcher.getnamed('stepseq');
@@ -1112,7 +1124,7 @@ if(SYNTH){script.detect_devices = script._detect_devices;}
 function mask()
 {
 	var args = arrayfromargs(arguments);
-	//post('mask', args, '\n');
+	post('mask', args, '\n');
 	switch(args[0])
 	{
 		case 'key':
@@ -1124,15 +1136,7 @@ function mask()
 	}
 }
 
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
-{
-	if(FORCELOAD){init();}
-}
-
-forceload();
+forceload(this);
 
 
 //notelock

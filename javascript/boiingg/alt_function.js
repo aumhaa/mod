@@ -9,7 +9,6 @@ setoutletassist(0, 'preset data grid output');
 setoutletassist(1, 'gate value output');
 setoutletassist(2, 'main data grid output');
 
-var DEBUG = false;
 
 var args1 = jsarguments[1];
 var unique = jsarguments[2];
@@ -22,23 +21,11 @@ var alted = 0;
 var empty = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
 var rotate_grid = false;
 
-var FORCELOAD = false;
+var DEBUG = false;
+var debug = (DEBUG&&Debug) ? Debug : function(){};
 
-function debug()
-{
-	if(DEBUG)
-	{
-		var args = arrayfromargs(arguments);
-		for(var i in args)
-		{
-			if(args[i] instanceof Array)
-			{
-				args[i] = args[i].join(' ');
-			}
-		}
-		post('debug->', args, '\n');
-	}
-}
+var FORCELOAD = false;
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 function init()
 {
@@ -179,15 +166,7 @@ function rotate(val)
 	rotate_grid = val;
 }
 
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
-{
-	if(FORCELOAD){init(1);}
-}
-
-forceload();
+forceload(this);
 
 
 

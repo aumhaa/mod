@@ -671,6 +671,10 @@ class Cntrlr(ControlSurface):
 		for column in range(4): 
 			for row in range(4):
 				self._scene[row].clip_slot(column).set_launch_button(None)
+		for cell in self._grid:
+			cell.set_channel(cell._original_channel)
+			cell.set_enabled(True)
+			cell.force_next_send()	
 		self._alt_enabled = True
 		self._device_selector.set_enabled(True)
 	
@@ -846,6 +850,8 @@ class Cntrlr(ControlSurface):
 		self.deassign_live_controls()
 		self.assign_alternate_mappings(0)
 		self._device_selector.set_enabled(False)
+		self._alt_enabled = False
+		self._alt_mode._set_selected_mode(None)
 		self.modhandler.set_cntrlr_encoder_grid(None)
 		self.modhandler.set_cntrlr_encoder_button_grid(None)
 		self.modhandler.set_cntrlr_grid(None)
@@ -860,7 +866,7 @@ class Cntrlr(ControlSurface):
 			self.modhandler.set_cntrlr_encoder_button_grid(self._dial_button_matrix)
 			self.modhandler.set_cntrlr_grid(self._matrix)
 			self.modhandler.set_cntrlr_keys(self._key_matrix)
-			self.modhandler.set_mod_nav_buttons([self._encoder_button[2], self._encoder_button[3]])
+			#self.modhandler.set_mod_nav_buttons([self._encoder_button[2], self._encoder_button[3]])
 			self.modhandler.set_enabled(True)
 		elif mode is 2:
 			self.assign_alternate_mappings(1)
@@ -896,13 +902,21 @@ class Cntrlr(ControlSurface):
 			cell.set_channel(chan)
 			cell.set_enabled(chan is 0)
 			cell.force_next_send()
-		if FADER_BANKING:
+		if FADER_BANKING is True:
 			for fader in self._fader:
 				fader.release_parameter()
 				fader.set_channel(chan)
 				fader.set_enabled(chan is 0)
 				fader.force_next_send()
-		if DIAL_BANKING:
+		else:
+			for index in range(4):
+				self._mixer.channel_strip(index).set_volume_control(self._fader[index])		#Since we gave our mixer 4 tracks above, we'll now assign our fader controls to it						
+			for index in range(2):
+				self._mixer.return_strip(index).set_volume_control(self._fader[index+4])	#assign the right faders to control the volume of our return strips
+			self._mixer.master_strip().set_volume_control(self._fader[7])					#assign the far right fader to control our master channel strip
+			self._mixer.set_prehear_volume_control(self._fader[6])							#assign the remaining fader to control our prehear volume of the the master channel strip
+
+		if DIAL_BANKING is True:
 			for dial in self._dial_right:
 				dial.release_parameter()
 				dial.set_channel(chan)
@@ -913,6 +927,17 @@ class Cntrlr(ControlSurface):
 				dial.set_channel(chan)
 				dial.set_enabled(chan is 0)
 				dial.force_next_send()
+		else:
+			for track in range(4):															#we set up a recursive loop to assign all four of our track channel strips' controls
+				channel_strip_send_controls = []											#the channelstripcomponent requires that we pass the send controls in an array, so we create a local variable, channel_strip_send_controls, to hold them
+				for control in range(2):													#since we are going to assign two controls to the sends, we create a recursion
+					channel_strip_send_controls.append(self._dial_left[track + (control * 4)])		#then use the append __builtin__ method to add them to the array
+				self._mixer.channel_strip(track).set_send_controls(tuple(channel_strip_send_controls))	#now that we have an array containing the send controls, we pass it to the channelstrip component with its set_send_controls() method
+				self._mixer.channel_strip(track).set_pan_control(self._dial_left[track + 8])		#now we set the pan control to the bottom 
+				self._mixer.track_eq(track).set_gain_controls(tuple([self._dial_right[track+8], self._dial_right[track+4], self._dial_right[track]]))	#here's another way of doing the same thing, but instead of creating the array before hand, we define it in-place.	Its probably bad coding to mix styles like this, but I'll leave it for those of you trying to figure this stuff out
+
+		self._mixer.track_eq(track).set_enabled(not DIAL_BANKING)
+		self._mixer.set_enabled(not (DIAL_BANKING or FADER_BANKING))
 
 		self.request_rebuild_midi_map()
 			
@@ -1193,10 +1218,9 @@ class CntrlrModHandler(ModHandler):
 					'cntrlr_key': {'obj':  Grid('cntrlr_key', 16, 2), 'method': self._receive_cntrlr_key}}
 		super(CntrlrModHandler, self).__init__(addresses = addresses, *a, **k)
 		self._color_type = 'RGB'
-	
+		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 4, 4, self.set_offset))
 
-		#'cntrlr_encoder_grid_relative': {'obj':StoredElement(_name = 'cntrlr_encoder_grid_relative'), 'method':self._receive_cntrlr_encoder_grid_relative},
-		#'cntrlr_encoder_grid_local': {'obj':StoredElement(_name = 'cntrlr_encoder_grid_local'), 'method':self._receive_cntrlr_encoder_grid_local},
+	
 
 	def _receive_cntrlr_grid(self, x, y, value, *a, **k):
 		#self.log_message('_receive_cntrlr_grid: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
@@ -1219,6 +1243,10 @@ class CntrlrModHandler(ModHandler):
 				self._cntrlr_encoder_grid.get_button(x, y).set_green(k['green'])
 			if 'custom' in keys:
 				self._cntrlr_encoder_grid.get_button(x, y).set_custom(k['custom'])
+			if 'local' in keys:
+				self._receive_cntrlr_encoder_grid_local(k['local'])
+			if 'relative' in keys:
+				self._receive_cntrlr_encoder_grid_relative(k['relative'])
 	
 
 	def _receive_cntrlr_encoder_button_grid(self, x, y, value, *a, **k):
@@ -1311,26 +1339,13 @@ class CntrlrModHandler(ModHandler):
 	
 
 
-	def _display_nav_box(self):
-		if self._cntrlr_grid_value.subject:
-			if self._shift_value.subject and self._shift_value.subject.is_pressed():
-				for column in range(4):
-					for row in range(4):
-						if (column == int(self.x_offset/4)) and (row == int(self.y_offset/4)):
-							self._cntrlr_grid_value.subject.get_button(column, row).send_value(self.navbox_selected)
-						else:
-							self._cntrlr_grid_value.subject.get_button(column, row).send_value(self.navbox_unselected)
-	
-
 	def update(self, *a, **k):
 		mod = self.active_mod()
 		#self.log_message('modhandler update: ' + str(mod))
 		if self.is_enabled() and not mod is None:
 			mod.restore()
-			if mod.legacy:
-				self._shift_value.subject and self._shift_value.subject.is_pressed() and self._display_nav_box()
 		else:
-			#self._script.log_message('disabling modhandler')
+			#debug('disabling modhandler')
 			self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247]))
 			self._script._send_midi(tuple([240, 0, 1, 97, 8, 8, 72, 247]))
 			if not self._cntrlr_grid_value.subject is None:
@@ -1339,8 +1354,8 @@ class CntrlrModHandler(ModHandler):
 				self._cntrlr_encoder_grid_value.subject.reset()
 			if not self._cntrlr_encoder_button_grid_value.subject is None:
 				self._cntrlr_encoder_button_grid_value.subject.reset()
-			if not self._keys_value.subject is None:
-				self._keys_value.subject.reset()
+			if not self._cntrlr_keys_value.subject is None:
+				self._cntrlr_keys_value.subject.reset()
 		if not self._on_lock_value.subject is None:
 			self._on_lock_value.subject.send_value((not mod is None) + ((not mod is None) and self.is_locked() * 4))
 	

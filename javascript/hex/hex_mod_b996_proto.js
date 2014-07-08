@@ -5,7 +5,7 @@
 
 /*This patch is the evolution of the binary mod;  The majority of the functionality for the entire patch 
 can be modified in this js or the accompanying poly~ object, "steppr_wheel", without ever opening 
-the actual containing patch in the m4l editor (this was crucial for speeding up the development process).  
+the actual containing patch in the m4l editor (this was crucial for speeding up the development process).
 Because of this, the functionality of the patch can be radically altered merely by modifying the 
 poly~ or adding some lines of code in to this js.  As an example, the poly~ used as the base for 
 this patch is only a slightly modified version of the "binary" mod (from Monomodular), and the 
@@ -19,7 +19,7 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
+var FORCELOAD = true;
 var NEW_DEBUG = true;
 var DEBUG = false;
 var DEBUG_LCD = false;
@@ -44,6 +44,7 @@ var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 var finder;
 var mod;
+var mod_finder;
 
 var unique = jsarguments[1];
 
@@ -55,7 +56,7 @@ var Vars = ['poly', 'pipe', 'selected_filter', 'step', 'storepattr', 'storage', 
 			'Speed1', 'Speed2', 'Speed3', 'Speed4', 'Speed5', 'Speed6', 'Speed7', 'Speed8', 'Speed9', 'Speed10', 'Speed11', 'Speed12', 'Speed13', 'Speed14', 'Speed15', 'Speed16',
 			'rotgate', 'transport_change', 'midiout'];
 
-//this array contains the scripting names of pattr-linked objects in each of the polys.	To include an new object to be addressed 
+//this array contains the scripting names of pattr-linked objects in each of the polys. To include an new object to be addressed 
 //in the poly, it's only necessary to add its name to this array.  It can then be addressed as part[poly number].obj[its scripting name]
 var Objs = {'pattern':{'Name':'pattern', 'Type':'list', 'pattr':'pattern'}, 
 			'duration':{'Name':'duration', 'Type':'list', 'pattr':'duration'},
@@ -96,7 +97,7 @@ var Objs = {'pattern':{'Name':'pattern', 'Type':'list', 'pattr':'pattern'},
 /*			'phasor':{'Name':'phasor', 'Type':'float', 'pattr':'object'},
 			'phasor_free':{'Name':'phasor_free', 'Type':'float', 'pattr':'object'},
 			'ticks':{'Name':'ticks', 'Type':'float', 'pattr':'hidden'},
-*/		
+*/
 
 
 var Modes=[4, 2, 3, 5, 1];
@@ -204,24 +205,6 @@ for(var i=0;i<7;i++){
 
 var current_rule = 0;
 
-/*function Debug()
-{
-	var args = arrayfromargs(arguments);
-	for(var i in args)
-	{
-		if(args[i] instanceof Array)
-		{
-			args[i] = args[i].join(' ');
-		}
-	}
-	post('debug->', args, '\n');
-}
-
-function debug(){}
-
-if(DEBUG_NEW){script['debug'] = script['Debug'];}*/
-
-
 /*/////////////////////////////////////////
 ///// script initialization routines //////
 /////////////////////////////////////////*/
@@ -242,13 +225,31 @@ _private_function().
 Note:  It is best to only address these private functions by their actual names in the script, since calling aliased 
 names will not be routed to anything().*/
 
- 
+var Mod = ModComponent.bind(script);
 
 function init()
 {
-	mod = new ModComponent(script, 'hex', unique, false);
+	mod = new Mod(script, 'hex', unique, false);
 	mod.debug = debug;
-	mod.assign_api(new LiveAPI(mod.callback, 'this_device'));
+	mod_finder = new LiveAPI(mod_callback, 'this_device');
+	mod.assign_api(mod_finder);
+}
+
+function mod_callback(args)
+{
+	if((args[0]=='value')&&(args[1]!='bang'))
+	{
+		debug('mod callback:', args);
+		if(args[1] in script)
+		{
+			debug('in script:', args[1]);
+			script[args[1]].apply(script, args.slice(2));
+		}
+		if(args[1]=='disconnect')
+		{
+			mod.restart.schedule(3000);
+		}
+	}
 }
 
 function alive(val)
@@ -272,7 +273,6 @@ function initialize(val)
 			script['poly.'+(y+1)+'::pattern'] = make_pset_edit_input(y);
 			script['poly.'+(y+1)+'::velocity'] = make_tvel_edit_input(y);
 		}while(y--);
-		debug('here');
 		for(var i = 0; i < 16; i++)
 		{
 			var poly_num = i;
@@ -330,7 +330,6 @@ function initialize(val)
 			}
 		}
 		Alive = 1;
-		debug('here1');
 		clear_surface();
 		
 		storage.message('recall', 1);
@@ -554,7 +553,7 @@ function setup_translations()
 	There are not currently provisions to dynamically change translations or group assignments once they are made.*/
 
 	/*Batch translations can be handled by creating alias controls with initial arguments so that when the batch command is sent
-	the argument(s) precede the values being sent.  They are treated the same as the rest of the group regarding their
+	the argument(s) precede the values being sent.	They are treated the same as the rest of the group regarding their
 	enabled state, and calls will be ignored to them when they are disabled.  Thus, to send a column command to an address:
 	'add_translation', 'alias_name', 'address', 'target_group', n.
 	Then, to invoke this translation, we'd call:
@@ -563,6 +562,25 @@ function setup_translations()
 	
 	It's important to note that using batch_row/column calls will wrap to the next column/row, whereas column/row commands will
 	only effect their actual physical row on the controller.*/
+
+
+	//Ohm stuff:
+	for(var i = 0;i < 16; i++)
+	{
+		mod.Send( 'add_translation', 'pads_'+i, 'grid', 'ohm_pads', i%8, Math.floor(i/8));
+		mod.Send( 'add_translation', 'keys_'+i, 'grid', 'ohm_keys', i%8, (i < 8 ? 2 : 3));
+		mod.Send( 'add_translation', 'keys2_'+i, 'grid', 'ohm_keys2', i%8, (i < 8 ? 4 : 5));
+	}
+	mod.Send( 'add_translation', 'pads_batch', 'grid', 'ohm_pads', 0, 8);
+	mod.Send( 'add_translation', 'keys_batch', 'grid', 'ohm_keys', 2, 8);
+	mod.Send( 'add_translation', 'keys2_batch', 'grid', 'ohm_keys2', 4, 8); 
+	for(var i=0;i<8;i++)
+	{
+		mod.Send( 'add_translation', 'buttons_'+i, 'grid', 'ohm_buttons', i, 6);
+		mod.Send( 'add_translation', 'extras_'+i, 'grid', 'ohm_extras', i, 7);
+	}
+	//mod.Send( 'add_translation', 'buttons_batch', 'grid', 'ohm_buttons', 6);
+	//mod.Send( 'add_translation', 'extras_batch', 'grid', 'ohm_extras', 7);
 
 	//Base stuff:
 	for(var i = 0;i < 16;i++)
@@ -611,9 +629,9 @@ function setup_translations()
 	//Push stuff:
 	for(var i = 0;i < 16;i++)
 	{
-		mod.Send( 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', i%8, Math.floor(i/8));
-		mod.Send( 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', i%8, Math.floor(i/8)+2);
-		mod.Send( 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', i%8, Math.floor(i/8)+4);
+		mod.Send( 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', (i%8), Math.floor(i/8));
+		mod.Send( 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', (i%8), Math.floor(i/8)+2);
+		mod.Send( 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', (i%8), Math.floor(i/8)+4);
 	}
 	mod.Send( 'add_translation', 'pads_batch', 'push_grid', 'push_pads', 0);
 	mod.Send( 'add_translation', 'keys_batch', 'push_grid', 'push_keys', 2);
@@ -625,6 +643,8 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'buttons_batch', 'push_grid', 'push_buttons', 6);
 	mod.Send( 'add_translation', 'extras_batch', 'push_grid', 'push_extras', 7);
+
+
 
 	//CNTRLR stuff:
 	for(var i = 0;i < 16;i++)
@@ -743,7 +763,7 @@ function refresh_c_keys()
 	var i = 15;do{
 		pattern.unshift(selected.pattern[i] * StepColors[i]);
 	}while(i--);
-	mod.Send( 'receive_translation', 'keys2_batch', 'batch_row', pattern);
+	mod.Send( 'receive_translation', 'keys2_batch', 'batch_row_fold', pattern);
 	var batch = [];
 	switch(key_mode)
 	{
@@ -754,7 +774,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 		case 2:
 			var i=15;do{
@@ -762,7 +782,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, selected.behavior[i]+8);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);			
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch);			
 			break;
 		case 3:
 			var p = presets[selected.num]-1;
@@ -772,7 +792,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 		case 4:
 			var p = presets[selected.num]-1;
@@ -782,7 +802,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 		case 5:
 			var i=15;do{
@@ -790,7 +810,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, 4);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			mod.Send( 'receive_translation', 'keys_'+i, 'mask', selected.note[current_step], 5);
 			break;
 		case 6:
@@ -799,7 +819,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 		case 7:
 			var i=15;do{
@@ -807,7 +827,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 		default:
 			var i=15;do{
@@ -816,7 +836,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 				pattern.push(selected.pattern[i] * StepColors[i]);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row', batch);	
+			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
 			break;
 	}		 
 }
@@ -1698,7 +1718,7 @@ function _grid(x, y, val)
 					//play_sequence(selected, ((x-(root>>6)%16)<<6) + (y-(root>>10)<<10) + 32, val);
 					play_sequence(selected, (x<<6) + (y<<10) + 32, val);
 					refresh_c_keys();
-					refresh_grid();	
+					refresh_grid(); 
 				}
 			}
 			break;
@@ -2052,7 +2072,7 @@ function _guibuttons(num, val)
 				{
 					selected.obj.nexttime.message('bang');
 				}
-				BaseTime.message('set', TRANS[val][notevalues][0]);	
+				BaseTime.message('set', TRANS[val][notevalues][0]); 
 			}
 			break;
 		case 6:
@@ -2561,11 +2581,11 @@ function change_grid_mode(val)
 	
 	if(grid_mode == 1)
 	{
-      		edit_preset = preset;
-      		var y=13;do{
-      			storage.getstoredvalue('poly.'+y+'::pattern', edit_preset);
-      			storage.getstoredvalue('poly.'+y+'::velocity', edit_preset);
-      		}while(y--);
+			edit_preset = preset;
+			var y=13;do{
+				storage.getstoredvalue('poly.'+y+'::pattern', edit_preset);
+				storage.getstoredvalue('poly.'+y+'::velocity', edit_preset);
+			}while(y--);
 	}
 
 	refresh_grid();
@@ -2912,7 +2932,7 @@ function change_lock_status(part, dir)
 	{
 		update_gui();
 	}
-	mod.Send( 'cntrlr_encoder_grid', 'green', part.num%4, Math.floor(part.num/4)%2,  part.notevalues<8);
+	mod.Send( 'cntrlr_encoder_grid', 'green', part.num%4, Math.floor(part.num/4)%2,	 part.notevalues<8);
 	update_speed(part);
 }
 
@@ -3045,7 +3065,7 @@ function receive_record(note, val)
 					Part.recdirty=1;
 					if(i<14)
 					{
-						mod.Send( 'grid', 'value',  cur_step, i+2, ACCENTS[Math.floor(val/8)]);
+						mod.Send( 'grid', 'value',	cur_step, i+2, ACCENTS[Math.floor(val/8)]);
 					}
 					if(i==selected.num)
 					{
@@ -3362,15 +3382,15 @@ function update_bank()
 				var y = Math.floor(i/4);
 				mod.Send( 'cntrlr_encoder_grid', 'mode', x, y, 4);
 				mod.Send( 'cntrlr_encoder_grid', 'custom', x, y, part[i+r].pattern);
-				mod.Send( 'cntrlr_encoder_grid', 'green', x, y,  part[i+r].lock);
+				mod.Send( 'cntrlr_encoder_grid', 'green', x, y,	 part[i+r].lock);
 			}while(i--);
 			var i=3;do{
-				mod.Send( 'cntrlr_encoder_grid', 'mode', i, 2,  5);
+				mod.Send( 'cntrlr_encoder_grid', 'mode', i, 2,	5);
 				mod.Send( 'cntrlr_encoder_grid', 'green', i, 2, 0);
 			}while(i--);
 			break;
 	}
-	rotgate.message('int', ((pad_mode==5)||(key_mode==5)||(grid_mode==1)));	
+	rotgate.message('int', ((pad_mode==5)||(key_mode==5)||(grid_mode==1))); 
 }
 
 //open the floating editor, called from MonomodComponent
@@ -3409,7 +3429,7 @@ var dials = [];
 
 var Encoders = ['Encoder_0', 'Encoder_1', 'Encoder_2', 'Encoder_3', 'Encoder_4', 'Encoder_5', 'Encoder_6', 'Encoder_7', 'Encoder_8', 'Encoder_9', 'Encoder_10', 'Encoder_11'];
 var Speeds = ['Speed1', 'Speed2', 'Speed3', 'Speed4', 'Speed5', 'Speed6', 'Speed7', 'Speed8', 'Speed9', 'Speed10', 'Speed11', 'Speed12', 'Speed13', 'Speed14', 'Speed15', 'Speed16'];
-var Dials =  ['Channel', 'Groove', 'Random', 'BaseTime', 'GlobSpeed', 'PolyOffset', 'Mode', 'RotSize', 'Speed'];
+var Dials =	 ['Channel', 'Groove', 'Random', 'BaseTime', 'GlobSpeed', 'PolyOffset', 'Mode', 'RotSize', 'Speed'];
 var Dial_Mappings = ['Encoder_8', 'Encoder_9', 'Encoder_10', 'Encoder_11', 'Encoder_11', 'Encoder_4', 'Encoder_5', 'Encoder_10', 'Encoder_6'];
 Warning = ['missing', 'device', 'assignment', 'for', 'the', 'currently', 'selected', 'channel', ' ', ' ', ' ', ' '];
 
@@ -3519,6 +3539,16 @@ function check_device_id(id, channel)
 			{
 				drumgroup_is_present = true;
 				found = parseInt(finder.id);
+			}
+			else
+			{
+				finder.goto('canonical_parent');
+				finder.goto('canonical_parent');
+				if(finder.get('class_name')=='DrumGroupDevice')
+				{
+					drumgroup_is_present = true;
+					found = parseInt(finder.id);
+				}
 			}
 		}
 		if(!found)
@@ -3697,7 +3727,7 @@ function showerror()
 	}
 }
 
-//Used for UI warning.  Uses the lcd objects to display an error message.
+//Used for UI warning.	Uses the lcd objects to display an error message.
 function hideerror()
 {
 	pns.device_name.message('text', 'Drumrack Found');

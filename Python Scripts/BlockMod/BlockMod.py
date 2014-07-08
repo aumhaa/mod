@@ -17,15 +17,11 @@ from _Framework.ControlSurfaceComponent import ControlSurfaceComponent # Base cl
 from _Framework.DeviceComponent import DeviceComponent # Class representing a device in Live
 from _Framework.EncoderElement import EncoderElement # Class representing a continuous control on the controller
 from _Framework.InputControlElement import * # Base class for all classes representing control elements on a controller
-from _Framework.MixerComponent import MixerComponent # Class encompassing several channel strips to form a mixer
 from _Framework.ModeSelectorComponent import ModeSelectorComponent # Class for switching between modes, handle several functions with few controls
 from _Framework.NotifyingControlElement import NotifyingControlElement # Class representing control elements that can send values
 from _Framework.SceneComponent import SceneComponent # Class representing a scene in Live
 from _Framework.SessionComponent import SessionComponent # Class encompassing several scene to cover a defined section of Live's session
-from _Framework.SessionZoomingComponent import SessionZoomingComponent # Class using a matrix of buttons to choose blocks of clips in the session
 from _Framework.SliderElement import SliderElement # Class representing a slider on the controller
-from _Framework.TrackEQComponent import TrackEQComponent # Class representing a track's EQ, it attaches to the last EQ device in the track
-from _Framework.TrackFilterComponent import TrackFilterComponent # Class representing a track's filter, attaches to the last filter in the track
 from _Framework.TransportComponent import TransportComponent # Class encapsulating all functions in Live's transport section
 
 from _Framework.ModesComponent import AddLayerMode, LayerMode, MultiEntryMode, ModesComponent, SetAttributeMode, ModeButtonBehaviour, CancellableBehaviour, AlternativeBehaviour, ReenterBehaviour, DynamicBehaviourMixin, ExcludingBehaviourMixin, ImmediateBehaviour, LatchingBehaviour, ModeButtonBehaviour
@@ -42,15 +38,16 @@ from _Mono_Framework.MonoButtonElement import MonoButtonElement
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
 from _Mono_Framework.DeviceSelectorComponent import DeviceSelectorComponent
 from _Mono_Framework.ResetSendsComponent import ResetSendsComponent
-from _Mono_Framework.DetailViewControllerComponent import DetailViewControllerComponent
-from _Mono_Framework.MonomodComponent import MonomodComponent
+from _Mono_Framework.DeviceNavigator import DeviceNavigator
 from _Mono_Framework.LiveUtils import *
+from _Mono_Framework.Debug import *
 
 """Custom files, overrides, and files from other scripts"""
-from MonOhm.MonOhm import MonOhm, FunctionModeComponent
+from MonOhm.MonOhm import MonOhm, FunctionModeComponent, MonomodModeComponent
 from _Generic.Devices import *
 from Map import *
 
+debug = initialize_debug()
 
 """ Here we define some global variables """
 switchxfader = (240, 00, 01, 97, 02, 15, 01, 247)
@@ -72,6 +69,7 @@ SHIFT_L = (69)
 
 SHIFT_R = (70)
 
+
 class CancellableBehaviourWithRelease(CancellableBehaviour):
 
 
@@ -86,6 +84,7 @@ class CancellableBehaviourWithRelease(CancellableBehaviour):
 		value = (mode == selected_mode or bool(groups & selected_groups))*32 or 1
 		button.send_value(value, True)
 	
+
 
 class ShiftCancellableBehaviourWithRelease(CancellableBehaviour):
 
@@ -147,15 +146,13 @@ class BlockModShiftModeComponent(ModeSelectorComponent):
 			if((value > 0) and ((side is 'left' and self._toggle2_value > 0) or (side is 'right' and self._toggle1_value > 0))):
 				if(self._last_mode is 0):
 					self._last_mode = 1
-					self.set_mode(4) #self.set_mode(self._last_mode)
+					self.set_mode(4)
 				else:
 					self._last_mode = 0
-					#self.set_mode(self._last_mode)
 					if(side is 'left'):
 						self.set_mode(2)
 					if(side is 'right'):
 						self.set_mode(3)
-			#elif((value > 0) and ((side is 'left' and self._toggle2_value > 0) or (side is 'right' and self._toggle1_value > 0))):	
 			elif(value is 0) and (self._toggle1_value is 0) and (self._toggle2_value is 0):
 				self.set_mode(self._last_mode)
 			elif(value > 0 and self._last_mode is 1):
@@ -172,47 +169,6 @@ class BlockModShiftModeComponent(ModeSelectorComponent):
 	
 
 
-class MonomodModeComponent(ModeSelectorComponent):
-
-
-	def __init__(self, script, callback, *a, **k):
-		super(MonomodModeComponent, self).__init__()
-		self._script = script
-		self.update = callback
-		self._set_protected_mode_index(0)
-	
-
-	def set_mode_buttons(self, buttons):
-		for button in self._modes_buttons:
-			button.remove_value_listener(self._mode_value)
-		self._modes_buttons = []
-		if (buttons != None):
-			for button in buttons:
-				assert isinstance(button, ButtonElement)
-				identify_sender = True
-				button.add_value_listener(self._mode_value, identify_sender)
-				self._modes_buttons.append(button)
-			for index in range(len(self._modes_buttons)):
-				if (index == self._mode_index):
-					self._modes_buttons[index].turn_on()
-				else:
-					self._modes_buttons[index].turn_off()
-	
-
-	def set_mode_toggle(self, button):
-		assert ((button == None) or isinstance(button, ButtonElement or FlashingButtonElement))
-		if (self._mode_toggle != None):
-			self._mode_toggle.remove_value_listener(self._toggle_value)
-		self._mode_toggle = button
-		if (self._mode_toggle != None):
-			self._mode_toggle.add_value_listener(self._toggle_value)
-	
-
-	def number_of_modes(self):
-		return 2
-	
-
-
 class BlockMod(MonOhm):
 	__module__ = __name__
 	__doc__ = " Monomodular controller script for Livid Block "
@@ -220,9 +176,6 @@ class BlockMod(MonOhm):
 
 	def __init__(self, *a, **k):
 		self._shift_button = None
-		#self._shift_pressed = 0
-		#self._shift_pressed_timer = 0
-		#self._shift_thresh = SHIFT_THRESH
 		super(BlockMod, self).__init__(*a, **k)
 		self._host_name = 'BlockMod'
 		self._color_type = 'Monochrome'
@@ -232,7 +185,7 @@ class BlockMod(MonOhm):
 		self._ohm_type = 'static'
 		self._pad_translations = PAD_TRANSLATION
 		self._mem = [4, 8, 12, 16]
-		#self._host._navbox_selected = 8
+		self.modhandler._color_type = 'Monochrome'
 	
 
 	"""script initialization methods"""
@@ -244,7 +197,7 @@ class BlockMod(MonOhm):
 	def _setup_controls(self):
 		is_momentary = True
 		self._fader = [None for index in range(8)]
-		self._dial = [None for index in range(16)]
+		self._dial = [None for index in range(8)]
 		self._button = [None for index in range(8)]
 		self._menu = [None for index in range(6)]
 		for index in range(2):
@@ -284,6 +237,8 @@ class BlockMod(MonOhm):
 		self._dummy_button2.name = 'Dummy2'
 		self._dummy_button3 = ButtonElement(is_momentary, MIDI_NOTE_TYPE, 15, 127)
 		self._dummy_button2.name = 'Dummy3'
+		self._dial_matrix = ButtonMatrixElement()
+		self._dial_matrix.add_row(self._dial)
 	
 
 	def _setup_transport_control(self):
@@ -295,9 +250,36 @@ class BlockMod(MonOhm):
 		pass
 	
 
+	def _setup_layers(self):
+		self._device_navigator.layer = Layer(priority = 5, prev_button = self._menu[2], next_button = self._menu[3])
+		self._device.mod_layer = AddLayerMode(self._device, Layer(priority = 5, bank_prev_button = self._menu[0], bank_next_button = self._menu[1]))
+		self._transport.mod_layer = AddLayerMode(self._transport, Layer(priority = 5, play_button = self._menu[2], stop_button = self._menu[3]))
+		self.modhandler.set_mod_button(self._livid)
+		self.modhandler.layer = Layer(priority = 5, 
+									grid = self._monomod,
+									nav_up_button = self._menu[0],
+									nav_down_button = self._menu[1],
+									nav_left_button = self._menu[2],
+									nav_right_button =  self._menu[3],
+									shift_button = self._shift_r,
+									parameter_controls = self._dial_matrix)
+									#alt_button = self._shift_l,
+		self.modhandler.legacy_shift_mode = AddLayerMode(self.modhandler, Layer(priority = 6,
+									channel_buttons = self._monomod.submatrix[:, 1:2],
+									nav_matrix = self._monomod.submatrix[4:8, 2:6]))
+		self.modhandler.shift_mode = AddLayerMode(self.modhandler, Layer(priority = 6, 
+									lock_button = self._livid,
+									device_selector_matrix = self._monomod.submatrix[:, :1],
+									key_buttons = self._monomod.submatrix[:, 7:8]))
+		self.modhandler.shiftlock_mode = AddLayerMode(self.modhandler, Layer(priority = 6, 
+									key_buttons = self._monomod.submatrix[:, 7:8]))
+	
+
 	def _setup_modes(self):
 		self._monomod_mode = MonomodModeComponent(self, self.monomod_mode_update)
 		self._monomod_mode.name = 'Monomod_Mode'
+		#self._monomod_mode.layer = Layer(priority = 3, mode_toggle = self._livid)
+		self._monomod_mode.set_enabled(True)
 		#self.set_shift_button(self._livid)
 		self._on_shift_doublepress_value.subject = self._livid.double_press
 		self._shift_mode = BlockModShiftModeComponent(self, self.shift_update) 
@@ -310,30 +292,6 @@ class BlockMod(MonOhm):
 		self._m_function_mode = FunctionModeComponent(self, self.m_function_update)
 		self._m_function_mode.name = 'Main_Function_Mode'
 		self._function_modes = [self._l_function_mode, self._r_function_mode, self._m_function_mode]
-	
-
-
-	"""livid double press mechanism"""
-	def set_shift_button(self, button):
-		assert ((button == None) or (isinstance(button, MonoButtonElement)))
-		if self._shift_button != None:
-			self._shift_button.remove_value_listener(self._shift_value)
-		self._shift_button = button
-		if self._shift_button != None:
-			self._shift_button.add_value_listener(self._shift_value)
-	
-
-	def _shift_value(self, value):
-		"""self._shift_pressed = int(value != 0)
-		if self._shift_pressed > 0:
-			if (self._shift_pressed_timer + self._shift_thresh) > self._timer:
-				if(self._host._active_client != None):
-					if(self._host.is_enabled() != True):
-						self._monomod_mode.set_mode(1)
-					else:
-						self._monomod_mode.set_mode(0)
-			else:
-				self._shift_pressed_timer = self._timer % 256"""
 	
 
 	@subject_slot('value')
@@ -707,10 +665,10 @@ class BlockMod(MonOhm):
 					self.set_highlighting_session_component(self._session_main)
 					self._session_main._do_show_highlight()
 				self._device_selector.set_enabled(True)
-			#self.modhandler._shift_value(int(self._shift_mode._mode_index>1))
 		else:
 			for mode in self._function_modes:
 				mode.set_enabled(False)
+			#self.modhandler._shift_value(int(self._shift_mode._mode_index>1))
 		self.allow_updates(True)
 		#self.set_suppress_rebuild_requests(False)
 		self._clutch_device_selection = False
@@ -718,34 +676,6 @@ class BlockMod(MonOhm):
 			self._monobridge._send('touch', 'off')
 		else:
 			self._monobridge._send('touch', 'on')
-	
-
-	def monomod_mode_update(self):
-		if(self._monomod_mode._mode_index == 0):
-			self.modhandler.set_enabled(False)
-			self.modhandler.set_grid(None)
-			self.modhandler.set_nav_buttons(None)
-			self.modhandler.set_shiftlock_button(None)
-			self.modhandler.set_alt_button(None)
-			self._livid.turn_off()
-			self._shift_mode.set_mode_toggle(self._shift_l, self._shift_r)
-			self._shift_mode.update()
-			#self._session._reassign_scenes()
-
-		elif(self._monomod_mode._mode_index == 1):
-			self._livid.turn_on()
-			self.deassign_matrix()
-			self.deassign_menu()
-			#self._monomod.reset()
-			self.modhandler.set_grid(self._monomod)
-			self.modhandler.set_nav_buttons(self._menu[0:4])
-			self.modhandler.set_shiftlock_button(self._shift_l)
-			self.modhandler.set_alt_button(self._shift_r)
-			self.modhandler.set_shift_button(self._livid)
-			self.modhandler.set_enabled(True)
-			self._shift_mode.set_mode_toggle(None, None)
-			#self._shift_mode.update()
-			self.show_message('Monomod grid enabled')
 	
 
 	"""left control management methods"""
@@ -828,7 +758,8 @@ class BlockMod(MonOhm):
 	def deassign_menu(self):
 		self._device.set_lock_button(None)
 		self._device.set_on_off_button(None)
-		self._device_navigator.set_device_nav_buttons(None, None)	
+		#self._device_navigator.set_device_nav_buttons(None, None)	
+		self._device_navigator.set_enabled(False)
 		self._device.set_bank_nav_buttons(None, None)
 		self._transport.set_play_button(None)	
 		self._transport.set_record_button(None) 
@@ -836,14 +767,13 @@ class BlockMod(MonOhm):
 		self._transport.set_loop_button(None)	
 		self._transport.set_overdub_button(None)	
 		self._session.set_stop_all_clips_button(None)
-		self._transport.set_play_button(None)	
-		self._transport.set_stop_button(None)
 		self._session_main.set_track_bank_buttons(None, None)
 		self._session_main.set_scene_bank_buttons(None, None)
 	
 
 	def assign_device_nav_to_menu(self):
-		self._device_navigator.set_device_nav_buttons(self._menu[2], self._menu[3]) 
+		#self._device_navigator.set_device_nav_buttons(self._menu[2], self._menu[3]) 
+		self._device_navigator.set_enabled(True)
 		self._device.set_bank_nav_buttons(self._menu[0], self._menu[1])
 	
 
@@ -860,7 +790,8 @@ class BlockMod(MonOhm):
 	
 
 	def assign_monomod_shift_to_menu(self):
-		self._device_navigator.set_device_nav_buttons(self._menu[3], self._menu[2]) 
+		#self._device_navigator.set_device_nav_buttons(self._menu[3], self._menu[2])
+		self._device_navigator.set_enabled(True)
 		self._device.set_bank_nav_buttons(self._menu[1], self._menu[0])
 	
 

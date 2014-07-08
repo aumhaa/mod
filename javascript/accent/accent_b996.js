@@ -21,9 +21,10 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = true;
+var FORCELOAD = false;
+var NEW_DEBUG = false;
 var DEBUG = false;
-var DEBUG_NEW = true;
+var DEBUG_NEW = false;
 var DEBUG_LCD = 0;
 var DEBUG_PTR = 0;
 var DEBUG_STEP = 0;
@@ -32,6 +33,16 @@ var DEBUG_REC = 0;
 var DEBUG_LOCK = 0;
 var DEBUG_FRWL = 0;
 var SHOW_POLYSELECTOR = 0;
+
+var debug = (NEW_DEBUG&&Debug) ? Debug : function(){};
+var debuglcd = (DEBUG_LCD&&Debug) ? Debug : function(){};
+var debugptr = (DEBUG_PTR&&Debug) ? Debug :function(){};
+var debugstep = (DEBUG_STEP&&Debug) ? Debug : function(){};
+var debugblink = (DEBUG_BLINK&&Debug) ? Debug : function(){};
+var debugrec = (DEBUG_REC&&Debug) ? Debug : function(){};
+
+
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 
 var unique = jsarguments[1];
@@ -169,22 +180,6 @@ var time2 = 4;
 
 var shifted = false;
 
-function debug()
-{
-	if(DEBUG_NEW)
-	{
-		var args = arrayfromargs(arguments);
-		for(var i in args)
-		{
-			if(args[i] instanceof Array)
-			{
-				args[i] = args[i].join(' ');
-			}
-		}
-		post('debug->', args, '\n');
-	}
-}
-
 /*/////////////////////////////////////////
 ///// script initialization routines //////
 /////////////////////////////////////////*/
@@ -207,6 +202,16 @@ _private_function().
 
 Note:  It is best to only address these private functions by their actual names in the script, since calling aliased 
 names will not be routed to anything()*/
+
+var GRIDMAP =[	[undefined, undefined, undefined, undefined, 'pads_0', 'pads_1', 'pads_2', 'pads_3'],
+				['buttons_0', 'buttons_1', 'buttons_2', 'buttons_3', 'pads_4', 'pads_5', 'pads_6', 'pads_7'],
+				['buttons_4', 'buttons_5', 'buttons_6', 'buttons_7', 'pads_8', 'pads_9', 'pads_10', 'pads_11'],
+				[undefined, undefined, undefined, undefined, 'pads_12', 'pads_13', 'pads_14', 'pads_15'],
+				['keys_0', 'keys_1', 'keys_2', 'keys_3', 'keys_4', 'keys_5', 'keys_6', 'keys_7'],
+				['keys2_0', 'keys2_1', 'keys2_2', 'keys2_3', 'keys2_4', 'keys2_5', 'keys2_6', 'keys2_7'],
+				['keys_8', 'keys_9', 'keys_10', 'keys_11', 'keys_12', 'keys_13', 'keys_14', 'keys_15'],
+				['keys2_8', 'keys2_9', 'keys2_10', 'keys2_11', 'keys2_12', 'keys2_13', 'keys2_14', 'keys2_15']]
+
 
 function setup_colors()
 {
@@ -231,9 +236,13 @@ function setup_translations()
 		outlet(0, 'add_translation', 'keys2_'+i, 'code_grid', 'code_keys2', i%8, Math.floor(i/8)+2);
 
 
-		outlet(0, 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', i%8, Math.floor(i/8)+2);
-		outlet(0, 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', i%8, Math.floor(i/8)+4);
+		/*outlet(0, 'add_translation', 'pads_'+i, 'grid', 'push_pads', i%8, Math.floor(i/8));
+		outlet(0, 'add_translation', 'keys_'+i, 'grid', 'push_keys', i%8, Math.floor(i/8)+2);
+		outlet(0, 'add_translation', 'keys2_'+i, 'grid', 'push_keys2', i%8, Math.floor(i/8)+4);*/
+
+		outlet(0, 'add_translation', 'pads_'+i, 'grid', 'ohm_pads', (i%4)+4, Math.floor(i/4));
+		outlet(0, 'add_translation', 'keys_'+i, 'grid', 'ohm_keys', i%8, (i < 8 ? 4 : 6));
+		outlet(0, 'add_translation', 'keys2_'+i, 'grid', 'ohm_keys2', i%8, (i < 8 ? 5 : 7));
 	}
 	outlet(0, 'enable_translation_group', 'base_keys', 0);
 	outlet(0, 'enable_translation_group', 'code_keys', 0);
@@ -251,8 +260,9 @@ function setup_translations()
 		outlet(0, 'add_translation', 'extras_'+i, 'code_grid', 'code_extras', i, 3);
 
 
-		outlet(0, 'add_translation', 'buttons_'+i, 'push_grid', i, 6);
-		outlet(0, 'add_translation', 'extras_'+i, 'push_grid', i, 7);
+		//outlet(0, 'add_translation', 'buttons_'+i, 'grid', i, 6);
+		//outlet(0, 'add_translation', 'extras_'+i, 'grid', i, 7);
+		outlet(0, 'add_translation', 'buttons_'+i, 'grid', 'ohm_buttons', i%4, Math.floor(i/4)+1);
 	}
 	outlet(0, 'enable_translation_group', 'code_buttons', 0);
 	outlet(0, 'enable_translation_group', 'code_extras', 0);
@@ -270,7 +280,7 @@ function initialize(val)
 	{
 		//live_set = new LiveAPI(this.patcher, cb_tempo, 'live_set');
 		//live_set.property = 'tempo';
-		if(DEBUG){post('simple init\n');}
+		debug('simple init\n');
 		setup_translations();
 		for(var i in Vars)
 		{
@@ -328,8 +338,8 @@ function initialize(val)
 		storage.message('recall', 1);
 		init_device();
 		select_pattern(0);
-		outlet(0, 'receive_device', 'mod_set_device_type', 'Simple');
-		outlet(0, 'receive_device', 'mod_set_number_params', 12);
+		outlet(0, 'receive_device', 'set_mod_device_type', 'Simple');
+		outlet(0,'receive_device', 'set_number_params', 16);
 		var i=3;do{
 			outlet(0, 'to_wheel', i, 2, 'mode', 0);
 		}while(i--);
@@ -541,9 +551,42 @@ function anything()
 }
 
 //this sorts grid presses
+function _grid(x, y, val)
+{
+	if(y<4)
+	{
+		if(x>3)
+		{
+			grid_in(x-4, y, val);
+		}
+		else if((y>0)&&(y<3))
+		{
+			button_in(x, y-1, val);
+		}
+	}
+	else
+	{
+		switch(y)
+		{
+			case 4:
+				key_in(x, val);
+				break;
+			case 5:
+				key_in(x + 16, val);
+				break;
+			case 6:
+				key_in(x + 8, val);
+				break;
+			case 7:
+				key_in(x + 24, val);
+				break;
+		}
+	}
+}
+
 function _base_grid(x, y, val)
 {
-	if(DEBUG){post('_base_grid', x, y, val, '\n');}
+	debug('_base_grid', x, y, val);
 	if(shifted)
 	{
 		if(y<2)
@@ -580,6 +623,11 @@ function _cntrlr_key (x, y, val)
 	key_in(x+(y*16), val);
 }
 
+function _cntrlr_encoder_button_grid(x, y, val)
+{
+	button_in(x, y, val);
+}
+
 function _shift(val)
 {
 	if(DEBUG){post('shift:', val, '\n');}
@@ -606,7 +654,7 @@ function _shift(val)
 //distribute presses received from mod.js
 function button_in(x, y, val)
 {
-	//if(DEBUG){post('button_in', x, y, val, '\n');}
+	debug('button_in', x, y, val);
 	switch(y)
 	{
 		case 0:
@@ -2074,7 +2122,7 @@ var params = [];
 var dials = [];
 
 var Encoders = ['Encoder_0', 'Encoder_1', 'Encoder_2', 'Encoder_3', 'Encoder_4', 'Encoder_5', 'Encoder_6', 'Encoder_7', 'Encoder_8', 'Encoder_9', 'Encoder_10', 'Encoder_11'];
-var Dials =  ['RepeatLen', 'Groove', 'Random', 'Volume'];
+var Dials =  ['RepeatLen', 'Groove', 'Random', 'RotSize'];
 Warning = ['Missing', 'DrumRack.', 'Please', 'insert', 'and', 'press', 'Detect', 'Rack.', ' ', ' ', ' ', ' '];
 
 //var Warning = ['No device', 'was found.', 'Place a', 'DrumRack', 'next to', 'this mod', 'and press', '\"Detect',	'DrumRack\"', 'get', 'started.', ' '];
@@ -2139,7 +2187,7 @@ function detect_drumrack()
 			finder.goto('devices', i);
 			if(finder.get('class_name')=='DrumGroupDevice')
 			{
-				//if(DEBUG){post("\nDrumRack found");}
+				debug("\nDrumRack found");
 				devices[0] = parseInt(finder.id);
 				//if(DEBUG){post('DrumRack found', devices[0], '\n');}
 			}
@@ -2216,7 +2264,7 @@ function _select_chain(chain_num)
 		//outlet(0, 'set_device_parent', devices[selected.channel]);
 		//outlet(0, 'set_device_chain', Math.max(0, Math.min(chain_num + global_offset, 112)));
 		outlet(0, 'send_explicit', 'receive_device', 'set_mod_device_parent', 'id', devices[selected.channel]);
-		outlet(0, 'receive_device', 'set_mod_device_chain', Math.max(0, Math.min(chain_num + global_offset - global_chain_offset, 112)));
+		outlet(0, 'receive_device', 'set_mod_drum_pad', Math.max(0, Math.min(chain_num + global_offset - global_chain_offset, 112)));
 
 	}
 	else
@@ -2235,18 +2283,24 @@ function _select_chain(chain_num)
 //sort calls to the internal LCD
 function _lcd(obj, type, val)
 {
-	//if(DEBUG_LCD){post('lcd', obj, type, val, '\n');}
+	debuglcd('lcd', obj, type, val);
 	if(val==undefined)
 	{
 		val = '_';
 	}
 	if((type=='lcd_name'))
 	{
-		pns[obj].message('text', val.replace(/_/g, ' '));
+		if(pns[obj])
+		{
+			pns[obj].message('text', val.replace(/_/g, ' '));
+		}
 	}
 	else if((type == 'lcd_value'))
 	{
-		mps[obj].message('text', val.replace(/_/g, ' '));
+		if(mps[obj])
+		{
+			mps[obj].message('text', val.replace(/_/g, ' '));
+		}
 	}
 	else if(type == 'encoder_value')
 	{
@@ -2314,13 +2368,4 @@ function hideerror()
 	}
 }
 
-
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
-{
-	if(FORCELOAD){init();}
-}
-
-forceload();
+forceload(this);

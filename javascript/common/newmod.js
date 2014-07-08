@@ -7,7 +7,6 @@ var patch_type = jsarguments[1]||'info';
 var unique = jsarguments[2]||'';
 var wiki_addy = 'http://www.aumhaa.com/wiki/index.php?title='+patch_type;
 var script = this;
-var DEBUG = false;
 var MONOMODULAR=new RegExp(/(monomodular)/);
 var FUNCTION = new RegExp(/(function)/);
 var PROPERTY = new RegExp(/(property)/);
@@ -20,21 +19,11 @@ var legacy = false;
 var control_surface_ids = {0:true};
 var restart = new Task(init, this);
 
+var DEBUG = false;
+var debug = (DEBUG&&Debug) ? Debug : function(){};
 
-function Debug()
-{
-	var args = arrayfromargs(arguments);
-	for(var i in args)
-	{
-		if(args[i] instanceof Array)
-		{
-			args[i] = args[i].join(' ');
-		}
-	}
-	post('debug->', args, '\n');
-}
-
-if(DEBUG){script['debug'] = script['Debug'];}
+var FORCELOAD = false;
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 function init()
 {
@@ -140,6 +129,19 @@ function init()
 	}
 }
 
+function _disconnect()
+{
+	for(var address in modAddresses)
+	{
+		script[modAddresses[address]] = anything;
+	}
+	for(var func in modFunctions)
+	{
+		script[modFunctions[func]] = anything;
+	}
+	restart.schedule(3000);
+}
+
 function assign_attributes()
 {
 	for(var i=0;i<jsarguments.length;i++)
@@ -209,7 +211,7 @@ function callback(args)
 		outlet(0, args.slice(1));
 		if(args[1]=='disconnect')
 		{
-			restart.schedule(3000);
+			_disconnect();
 		}
 	}
 }
@@ -240,4 +242,4 @@ function send_explicit()
 
 function debug(){}
 
-
+forceload(script);

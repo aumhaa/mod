@@ -677,7 +677,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 
 	def _select_parent_chain(self, chain, force = False):
 		#self.log_message('_select_parent_chain ' + str(chain)) # + ' ' + str(self.is_enabled()))
-		self._device_chain = chain  #self._chain = chain  
+		self._device_chain = chain  #self._chain = chain 
 		if self._device_parent != None:
 			if isinstance(self._device_parent, Live.Device.Device):
 				if self._device_parent.can_have_chains:
@@ -699,9 +699,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 			if isinstance(self._device_parent, Live.Device.Device):
 				if self._device_parent.can_have_drum_pads and self._device_parent.has_drum_pads:
 					pad = self._device_parent.drum_pads[pad]
-					self._parent.log_message('pad is: ' + str(pad))
-					#for item in dir(pad):
-					#	self._parent.log_message(str(item))
+					#self._parent.log_message('pad is: ' + str(pad))
 					if pad.chains and pad.chains[0] and pad.chains[0].devices and isinstance(pad.chains[0].devices[0], Live.Device.Device):
 						self.set_device(pad.chains[0].devices[0], force)
 					elif 'NoDevice' in self._device_banks.keys():

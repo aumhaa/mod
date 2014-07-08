@@ -3383,6 +3383,7 @@ function pop(val)
 			break;
 	}		
 }
+
 function pop(){}
 
 /*///////////////////////////
@@ -3508,6 +3509,16 @@ function check_device_id(id, channel)
 			{
 				drumgroup_is_present = true;
 				found = parseInt(finder.id);
+			}
+			else
+			{
+				finder.goto('canonical_parent');
+				finder.goto('canonical_parent');
+				if(finder.get('class_name')=='DrumGroupDevice')
+				{
+					drumgroup_is_present = true;
+					found = parseInt(finder.id);
+				}
 			}
 		}
 		if(!found)

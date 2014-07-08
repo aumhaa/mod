@@ -1,8 +1,13 @@
 autowatch = 1;
 
-var FORCELOAD = false;
-var DEBUG = false;
+
 var DEBUGX = false;
+
+var DEBUG = false;
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+
+var FORCELOAD = false;
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 var script = this;
 var prefix = jsarguments[1];
@@ -590,21 +595,21 @@ function setup_translations()
 	//Push stuff:
 	for(var i = 0;i < 16;i++)
 	{
-		outlet(0, 'add_translation', 'circle_'+i, 'push_grid', 'circle', circle[i][0], circle[i][1]);
+		outlet(0, 'add_translation', 'circle_'+i, 'grid', 'circle', circle[i][0], circle[i][1]);
 	}
 	for(var i = 0;i < 4;i++)
 	{
-		outlet(0, 'add_translation', 'instance_'+i, 'push_grid', 'instance', (i%2)+6, Math.floor(i/2)+6);
+		outlet(0, 'add_translation', 'instance_'+i, 'grid', 'instance', (i%2)+6, Math.floor(i/2)+6);
 	}
-	outlet(0, 'add_translation', 'undo', 'push_grid', 'all', 0, 6);
-	outlet(0, 'add_translation', 'overdub', 'push_grid', 'all', 1, 6);
-	outlet(0, 'add_translation', 'record', 'push_grid', 'all', 2, 6);
-	outlet(0, 'add_translation', 'mute', 'push_grid', 'all', 3, 6);
-	outlet(0, 'add_translation', 'clear', 'push_grid', 'all', 4, 6);
-	outlet(0, 'add_translation', 'quantize', 'push_grid', 'all', 5, 7);
-	outlet(0, 'add_translation', 'dummy_row_batch', 'push_grid', 'all', 7);
-	outlet(0, 'add_translation', 'speed_column_batch', 'push_grid', 'all', 7);
-	outlet(0, 'add_translation', 'inertia_column_batch', 'push_grid', 'all', 6);
+	outlet(0, 'add_translation', 'undo', 'grid', 'all', 0, 6);
+	outlet(0, 'add_translation', 'overdub', 'grid', 'all', 1, 6);
+	outlet(0, 'add_translation', 'record', 'grid', 'all', 2, 6);
+	outlet(0, 'add_translation', 'mute', 'grid', 'all', 3, 6);
+	outlet(0, 'add_translation', 'clear', 'grid', 'all', 4, 6);
+	outlet(0, 'add_translation', 'quantize', 'grid', 'all', 5, 7);
+	outlet(0, 'add_translation', 'dummy_row_batch', 'grid', 'all', 7);
+	outlet(0, 'add_translation', 'speed_column_batch', 'grid', 'all', 7);
+	outlet(0, 'add_translation', 'inertia_column_batch', 'grid', 'all', 6);
 
 	//Base stuff:
 	for(var i = 0;i < 8;i++)
@@ -777,12 +782,4 @@ function dummy_callback(){}
 	looper.groovelength.message(loop_size*2);
 }*/
 
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
-{
-	if(FORCELOAD){init(1);}
-}
-
-forceload();
+forceload(this);

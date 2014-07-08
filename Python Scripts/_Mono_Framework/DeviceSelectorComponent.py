@@ -171,8 +171,6 @@ class NewDeviceSelectorComponent(ControlSurfaceComponent):
 
 	def disconnect(self, *a, **k):
 		super(NewDeviceSelectorComponent, self).disconnect()
-		if self.song().appointed_device_has_listener(self._device_listener):
-			self.song().remove_appointed_device_listener(self._device_listener)
 	
 
 	def set_offset(self, offset):
@@ -239,7 +237,7 @@ class NewDeviceSelectorComponent(ControlSurfaceComponent):
 				if(match(key, str(device.name)) != None):
 					self._device_registry[index] = device
 		self.update()
-		self.log_message('device registry: ' + str(self._device_registry))
+		#self.log_message('device registry: ' + str(self._device_registry))
 	
 
 	def enumerate_track_device(self, track):
@@ -283,7 +281,6 @@ class NewDeviceSelectorComponent(ControlSurfaceComponent):
 			dev = self.song().appointed_device
 			offset = self._offset
 			if self._buttons:
-				#self.log_message('has buttons...')
 				for index in range(len(self._buttons)):
 					preset = self._device_registry[index]
 					button = self._buttons[index]

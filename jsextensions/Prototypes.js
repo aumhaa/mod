@@ -58,11 +58,10 @@ function Forceload(script)
 
 var DEBUG_MOD = false;
 
-function ModComponent(parent, type, unique, legacy, attrs)
+function ModComponent(parent, callback, type, unique, legacy, attrs)
 {
 	var self = this;
-	this._parent = parent;
-	this.patcher = parent.patcher;
+	this.parent = parent;
 	this.debug = DEBUG_MOD ? Debug : function(){};
 	this.patch_type = type||'info';
 	this.unique = unique||'---';
@@ -78,31 +77,39 @@ function ModComponent(parent, type, unique, legacy, attrs)
 	this.stored_messages = [];
 	this.control_surface_ids = {0:true};
 	this.restart = new Task(this.init, this);
+	this.finder = undefined;
 	this.callback = function(args)
 	{
 		if((args[0]=='value')&&(args[1]!='bang'))
 		{
-			//self.debug('from client:', args);
-			//outlet(0, args.slice(1));
-			try
+			if(args[1] in parent)
 			{
-				self._parent[args[1]](args.slice(2));
+				parent[args[1]].apply(parent, args.slice(2));
 			}
-			catch(err)
+			else
 			{
-				//self.debug('receive error:', args.slice(2));
-				if(args.length > 1)
-				{
-					self._parent[args[1]] = self._parent.anything;
-				}
+				parent.anything(args.slice(1));
 			}
 			if(args[1]=='disconnect')
 			{
-				self.restart.schedule(3000);
+				
+				self.disconnect;
 			}
 		}
 	}	
-	this.finder = undefined;
+}
+
+ModComponent.prototype.disconnect = function()
+{
+	for(var address in this.modAddresses)
+	{
+		delete this[this.modAddresses[address]];
+	}
+	for(var func in this.modFunctions)
+	{
+		delete this[this.modFunctions[func]];
+	}
+	self.restart.schedule(3000);
 }
 
 ModComponent.prototype.assign_api = function(finder)
@@ -184,9 +191,9 @@ ModComponent.prototype.init = function()
 						}
 						this.debug('setting legacy', this.legacy);
 						this.finder.call('set_legacy', parseInt(this.legacy));
-						if(this._parent.alive)
+						if(this.parent.alive)
 						{
-							this._parent.alive(1);
+							this.parent.alive(1);
 						}
 						this.send_stored_messages();
 					}
