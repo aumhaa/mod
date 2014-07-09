@@ -219,7 +219,7 @@ var GRIDMAP =[	[undefined, undefined, undefined, undefined, 'pads_0', 'pads_1', 
 
 function setup_colors()
 {
-	mod.Send( 'fill_color_map', 'Monochrome', 0, 1, 1, 1, 8, 1);
+	mod.Send( 'fill_color_map', 'Monochrome', 1, 8, 1, 1, 8, 1);
 }
 
 function setup_translations()
@@ -315,6 +315,7 @@ function initialize(val)
 		//live_set.property = 'tempo';
 		debug('simple init\n');
 		setup_translations();
+		setup_colors();
 		for(var i in Vars)
 		{
 			script[Vars[i]] = this.patcher.getnamed(Vars[i]);
