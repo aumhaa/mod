@@ -3487,7 +3487,8 @@ function detect_drumrack()
 			{
 				debug("\nDrumRack found");
 				devices[0] = parseInt(finder.id);
-				post('DrumRack found', devices[0], '\n');
+				//if(DEBUG){post('DrumRack found', devices[0], '\n');}
+				break;
 			}
 		}
 	}
@@ -3531,33 +3532,22 @@ function check_device_id(id, channel)
 	debug('device_id', id, '\n');
 	if(id>0)
 	{
-		if(channel == 0)
+		if(selected.channel == 0)
 		{
-			drumgroup_is_present = false;
 			finder.id = id;
+			if(finder.get('class_name')=='DrumGroupDevice')
+			{
+				found = parseInt(finder.id);
+			}
+		}
+		else
+		{
+			finder.goto('canonical_parent');
+			finder.goto('canonical_parent');
 			if(finder.get('class_name')=='DrumGroupDevice')
 			{
 				drumgroup_is_present = true;
 				found = parseInt(finder.id);
-			}
-			else
-			{
-				finder.goto('canonical_parent');
-				finder.goto('canonical_parent');
-				if(finder.get('class_name')=='DrumGroupDevice')
-				{
-					drumgroup_is_present = true;
-					found = parseInt(finder.id);
-				}
-			}
-		}
-		if(!found)
-		{	
-			finder.goto('this_device');
-			//post('class:', finder.get('class_name'), '\n');
-			if (parseInt(finder.id) != id)
-			{
-				found = id;
 			}
 		}
 	}

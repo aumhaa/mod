@@ -77,6 +77,7 @@ function ModComponent(parent, callback, type, unique, legacy, attrs)
 	this.stored_messages = [];
 	this.control_surface_ids = {0:true};
 	this.restart = new Task(this.init, this);
+	this.wiki_addy = 'http://www.aumhaa.com/wiki/index.php?title=Main_Page';
 	this.finder = undefined;
 	this.callback = function(args)
 	{
@@ -311,5 +312,10 @@ ModComponent.prototype.Send = function()
 		this.debug('Send error:', err, args);
 		this.anything(arguments);
 	}
+}
+
+ModComponent.prototype.wiki = function()
+{
+	this.max.launchbrowser(this.wiki_addy);
 }
 
