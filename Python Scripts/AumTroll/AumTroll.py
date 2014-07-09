@@ -42,6 +42,7 @@ from _Mono_Framework.DeviceSelectorComponent import DeviceSelectorComponent
 from _Mono_Framework.DetailViewControllerComponent import DetailViewControllerComponent
 from _Mono_Framework.MonoDeviceComponent import MonoDeviceComponent
 from _Mono_Framework.LiveUtils import *
+from _Mono_Framework.Debug import *
 
 debug = initialize_debug()
 

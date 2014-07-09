@@ -44,8 +44,7 @@ from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
 from _Mono_Framework.ResetSendsComponent import ResetSendsComponent
 from _Mono_Framework.DeviceSelectorComponent import DeviceSelectorComponent
 from _Mono_Framework.DetailViewControllerComponent import DetailViewControllerComponent
-from _Mono_Framework.MonomodComponent import MonomodComponent
-from _Mono_Framework.MonoDeviceComponent import MonoDeviceComponent
+from _Mono_Framework.MonoDeviceComponent import NewMonoDeviceComponent
 from _Mono_Framework.LiveUtils import *
 from _Mono_Framework.Debug import *
 
