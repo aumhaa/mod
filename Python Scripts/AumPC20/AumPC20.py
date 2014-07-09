@@ -43,14 +43,15 @@ from _APC.SkinDefault import make_default_skin, make_biled_skin
 from _APC.DetailViewCntrlComponent import DetailViewCntrlComponent
 from _APC.RingedEncoderElement import RingedEncoderElement
 
+from MonoRingedEncoderElement import MonoRingedEncoderElement
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement
 from _Mono_Framework.MonoButtonElement import MonoButtonElement
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
-from _Mono_Framework.MonomodComponent import MonomodComponent
 from _Mono_Framework.Debug import *
 from _Mono_Framework.Mod import *
 
-from MonoRingedEncoderElement import MonoRingedEncoderElement
+debug = initialize_debug()
+
 
 
 MapMode = Live.MidiMap.MapMode

@@ -34,7 +34,6 @@ from _Framework.Task import *
 from _Framework.M4LInterfaceComponent import M4LInterfaceComponent
 from _Framework.ComboElement import ComboElement, DoublePressElement, MultiElement, DoublePressContext
 
-from _Mono_Framework.MonomodComponent import MonomodComponent
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement

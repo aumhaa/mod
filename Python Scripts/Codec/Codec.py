@@ -39,11 +39,12 @@ from _Mono_Framework.DeviceSelectorComponent import NewDeviceSelectorComponent a
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement
 from _Mono_Framework.MonoButtonElement import MonoButtonElement
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
-from _Mono_Framework.MonomodComponent import MonomodComponent
 from _Mono_Framework.Live8DeviceComponent import Live8DeviceComponent as DeviceComponent
 from _Mono_Framework.LiveUtils import *
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
+
+debug = initialize_debug()
 
 from Map import *
 
@@ -1468,6 +1469,8 @@ class CodecModHandler(ModHandler):
 					'code_button': {'obj':  Array('code_button', 4), 'method': self._receive_code_button}}
 		super(CodecModHandler, self).__init__(addresses = addresses, *a, **k)
 		self._color_type = 'Monochrome'
+		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 2, 2, self.set_offset))
+
 		self._colors = range(128)
 	
 
@@ -1495,6 +1498,10 @@ class CodecModHandler(ModHandler):
 				self._code_encoder_grid_value.subject.get_button(x, y).set_green(k['green'])
 			if 'custom' in keys:
 				self._code_encoder_grid_value.subject.get_button(x, y).set_custom(k['custom'])
+			if 'local' in keys:
+				self._receive_code_encoder_grid_local(k['local'])
+			if 'relative' in keys:
+				self._receive_code_encoder_grid_relative(k['relative'])
 	
 
 	def _receive_code_encoder_grid_relative(self, value, *a):
@@ -1601,8 +1608,6 @@ class CodecModHandler(ModHandler):
 		#self.log_message('modhandler update: ' + str(mod))
 		if self.is_enabled() and not mod is None:
 			mod.restore()
-			if mod.legacy:
-				self._shift_value.subject and self._shift_value.subject.is_pressed() and self._display_nav_box()
 		else:
 			#self._script.log_message('disabling modhandler')
 			self._script._send_midi(tuple([240, 0, 1, 97, 4, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247]))

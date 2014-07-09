@@ -91,6 +91,8 @@ from _Mono_Framework.ResetSendsComponent import ResetSendsComponent
 from _Mono_Framework.Debug import *
 from _Mono_Framework.Mod import *
 
+debug = initialize_debug()
+
 from MonoScaleComponent import MonoScaleComponent
 
 from ModDevices import *

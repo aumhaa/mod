@@ -48,6 +48,9 @@ from _Mono_Framework.ResetSendsComponent import ResetSendsComponent
 from _Mono_Framework.DetailViewControllerComponent import DetailViewControllerComponent
 from _Mono_Framework.Mod import *
 from _Mono_Framework.LiveUtils import *
+from _Mono_Framework.Debug import *
+
+debug = initialize_debug()
 
 """Custom files, overrides, and files from other scripts"""
 #from SpecialMonomodComponent import SpecialMonomodComponent
