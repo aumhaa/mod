@@ -131,11 +131,21 @@ class BlockModShiftModeComponent(ModeSelectorComponent):
 			self._mode_toggle2.add_value_listener(self._toggle_value_right)
 	
 
+	def set_toggle1(self, button):
+		self._toggle_value_left.subject = button
+	
+
+	def set_toggle2(self, button):
+		self._toggle_value_right.subject = button
+	
+
+	@subject_slot('value')
 	def _toggle_value_left(self, value):
 		self._toggle1_value = value
 		self._toggle_value(value, 'left')
 	
 
+	@subject_slot('value')
 	def _toggle_value_right(self, value):
 		self._toggle2_value = value
 		self._toggle_value(value, 'right')
@@ -250,6 +260,11 @@ class BlockMod(MonOhm):
 		pass
 	
 
+	def _setup_mod(self):
+		super(BlockMod, self)._setup_mod()
+		self.modhandler.nav_box.on_value = 8
+	
+
 	def _setup_layers(self):
 		self._device_navigator.layer = Layer(priority = 5, prev_button = self._menu[2], next_button = self._menu[3])
 		self._device.mod_layer = AddLayerMode(self._device, Layer(priority = 5, bank_prev_button = self._menu[0], bank_next_button = self._menu[1]))
@@ -262,11 +277,11 @@ class BlockMod(MonOhm):
 									nav_left_button = self._menu[2],
 									nav_right_button =  self._menu[3],
 									shift_button = self._shift_r,
+									alt_button = self._shift_l,
 									parameter_controls = self._dial_matrix)
-									#alt_button = self._shift_l,
 		self.modhandler.legacy_shift_mode = AddLayerMode(self.modhandler, Layer(priority = 6,
 									channel_buttons = self._monomod.submatrix[:, 1:2],
-									nav_matrix = self._monomod.submatrix[4:8, 2:6]))
+									nav_matrix = self._monomod.submatrix[:4, 2:6]))
 		self.modhandler.shift_mode = AddLayerMode(self.modhandler, Layer(priority = 6, 
 									lock_button = self._livid,
 									device_selector_matrix = self._monomod.submatrix[:, :1],
@@ -278,13 +293,14 @@ class BlockMod(MonOhm):
 	def _setup_modes(self):
 		self._monomod_mode = MonomodModeComponent(self, self.monomod_mode_update)
 		self._monomod_mode.name = 'Monomod_Mode'
-		#self._monomod_mode.layer = Layer(priority = 3, mode_toggle = self._livid)
+		self._monomod_mode.layer = Layer(priority = 5, mode_toggle = self._livid)
 		self._monomod_mode.set_enabled(True)
-		#self.set_shift_button(self._livid)
 		self._on_shift_doublepress_value.subject = self._livid.double_press
 		self._shift_mode = BlockModShiftModeComponent(self, self.shift_update) 
 		self._shift_mode.name = 'Shift_Mode'
-		self._shift_mode.set_mode_toggle(self._shift_l, self._shift_r)
+		#self._shift_mode.set_mode_toggle(self._shift_l, self._shift_r)
+		self._shift_mode.layer = Layer(priority = 3, toggle1 = self._shift_l, toggle2 = self._shift_r)
+		self._shift_mode.set_enabled(True)
 		self._l_function_mode = FunctionModeComponent(self, self.l_function_update)
 		self._l_function_mode.name = 'Left_Function_Mode'
 		self._r_function_mode = FunctionModeComponent(self, self.r_function_update)
@@ -296,7 +312,8 @@ class BlockMod(MonOhm):
 
 	@subject_slot('value')
 	def _on_shift_doublepress_value(self, value):
-		self._monomod_mode.set_mode(abs(self._monomod_mode._mode_index -1))
+		#self._monomod_mode.set_mode(abs(self._monomod_mode._mode_index -1))
+		pass
 	
 
 	"""shift/zoom methods"""
@@ -596,8 +613,8 @@ class BlockMod(MonOhm):
 		self.deassign_menu()
 		if(self._monomod_mode._mode_index is 0):		#if monomod is not on
 			if(self._shift_mode._mode_index is 0):							#if no shift is pressed
-				self._shift_mode._mode_toggle1.turn_off()
-				self._shift_mode._mode_toggle2.turn_off()
+				#self._shift_mode._mode_toggle1.turn_off()
+				#self._shift_mode._mode_toggle2.turn_off()
 				if(self.split_mixer() is False):
 					self.set_split_mixer(True)
 				for zoom in self._zooms:
@@ -617,8 +634,8 @@ class BlockMod(MonOhm):
 				self._session._do_show_highlight()	
 				#self._session.set_show_highlight(True)
 			elif(self._shift_mode._mode_index is 1):						#if no shift is pressed, but mixer is linked
-				self._shift_mode._mode_toggle1.turn_on()
-				self._shift_mode._mode_toggle2.turn_on()
+				#self._shift_mode._mode_toggle1.turn_on()
+				#self._shift_mode._mode_toggle2.turn_on()
 				if(self.split_mixer() is True):
 					self.set_split_mixer(False)
 				for zoom in self._zooms:
@@ -637,7 +654,7 @@ class BlockMod(MonOhm):
 				self.assign_device_nav_to_menu()
 				self.deassign_channel_select_buttons()
 				if(self._shift_mode._mode_index is 2):					#if shift left
-					self._shift_mode._mode_toggle1.turn_on()
+					#self._shift_mode._mode_toggle1.turn_on()
 					self.zoom_left()
 					self._session_zoom._on_zoom_value(1)
 					self._session.set_enabled(True) #this is a workaround so that the stop buttons still function
@@ -645,7 +662,7 @@ class BlockMod(MonOhm):
 					self.set_highlighting_session_component(self._session)
 					self._session._do_show_highlight()
 				elif(self._shift_mode._mode_index is 3):				#if shift right
-					self._shift_mode._mode_toggle2.turn_on()
+					#self._shift_mode._mode_toggle2.turn_on()
 					self.zoom_right()
 					self._session_zoom2._on_zoom_value(1)
 					self._session2.set_enabled(True)  #this is a workaround so that the stop buttons still function
@@ -655,8 +672,8 @@ class BlockMod(MonOhm):
 						self.set_highlighting_session_component(self._session2)
 						self._session2._do_show_highlight()
 				elif(self._shift_mode._mode_index is 4):				#if either shift pressed while mixer is linked
-					self._shift_mode._mode_toggle1.turn_on()
-					self._shift_mode._mode_toggle2.turn_on()
+					#self._shift_mode._mode_toggle1.turn_on()
+					#self._shift_mode._mode_toggle2.turn_on()
 					self.zoom_main()
 					self._session_zoom_main._on_zoom_value(1)
 					self._session_main.set_enabled(True) #this is a workaround so that the stop buttons still function

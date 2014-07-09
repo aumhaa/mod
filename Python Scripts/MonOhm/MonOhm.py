@@ -1864,5 +1864,10 @@ class OhmModHandler(ModHandler):
 
 	
 
+	def on_enabled_changed(self):
+		self.shift_mode.leave_mode()
+		self.legacy_shift_mode.leave_mode()
+		self.shiftlock_mode.leave_mode()
+	
 
 #	a
