@@ -19,7 +19,7 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
+var FORCELOAD = true;
 var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
@@ -570,16 +570,18 @@ function setup_translations()
 		mod.Send( 'add_translation', 'keys_'+i, 'grid', 'ohm_keys', i%8, (i < 8 ? 2 : 3));
 		mod.Send( 'add_translation', 'keys2_'+i, 'grid', 'ohm_keys2', i%8, (i < 8 ? 4 : 5));
 	}
-	mod.Send( 'add_translation', 'pads_batch', 'grid', 'ohm_pads', 0, 8);
-	mod.Send( 'add_translation', 'keys_batch', 'grid', 'ohm_keys', 2, 8);
-	mod.Send( 'add_translation', 'keys2_batch', 'grid', 'ohm_keys2', 4, 8); 
+	mod.Send( 'add_translation', 'pads_batch', 'grid', 'ohm_pads', 0);
+	mod.Send( 'add_translation', 'keys_batch', 'grid', 'ohm_keys', 2);
+	mod.Send( 'add_translation', 'keys_batch_fold', 'grid', 'ohm_keys', 2, 8);
+	mod.Send( 'add_translation', 'keys2_batch', 'grid', 'ohm_keys2', 4);
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'grid', 'ohm_keys2', 4, 8); 
 	for(var i=0;i<8;i++)
 	{
 		mod.Send( 'add_translation', 'buttons_'+i, 'grid', 'ohm_buttons', i, 6);
 		mod.Send( 'add_translation', 'extras_'+i, 'grid', 'ohm_extras', i, 7);
 	}
-	//mod.Send( 'add_translation', 'buttons_batch', 'grid', 'ohm_buttons', 6);
-	//mod.Send( 'add_translation', 'extras_batch', 'grid', 'ohm_extras', 7);
+	mod.Send( 'add_translation', 'buttons_batch', 'grid', 'ohm_buttons', 6);
+	mod.Send( 'add_translation', 'extras_batch', 'grid', 'ohm_extras', 7);
 
 	//Base stuff:
 	for(var i = 0;i < 16;i++)
@@ -590,7 +592,9 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'pads_batch', 'base_grid', 'base_pads', 0);
 	mod.Send( 'add_translation', 'keys_batch', 'base_grid', 'base_keys', 0);
+	mod.Send( 'add_translation', 'keys_batch_fold', 'base_grid', 'base_keys', 0, 8);
 	mod.Send( 'add_translation', 'keys2_batch', 'base_grid', 'base_keys2', 2); 
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys', 0, 8);
 	mod.Send( 'enable_translation_group', 'base_keys', 0);
 
 	for(var i=0;i<8;i++)
@@ -612,7 +616,9 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'pads_batch', 'code_grid', 'code_pads', 0);
 	mod.Send( 'add_translation', 'keys_batch', 'code_grid', 'code_keys', 0);
+	mod.Send( 'add_translation', 'keys_batch_fold', 'code_grid', 'code_keys', 0, 8);
 	mod.Send( 'add_translation', 'keys2_batch', 'code_grid', 'code_keys2', 2); 
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'code_grid', 'code_keys', 2, 8);
 	mod.Send( 'enable_translation_group', 'code_keys', 0);
 
 	for(var i=0;i<8;i++)
@@ -634,7 +640,9 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'pads_batch', 'push_grid', 'push_pads', 0);
 	mod.Send( 'add_translation', 'keys_batch', 'push_grid', 'push_keys', 2);
+	mod.Send( 'add_translation', 'keys_batch_fold', 'push_grid', 'push_keys', 2, 8);
 	mod.Send( 'add_translation', 'keys2_batch', 'push_grid', 'push_keys2', 4); 
+	mod.Send( 'add_translation', 'keys_batch_fold', 'push_grid', 'push_keys', 4, 8);
 	for(var i=0;i<8;i++)
 	{
 		mod.Send( 'add_translation', 'buttons_'+i, 'push_grid', 'push_buttons', i, 6);
@@ -654,7 +662,9 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'pads_batch', 'cntrlr_grid', 'cntrlr_pads', 0);
 	mod.Send( 'add_translation', 'keys_batch', 'cntrlr_key', 'cntrlr_keys', 0);
+	mod.Send( 'add_translation', 'keys_batch_fold', 'cntrlr_key', 'cntrlr_keys', 0, 16);
 	mod.Send( 'add_translation', 'keys2_batch', 'cntrlr_key', 'cntrlr_keys2', 1); 
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'cntrlr_key', 'cntrlr_keys', 1, 16);
 	for(var i=0;i<8;i++)
 	{
 		mod.Send( 'add_translation', 'buttons_'+i, 'cntrlr_encoder_button_grid', 'cntrlr_buttons', i);
@@ -762,7 +772,7 @@ function refresh_c_keys()
 	var i = 15;do{
 		pattern.unshift(selected.pattern[i] * StepColors[i]);
 	}while(i--);
-	mod.Send( 'receive_translation', 'keys2_batch', 'batch_row_fold', pattern);
+	mod.Send( 'receive_translation', 'keys2_batch_fold', 'batch_row_fold', pattern);
 	var batch = [];
 	switch(key_mode)
 	{
@@ -773,7 +783,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 		case 2:
 			var i=15;do{
@@ -781,7 +791,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, selected.behavior[i]+8);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch);			
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);			
 			break;
 		case 3:
 			var p = presets[selected.num]-1;
@@ -791,7 +801,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 		case 4:
 			var p = presets[selected.num]-1;
@@ -801,7 +811,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 		case 5:
 			var i=15;do{
@@ -809,7 +819,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, 4);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			mod.Send( 'receive_translation', 'keys_'+i, 'mask', selected.note[current_step], 5);
 			break;
 		case 6:
@@ -818,7 +828,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 		case 7:
 			var i=15;do{
@@ -826,7 +836,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 		default:
 			var i=15;do{
@@ -835,7 +845,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 				pattern.push(selected.pattern[i] * StepColors[i]);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_row_fold', batch); 
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
 			break;
 	}		 
 }
