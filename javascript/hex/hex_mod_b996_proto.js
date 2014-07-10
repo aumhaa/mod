@@ -19,8 +19,8 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = true;
-var NEW_DEBUG = true;
+var FORCELOAD = false;
+var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
 var DEBUG_PTR = false;
@@ -230,7 +230,7 @@ var Mod = ModComponent.bind(script);
 function init()
 {
 	mod = new Mod(script, 'hex', unique, false);
-	mod.debug = debug;
+	//mod.debug = debug;
 	mod_finder = new LiveAPI(mod_callback, 'this_device');
 	mod.assign_api(mod_finder);
 }
@@ -239,10 +239,9 @@ function mod_callback(args)
 {
 	if((args[0]=='value')&&(args[1]!='bang'))
 	{
-		debug('mod callback:', args);
+		//debug('mod callback:', args);
 		if(args[1] in script)
 		{
-			debug('in script:', args[1]);
 			script[args[1]].apply(script, args.slice(2));
 		}
 		if(args[1]=='disconnect')
@@ -3485,7 +3484,8 @@ function detect_drumrack()
 			finder.goto('devices', i);
 			if(finder.get('class_name')=='DrumGroupDevice')
 			{
-				debug("\nDrumRack found");
+				drumgroup_is_present = true;
+				debug("DrumRack found");
 				devices[0] = parseInt(finder.id);
 				//if(DEBUG){post('DrumRack found', devices[0], '\n');}
 				break;
@@ -3537,7 +3537,9 @@ function check_device_id(id, channel)
 			finder.id = id;
 			if(finder.get('class_name')=='DrumGroupDevice')
 			{
+				drumgroup_is_present = true;
 				found = parseInt(finder.id);
+				debug('found at:', finder.get('name'));
 			}
 		}
 		else
@@ -3548,6 +3550,7 @@ function check_device_id(id, channel)
 			{
 				drumgroup_is_present = true;
 				found = parseInt(finder.id);
+				debug('found at 2nd pass: ', finder.get('name'));
 			}
 		}
 	}
@@ -3586,7 +3589,7 @@ function _select_chain(chain_num)
 function _lcd(obj, type, val)
 {
 	//post('new_lcd', obj, type, val, '\n');
-	if(DEBUG_LCD){post('lcd', obj, type, val, '\n');}
+	debuglcd('lcd', obj, type, val, '\n');
 	if((type=='lcd_name')&&(val!=undefined))
 	{
 		if(pns[obj])
