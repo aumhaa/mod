@@ -34,6 +34,7 @@ class MonoButtonElement(ButtonElement):
 		self._off_value = 0
 		self._darkened = 0
 		self._is_enabled = True
+		self._force_forwarding = False
 		self._is_notifying = False
 		self._force_next_value = False
 		self._parameter = None
@@ -125,7 +126,7 @@ class MonoButtonElement(ButtonElement):
 
 
 	def script_wants_forwarding(self):
-		if not self._is_enabled:
+		if not self._is_enabled and not self._force_forwarding:
 			return False
 		else:
 			return InputControlElement.script_wants_forwarding(self)

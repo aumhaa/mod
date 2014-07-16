@@ -28,12 +28,13 @@ class TranslationComponent(CompoundComponent):
 		buttons = self._on_channel_seletor_button_value.subject
 		if buttons:
 			for button, coords in buttons.iterbuttons():
-				channel = self._channel - self._user_channel_offset
-				selected = coords[0] + (coords[1]*buttons.width())
-				if channel == selected:
-					button.turn_on()
-				else:
-					button.turn_off()
+				if button:
+					channel = self._channel - self._user_channel_offset
+					selected = coords[0] + (coords[1]*buttons.width())
+					if channel == selected:
+						button.turn_on()
+					else:
+						button.turn_off()
 	
 
 	@subject_slot('value')
