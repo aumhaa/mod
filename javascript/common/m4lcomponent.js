@@ -9,8 +9,12 @@ var M4LCOMPONENT=new RegExp(/(M4LInterface)/);
 var control_names = [];
 var controls = {};
 var excluded = ['control', 'control_names', 'done'];
-debug = Debug;
-forceload = Forceload;
+
+var DEBUG = false;
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+
+var FORCELOAD = false;
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
 
 if(typeof(String.prototype.trim) === "undefined")
 {
@@ -109,6 +113,17 @@ function release(name)
 	else
 	{
 		debug('Control name:', name, 'isnt registered.');
+	}
+}
+
+function send_value()
+{
+	var args = arrayfromargs(arguments)
+	var obj = controls[args[0]]
+	if((obj)&&(obj.property!=''))
+	{
+		debug('args', args.slice(1))
+		obj.call('send_value', args[1], args[2], args[3])
 	}
 }
 
