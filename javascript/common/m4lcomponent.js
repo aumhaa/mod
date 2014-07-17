@@ -22,7 +22,7 @@ if(typeof(String.prototype.trim) === "undefined")
 
 function init()
 {
-	finder = new LiveAPI(callback, 'control_surfaces', 1);
+	finder = new LiveAPI(callback, 'control_surfaces', 0);
 	var components = finder.get('components');
 	for (var i in components)
 	{

@@ -1010,8 +1010,10 @@ class MonoInstrumentComponent(CompoundComponent):
 		super(MonoInstrumentComponent, self).update()
 		if self.is_enabled():
 			self._leave_sub_modes()
+			new_mode = 'Disabled'
 			if self._mod and self._mod.active_mod():
 				self.mod_layer.enter_mode()
+				new_mode = 'Mod'
 			else:
 				cur_track = self.song().view.selected_track
 				if cur_track.has_midi_input:

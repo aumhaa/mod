@@ -7,7 +7,7 @@ Created by amounra on 2012-12-30.
 This file allows the reassignment of the controls from their default arrangement.  The order is from left to right; 
 Buttons are Note #'s and Faders/Rotaries are Controller #'s
 """
-OSC_TRANSMIT = True
+OSC_TRANSMIT = False
 
 OSC_OUTPORT = 9001
 
