@@ -11,6 +11,8 @@ OSC_TRANSMIT = False
 
 OSC_OUTPORT = 9001
 
+SHIFT_LATCHING = False
+
 CHANNEL = 0		#main channel (0 - 15)
 
 BASE_PADS = [60, 61, 62, 63, 64, 65, 66, 67, 52, 53, 54, 55, 56, 57, 58, 59, 44, 45, 46, 47, 48, 49, 50, 51, 36, 37, 38, 39, 40, 41, 42, 43]	#there are 16 of these
