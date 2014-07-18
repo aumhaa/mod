@@ -1011,61 +1011,61 @@ class MonoInstrumentComponent(CompoundComponent):
 		if self.is_enabled():
 			self._leave_sub_modes()
 			new_mode = 'Disabled'
-			if self._mod and self._mod.active_mod():
-				self.mod_layer.enter_mode()
-				new_mode = 'Mod'
-			else:
-				cur_track = self.song().view.selected_track
-				if cur_track.has_midi_input:
-					cur_chan = self._get_current_channel(cur_track)
-					offsets = self._current_device_offsets(self._offsets[cur_chan])
-					scale, split, sequencer = offsets['scale'], offsets['split'], offsets['sequencer']
-					if scale == 'Auto':
-						scale = detect_instrument_type(cur_track)
-					if not scale is 'DrumPad':
-						self._drumpad.set_enabled(False)
-						self._keypad.set_enabled(True)
-						if split:
-							if sequencer:
-								if self.is_shifted():
-									self._keypad.sequencer_shift_layer.enter_mode()
-								else:
-									self._keypad.sequencer_layer.enter_mode()
+			#if self._mod and self._mod.active_mod():
+			#	self.mod_layer.enter_mode()
+			#	new_mode = 'Mod'
+			#else:
+			cur_track = self.song().view.selected_track
+			if cur_track.has_midi_input:
+				cur_chan = self._get_current_channel(cur_track)
+				offsets = self._current_device_offsets(self._offsets[cur_chan])
+				scale, split, sequencer = offsets['scale'], offsets['split'], offsets['sequencer']
+				if scale == 'Auto':
+					scale = detect_instrument_type(cur_track)
+				if not scale is 'DrumPad':
+					self._drumpad.set_enabled(False)
+					self._keypad.set_enabled(True)
+					if split:
+						if sequencer:
+							if self.is_shifted():
+								self._keypad.sequencer_shift_layer.enter_mode()
 							else:
-								self._keypad.split_layer.enter_mode()
+								self._keypad.sequencer_layer.enter_mode()
 						else:
-							self._keypad.main_layer.enter_mode()
-						if self.is_shifted():
-							self.keypad_shift_layer.enter_mode()
-						else:
-							self.keypad_shift_layer.leave_mode()
+							self._keypad.split_layer.enter_mode()
 					else:
-						self._keypad.set_enabled(False)
-						self._drumpad.set_enabled(True)
-						if split:
-							if sequencer:
-								if self.is_shifted():
-									self._drumpad.sequencer_shift_layer.enter_mode()
-								else:
-									self._drumpad.sequencer_layer.enter_mode()
-							else:
-								self._drumpad.split_layer.enter_mode()
-						else:
-							self._drumpad.main_layer.enter_mode()
-						if self.is_shifted():
-							self.drumpad_shift_layer.enter_mode()
-						else:
-							self.drumpad_shift_layer.leave_mode()
-					#self._script.set_feedback_channels(range(cur_chan, cur_chan+1) + [14])
-					self._script.set_feedback_channels(range(14, 15))
-				elif cur_track.has_audio_input:
-					self.audioloop_layer.enter_mode()
-					self._script.set_feedback_channels(range(15, 16))
-					self._script.release_controlled_track()
+						self._keypad.main_layer.enter_mode()
+					if self.is_shifted():
+						self.keypad_shift_layer.enter_mode()
+					else:
+						self.keypad_shift_layer.leave_mode()
 				else:
-					self._leave_all_modes()
-					self._script.set_feedback_channels(range(15, 16))
-					self._script.release_controlled_track()
+					self._keypad.set_enabled(False)
+					self._drumpad.set_enabled(True)
+					if split:
+						if sequencer:
+							if self.is_shifted():
+								self._drumpad.sequencer_shift_layer.enter_mode()
+							else:
+								self._drumpad.sequencer_layer.enter_mode()
+						else:
+							self._drumpad.split_layer.enter_mode()
+					else:
+						self._drumpad.main_layer.enter_mode()
+					if self.is_shifted():
+						self.drumpad_shift_layer.enter_mode()
+					else:
+						self.drumpad_shift_layer.leave_mode()
+				#self._script.set_feedback_channels(range(cur_chan, cur_chan+1) + [14])
+				self._script.set_feedback_channels(range(14, 15))
+			elif cur_track.has_audio_input:
+				self.audioloop_layer.enter_mode()
+				self._script.set_feedback_channels(range(15, 16))
+				self._script.release_controlled_track()
+				#else:
+				#	self._leave_all_modes()
+				#	self._script.set_feedback_channels(range(15, 16))
+				#	self._script.release_controlled_track()
 		else:
 			self._leave_all_modes()
 			self._script.set_feedback_channels(range(15, 16))
