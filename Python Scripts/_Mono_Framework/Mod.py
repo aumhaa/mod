@@ -563,9 +563,10 @@ class ModHandler(CompoundComponent):
 		self._on_lock_value.subject and self._on_lock_value.subject.send_value(1 + (int(self.is_locked())*4), True)
 	
 
-	def select_mod(self, mod):
+	def select_mod(self, mod = None):
 		self._active_mod = mod
 		self._colors = range(128)
+		debug('new mod is:--------------------------------', mod)
 		for mod in self.modrouter._mods:
 			if self in mod._active_handlers:
 				mod._active_handlers.remove(self)
@@ -585,12 +586,25 @@ class ModHandler(CompoundComponent):
 	def _on_device_changed(self):
 		#debug('modhandler on_device_changed')
 		if not self.is_locked() or self.active_mod() is None:
-			self.modrouter._task_group.add(sequence(delay(2), self.select_appointed_device))
+			#self.modrouter._task_group.add(sequence(delay(2), self.select_appointed_device))
+			self.select_appointed_device()
+	
+
+	def on_selected_track_changed(self):
+		#debug('modhandler on_device_changed')
+		if not self.is_locked() or self.active_mod() is None:
+			#self.modrouter._task_group.add(sequence(delay(2), self.select_appointed_device))
+			self.select_appointed_device()
 	
 
 	def select_appointed_device(self, *a):
-		#debug('select_appointed_device' + str(a))
-		self.select_mod(self.modrouter.is_mod(self.song().appointed_device))
+		debug('select_appointed_device' + str(a))
+		track = self.song().view.selected_track
+		device_to_select = track.view.selected_device
+		if device_to_select == None and len(track.devices) > 0:
+			device_to_select = track.devices[0]
+		self.select_mod(self.modrouter.is_mod(device_to_select))
+
 	
 
 	def set_parameter_controls(self, controls):
@@ -662,7 +676,6 @@ class ModHandler(CompoundComponent):
 		if isinstance(self.active_mod(), Live.Device.Device):
 			self.song().view.select_device(self.active_mod().linked_device())
 	
-
 
 	def set_grid(self, grid):
 		#debug('set grid:' + str(grid))
@@ -868,6 +881,12 @@ class ModHandler(CompoundComponent):
 	def set_nav_right_button(self, button):
 		if not self.nav_box is None:
 			self.nav_box.set_nav_right_button(button)
+	
+
+	def on_enabled_changed(self):
+		super(ModHandler, self).on_enabled_changed()
+		#if not self.is_enabled():
+		#	self._instrument and self._instrument.set_enabled(False)
 	
 
 
@@ -1483,14 +1502,14 @@ class ModRouter(CompoundComponent):
 					device = device.view.selected_chain.devices[0]
 			except:
 				pass
-		debug('pass device: ' + str(device))
+		#debug('pass device: ' + str(device))
 		if not device is None:
 			for mod in self._mods:
-				debug('mod in mods: ' + str(mod.device))
+				#debug('mod in mods: ' + str(mod.device))
 				if mod.device == device:
 					mod_device = mod
 					break
-		debug('returned device: ' + str(mod_device))
+		#debug('returned device: ' + str(mod_device))
 		return mod_device
 	
 

@@ -194,6 +194,9 @@ def reset_matrix(matrix):
 				button.set_enabled(True)
 
 
+def _add_to_mode(mode, add):
+	return mode + add
+
 
 class CancellableBehaviourWithRelease(CancellableBehaviour):
 
@@ -613,15 +616,13 @@ class MonoScaleDisplayComponent(ControlSurfaceComponent):
 class MonoInstrumentComponent(CompoundComponent):
 
 
-	def __init__(self, script, skin, grid_resolution, mod = None, *a, **k):
+	def __init__(self, script, skin, grid_resolution, *a, **k):
 		super(MonoInstrumentComponent, self).__init__(*a, **k)
 		self._script = script
-		self._mod = mod
 		self._skin = skin
 		self._grid_resolution = grid_resolution
 		self.keypad_shift_layer = AddLayerMode(self, Layer(priority = 0))
 		self.drumpad_shift_layer = AddLayerMode(self, Layer(priority = 0))
-		self.mod_layer = AddLayerMode(self, Layer(priority = 0))
 		self.audioloop_layer = LayerMode(self, Layer(priority = 0))
 		self._cur_chan = 0
 
@@ -666,13 +667,15 @@ class MonoInstrumentComponent(CompoundComponent):
 		#self._audio_loop.layer = Layer(loop_selector_matrix=self._matrix)
 		self.set_loop_selector_matrix = self._audio_loop.set_loop_selector_matrix
 
-		self.register_components(self._audio_loop, self._vertical_offset_component, self._offset_component, self._scale_offset_component, self._drum_offset_component)
+		self._main_modes = ModesComponent()
+
+		self.register_components(self._main_modes, self._audio_loop, self._vertical_offset_component, self._offset_component, self._scale_offset_component, self._drum_offset_component)
 		# self._keypad, self._drumpad, 
+
+		self._setup_modes()
 
 		self._drum_group_finder = DrumGroupFinderComponent()
 		self._on_drum_group_changed.subject = self._drum_group_finder
-
-
 
 		self.on_selected_track_changed()
 	
@@ -814,19 +817,16 @@ class MonoInstrumentComponent(CompoundComponent):
 	@subject_slot('value')
 	def _on_shift_value(self, value):
 		self._shifted = value
-		self._leave_all_modes()
 		self.update()
 		self._drumpad._step_sequencer._drum_group._on_select_value(value)
 	
 
 	def _enable_shift(self):
 		self._on_shift_value(1)
-		debug('enable shift')
 	
 
 	def _disable_shift(self):
 		self._on_shift_value(0)
-		debug('disable shift')
 	
 
 	@subject_slot('value')
@@ -838,6 +838,7 @@ class MonoInstrumentComponent(CompoundComponent):
 	def set_octave_enable_button(self, button):
 		self._on_octave_enable_value.subject = button
 	
+
 	@subject_slot('value')
 	def _on_octave_enable_value(self, value):
 		self._offset_component._shift_value(value)
@@ -947,38 +948,6 @@ class MonoInstrumentComponent(CompoundComponent):
 				self.update()
 	
 
-	def _leave_all_modes(self):
-		self._leave_shift_modes()
-		self._leave_sub_modes()
-	
-
-	def _leave_shift_modes(self):
-		debug('main is leaving all modes now')
-		self.keypad_shift_layer and self.keypad_shift_layer.leave_mode()
-		self.drumpad_shift_layer and self.drumpad_shift_layer.leave_mode()
-	
-
-	def _leave_sub_modes(self):
-		self._drumpad.main_layer and self._drumpad.main_layer.leave_mode()
-		self._drumpad.split_layer and self._drumpad.split_layer.leave_mode()
-		self._drumpad.sequencer_layer and self._drumpad.sequencer_layer.leave_mode()
-		self._drumpad.sequencer_shift_layer and self._drumpad.sequencer_shift_layer.leave_mode()
-		self._keypad.main_layer and self._keypad.main_layer.leave_mode()
-		self._keypad.split_layer and self._keypad.split_layer.leave_mode()
-		self._keypad.sequencer_layer and self._keypad.sequencer_layer.leave_mode()
-		self._keypad.sequencer_shift_layer and self._keypad.sequencer_shift_layer.leave_mode()
-		self.audioloop_layer.leave_mode()
-		self.mod_layer.leave_mode()
-	
-
-	def update(self):
-		if not self.is_enabled():
-			self._selected_session.deassign_all()
-			self._script.set_highlighting_session_component(self._script._session)
-			self._script._session._do_show_highlight()
-	
-
-	#@subject_slot('value')
 	def on_selected_track_changed(self):
 		#debug('instrument track changed, updating')
 		self._selected_session.update_current_track()
@@ -1009,74 +978,45 @@ class MonoInstrumentComponent(CompoundComponent):
 	def update(self):
 		super(MonoInstrumentComponent, self).update()
 		if self.is_enabled():
-			self._leave_sub_modes()
-			new_mode = 'Disabled'
-			#if self._mod and self._mod.active_mod():
-			#	self.mod_layer.enter_mode()
-			#	new_mode = 'Mod'
-			#else:
+			new_mode = 'disabled'
 			cur_track = self.song().view.selected_track
-			if cur_track.has_midi_input:
+			if cur_track.has_audio_input:
+				new_mode = 'audioloop'
+			elif cur_track.has_midi_input:
 				cur_chan = self._get_current_channel(cur_track)
 				offsets = self._current_device_offsets(self._offsets[cur_chan])
 				scale, split, sequencer = offsets['scale'], offsets['split'], offsets['sequencer']
 				if scale == 'Auto':
 					scale = detect_instrument_type(cur_track)
-				if not scale is 'DrumPad':
-					self._drumpad.set_enabled(False)
-					self._keypad.set_enabled(True)
-					if split:
-						if sequencer:
-							if self.is_shifted():
-								self._keypad.sequencer_shift_layer.enter_mode()
-							else:
-								self._keypad.sequencer_layer.enter_mode()
-						else:
-							self._keypad.split_layer.enter_mode()
-					else:
-						self._keypad.main_layer.enter_mode()
-					if self.is_shifted():
-						self.keypad_shift_layer.enter_mode()
-					else:
-						self.keypad_shift_layer.leave_mode()
-				else:
-					self._keypad.set_enabled(False)
-					self._drumpad.set_enabled(True)
-					if split:
-						if sequencer:
-							if self.is_shifted():
-								self._drumpad.sequencer_shift_layer.enter_mode()
-							else:
-								self._drumpad.sequencer_layer.enter_mode()
-						else:
-							self._drumpad.split_layer.enter_mode()
-					else:
-						self._drumpad.main_layer.enter_mode()
-					if self.is_shifted():
-						self.drumpad_shift_layer.enter_mode()
-					else:
-						self.drumpad_shift_layer.leave_mode()
-				#self._script.set_feedback_channels(range(cur_chan, cur_chan+1) + [14])
+				new_mode = ['keypad', 'drumpad'][int(scale is 'DrumPad')]
+				debug('here')
+				if split:
+					new_mode += ['_split', '_sequencer'][int(sequencer)]
+				if self.is_shifted():
+					new_mode += '_shifted'
 				self._script.set_feedback_channels(range(14, 15))
-			elif cur_track.has_audio_input:
-				self.audioloop_layer.enter_mode()
-				self._script.set_feedback_channels(range(15, 16))
-				self._script.release_controlled_track()
-				#else:
-				#	self._leave_all_modes()
-				#	self._script.set_feedback_channels(range(15, 16))
-				#	self._script.release_controlled_track()
-		else:
-			self._leave_all_modes()
-			self._script.set_feedback_channels(range(15, 16))
-			self._script.release_controlled_track()
+
+			debug('new mode is:', new_mode)
+			self._main_modes.selected_mode = new_mode
 	
 
-
-	#if self.pad_held():
-	#	for index in range(len(self._last_pad_stream)):
-	#	self._stream_pads[index].press_flash(self._last_pad_stream[index])
-
+	def _setup_modes(self):
+		self._main_modes.add_mode('disabled', [])
+		self._main_modes.add_mode('drumpad', [self._drumpad.main_layer])
+		self._main_modes.add_mode('drumpad_split', [self._drumpad.split_layer])
+		self._main_modes.add_mode('drumpad_sequencer', [self._drumpad.sequencer_layer])
+		self._main_modes.add_mode('drumpad_shifted', [self._drumpad.main_layer, self.drumpad_shift_layer])
+		self._main_modes.add_mode('drumpad_split_shifted', [self._drumpad.split_layer, self.drumpad_shift_layer])
+		self._main_modes.add_mode('drumpad_sequencer_shifted', [self._drumpad.sequencer_shift_layer, self.drumpad_shift_layer])
+		self._main_modes.add_mode('keypad', [self._keypad.main_layer])
+		self._main_modes.add_mode('keypad_split', [self._keypad.split_layer])
+		self._main_modes.add_mode('keypad_sequencer', [self._keypad.sequencer_layer])
+		self._main_modes.add_mode('keypad_shifted', [self.keypad_shift_layer])
+		self._main_modes.add_mode('keypad_split_shifted', [self._keypad.split_layer, self.keypad_shift_layer])
+		self._main_modes.add_mode('keypad_sequencer_shifted', [self._keypad.sequencer_shift_layer, self.keypad_shift_layer])
+		self._main_modes.add_mode('audioloop', [self.audioloop_layer])
+		#self._main_modes.add_mode('mod', [self.mod_layer])
+	
 
 	def _top_device(self, selected_device):
 		#selected_device = self._device._device
@@ -1464,7 +1404,7 @@ class MonoDrumpadComponent(CompoundComponent):
 			width = matrix.width()
 			self.set_pad_translations(make_pad_translations(cur_chan))
 			if width > 3 and height > 3 and not self._parent._drum_group_finder.drum_group is None:
-				debug('setting Live drum matrix')
+				#debug('setting Live drum matrix')
 				self.set_pad_translations(make_pad_translations(cur_chan))
 				for button, (x, y) in matrix.iterbuttons():
 					if button:
@@ -1485,7 +1425,7 @@ class MonoDrumpadComponent(CompoundComponent):
 				offset = self._offset
 				current_note = self._step_sequencer._note_editor.editing_note
 				shifted = self._parent.is_shifted()
-				debug('setting normal drum matrix')
+				#debug('setting normal drum matrix')
 				for button, (x, y) in matrix.iterbuttons():
 					if button and x < 8 and y < 4:
 						note = (DRUMNOTES[x + (y*8)] + (offset*4))%128
@@ -1503,8 +1443,11 @@ class MonoDrumpadComponent(CompoundComponent):
 						else:
 							button.set_enabled(False)
 							button.set_channel(cur_chan)
+				self._step_sequencer.set_drum_matrix(None)
 				#self._control_surface.set_feedback_channels(range(14, 15))
 				self._control_surface.release_controlled_track()
+		else:
+			self._step_sequencer.set_drum_matrix(None)
 	
 
 	def set_mute_button(self, button):

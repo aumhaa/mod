@@ -1592,17 +1592,6 @@ class CodecModHandler(ModHandler):
 			self._active_mod.send('code_encoder_grid', x, y, int(value>0))
 	
 
-	def _display_nav_box(self):
-		if self._code_grid_value.subject:
-			if self._shift_value.subject and self._shift_value.subject.is_pressed():
-				for column in range(2):
-					for row in range(2):
-						if (column == int(self.x_offset/8)) and (row == int(self.y_offset/8)):
-							self._code_grid_value.subject.get_button(column +6, row+6).send_value(self.navbox_selected)
-						else:
-							self._code_grid_value.subject.get_button(column +6, row+6).send_value(self.navbox_unselected)
-	
-
 	def update(self, *a, **k):
 		mod = self.active_mod()
 		#self.log_message('modhandler update: ' + str(mod))

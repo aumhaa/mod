@@ -34,7 +34,7 @@ from _Framework.Layer import Layer
 from _Framework.Skin import Skin
 from _Framework.M4LInterfaceComponent import M4LInterfaceComponent
 from _Framework.ComboElement import ComboElement, DoublePressElement, MultiElement, DoublePressContext
-from _Framework.ModesComponent import Mode, DisableMode, EnablingModesComponent, DelayMode, AddLayerMode, LayerMode, MultiEntryMode, ModesComponent, SetAttributeMode, ModeButtonBehaviour, CancellableBehaviour, AlternativeBehaviour, ReenterBehaviour, DynamicBehaviourMixin, ExcludingBehaviourMixin, ImmediateBehaviour, LatchingBehaviour, ModeButtonBehaviour
+from _Framework.ModesComponent import Mode, CompoundMode, DisableMode, EnablingModesComponent, DelayMode, AddLayerMode, LayerMode, MultiEntryMode, ModesComponent, SetAttributeMode, ModeButtonBehaviour, CancellableBehaviour, AlternativeBehaviour, ReenterBehaviour, DynamicBehaviourMixin, ExcludingBehaviourMixin, ImmediateBehaviour, LatchingBehaviour, ModeButtonBehaviour
 from _Framework.ClipCreator import ClipCreator
 from _Framework.Resource import PrioritizedResource
 from _Framework.Util import mixin
@@ -82,6 +82,7 @@ MODE_DATA = {'Clips': 'L',
 			'Device_shifted': 'D',
 			'User': 'U',
 			'User_shifted': 'U',
+			'Mod': 'M',
 			'Select': 'C'}
 
 _base_translations = {' ':42, '0': 0, '1': 1,'2': 2, '3': 3,'4': 4,'5': 5,'6': 6,'7': 7,'8': 8,'9': 9,'A': 10,'B': 11,'C': 12,'D': 13,'E': 14,'F': 15,'G': 16,'H': 17,'I': 18,'J': 19,'K': 20,'L': 21,'M': 22,'N': 23,'O': 24,'P': 25,'Q': 26,'R': 27,'S': 28,'T': 29,'U': 30,'V': 31,'W': 32,'X': 33,'Y': 34,'Z': 35,'a': 10,'b': 11,'c': 12,'d': 13,'e': 14,'f': 15,'g': 16,'h': 17,'i': 18,'j': 19,'k': 20,'l': 21,'m': 22,'n': 23,'o': 24,'p': 25,'q': 26,'r': 27,'s': 28,'t': 29,'u': 30,'v': 31,'w': 32,'x': 33,'y': 34,'z': 35,'_': 39, '-': 42, '?': 127}
@@ -89,11 +90,11 @@ _base_translations = {' ':42, '0': 0, '1': 1,'2': 2, '3': 3,'4': 4,'5': 5,'6': 6
 
 FADER_COLORS = [96, 124, 108, 120, 116, 100, 104, 112]
 
-USERBUTTONMODE = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 247)
-MIDIBUTTONMODE = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 247)
+MIDIBUTTONMODE = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 247)
+USERBUTTONMODE = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 247)
 LIVEBUTTONMODE = (240, 0, 1, 97, 12, 66, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 247)
-SPLITVERTICAL = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 247)
-SPLITHORIZONTAL = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 247)
+SPLITVERTICAL = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 247)
+SPLITHORIZONTAL = (240, 0, 1, 97, 12, 66, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 247)
 
 ATOFFBUTTONMODE = (240, 0, 1, 97, 12, 10, 36, 2, 37, 0, 38, 0, 39, 0, 40, 0, 41, 0, 42, 0, 43, 0, 44, 0, 45, 0, 46, 0, 47, 0, 48, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 56, 0, 57, 0, 58, 0, 59, 0, 60, 2, 61, 0, 62, 0, 63, 0, 64, 0, 65, 0, 66, 0, 67, 0, 247)
 ATONBUTTONMODE = (240, 0, 1, 97, 12, 10, 36, 2, 37, 2, 38, 2, 39, 2, 40, 2, 41, 2, 42, 2, 43, 2, 44, 2, 45, 2, 46, 2, 47, 2, 48, 2, 49, 2, 50, 2, 51, 2, 52, 2, 53, 2, 54, 2, 55, 2, 56, 2, 57, 2, 58, 2, 59, 2, 60, 2, 61, 2, 62, 2, 63, 2, 64, 2, 65, 2, 66, 2, 67, 2, 247)
@@ -284,7 +285,8 @@ class BaseDeviceComponent(DeviceComponent):
 		elif self._parameter_controls != None:
 			self._release_parameters(self._parameter_controls)
 			for control in self._parameter_controls:
-				control.send_value(0, True)
+				if control:
+					control.send_value(0, True)
 		if self.is_enabled():
 			self._update_on_off_button()
 			self._update_lock_button()
@@ -809,35 +811,49 @@ class BaseFaderArray(Array):
 	
 
 
+class StoredControlElement(StoredElement):
+
+
+	def __init__(self, *a, **k):
+		self._id = -1
+		self._channel = -1
+		super(StoredControlElement, self).__init__(*a, **k)
+	
+
+	def id(self, id):
+		self._id = id
+		self.update_element()
+	
+
+	def channel(self, channel):
+		self._channel = channel
+		self.udpate_element()
+	
+
+
 class BaseGrid(Grid):
 
 
-	def __init__(self, name, width, height,  active_handlers = return_empty):
-		self._active_handlers = active_handlers
-		self._name = name
-		self._cell = [[StoredElement(active_handlers, _name = self._name + '_' + str(x) + '_' + str(y), _x = x, _y = y, _id = -1, _channel = -1 ) for y in range(height)] for x in range(width)]
+	def __init__(self, name, width, height, active_handlers = return_empty, *a, **k):
+		super(BaseGrid, self).__init__(name, width, height, active_handlers = return_empty, *a, **k)
+		self._cell = [[StoredControlElement(active_handlers, _name = self._name + '_' + str(x) + '_' + str(y), _x = x, _y = y, ) for y in range(height)] for x in range(width)]
 	
 
-	def restore(self):
-		for column in self._cell:
-			for element in column:
-				self.update_element(element)
-				for handler in self._active_handlers():
-					handler.receive_address(self._name, element._x, element._y, element, True)
-	
-
-	def identifier(self, x, y, identifier = -1):
+	def id(self, x, y, identifier = -1):
 		element = self._cell[x][y]
 		element._id = min(127, max(-1, identifier))
-		for handler in self._active_handlers():
-			handler.receive_address(self._name, element._x, element._y, element, True)
+		self.update_element(element)
 	
 
 	def channel(self, x, y, channel = -1):
 		element = self._cell[x][y]
 		element._channel = min(15, max(-1, channel))
+		self.update_element(element)
+	
+
+	def update_element(self, element):
 		for handler in self._active_handlers():
-			handler.receive_address(self._name, element._x, element._y, element, True)
+			handler.receive_address(self._name, element._x, element._y, value = element._value, id = element._id, channel = element._channel)
 	
 
 
@@ -851,35 +867,36 @@ class BaseModHandler(ModHandler):
 		addresses = {'base_grid': {'obj': BaseGrid('base_grid', 8, 4), 'method':self._receive_base_grid},
 					'base_fader': {'obj': BaseFaderArray('base_fader', 8), 'method':self._receive_base_fader}}
 		super(BaseModHandler, self).__init__(addresses = addresses, *a, **k)
-		self._shifted = False
+		self._is_shifted = False
+		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 2, 2, self.set_offset))
 	
 
-	def _receive_base_grid(self, x, y, value, is_id = False):
+	def _receive_base_grid(self, x, y, *a, **k):
 		#self.log_message('_receive_base_grid: %s %s %s %s' % (x, y, value, is_id))
-		if self._active_mod and not self._active_mod.legacy:
-			if not self._base_grid_value.subject is None:
-				if is_id:
-					button = self._base_grid_value.subject.get_button(x, y)
-					if value._id is -1 and value._channel is -1:
-						button.use_default_message()
-						button.set_enabled(True)
+		if self._active_mod and not self._active_mod.legacy and self._base_grid_value.subject:
+			keys = k.keys()
+			if 'value' in keys:
+				self._base_grid_value.subject.send_value(x, y, k['value'], True)
+			if 'id' in keys or 'channel' in keys:
+				button = self._base_grid_value.subject.get_button(x, y)
+				if 'id' in keys:
+					id = k['id']
+					if id < 0:
+						button.set_identifier(button._original_identifier)
 					else:
-						identifier = value._id
-						if identifier < 0:
-							identifier = button._original_identifier
-						channel = value._channel
-						if channel < 0:
-							channel = button._original_channel
-						button.set_identifier(identifier)
+						button.set_identifier(id)
+				if 'channel' in keys:
+					channel = k['channel']
+					if channel < 0:
+						button.set_channel(button._original_channel)
+					else:
 						button.set_channel(channel)
-						button.set_enabled(False)
-				else:
-					self._base_grid_value.subject.send_value(x, y, value, True)
+				button.set_enabled(button._msg_identifier == button._original_identifier and button._msg_channel == button._original_channel)
 	
 
 	def _receive_base_fader(self, num, value):
-		#self.log_message('_receive_base_fader: %s %s' % (num, value))
-		if self._fader_color_override:
+		self.log_message('_receive_base_fader: %s %s' % (num, value))
+		if self.is_enabled():
 			self._script._send_midi((191, num+10, value))
 	
 
@@ -896,6 +913,11 @@ class BaseModHandler(ModHandler):
 	
 
 	def set_base_grid(self, grid):
+		debug('set base grid:', grid)
+		old_grid = self._base_grid_value.subject
+		if old_grid:
+			for button, _ in old_grid.iterbuttons():
+				button.use_default_message() 
 		self._base_grid = grid
 		self._base_grid_value.subject = self._base_grid
 	
@@ -907,51 +929,53 @@ class BaseModHandler(ModHandler):
 
 	@subject_slot('value')
 	def _keys_value(self, value, x, y, *a, **k):
-		if self._active_mod:
-			self._active_mod.send('key', x, value)
+		self.active_mod() and self.active_mod().send('key', x, value)
 	
 
 	@subject_slot('value')
 	def _base_grid_value(self, value, x, y, *a, **k):
 		#self.log_message('_base_grid_value ' + str(x) + str(y) + str(value))
-		if self._active_mod:
-			if self._active_mod.legacy:
-				if self._shift_value.subject.is_pressed():
-					if value > 0 and x in range(6, 8):
-						self.set_offset((x - 6) * 8,  y * 4)
-						self.update()
-				else:
-					self._active_mod.send('grid', x + self.x_offset, y + self.y_offset, value)
+		mod = self.active_mod()
+		if mod:
+			if mod.legacy:
+				mod.send('grid', x + self.x_offset, y + self.y_offset, value)
 			else:
-				self._active_mod.send('base_grid', x, y, value)
+				mod.send('base_grid', x, y, value)
 		
 	
 
 	@subject_slot('value')
 	def _base_grid_CC_value(self, value, x, y, *a, **k):
 		#self.log_message('_base_grid_CC_value ' + str(x) + str(y) + str(value))
-		if self._active_mod:
-			if self._active_mod.legacy:
-				self._active_mod.send('grid_CC', x + self.x_offset , y + self.y_offset, value)
+		mod = self.active_mod()
+		if mod:
+			if mod.legacy:
+				mod.send('grid_CC', x + self.x_offset , y + self.y_offset, value)
 			else:
-				self._active_mod.send('base_grid_CC', x, y, value)
+				mod.send('base_grid_CC', x, y, value)
 	
 
-	def _display_nav_box(self):
-		if self._base_grid_value.subject:
-			if self._shift_value.subject and self._shift_value.subject.is_pressed():
-				for column in range(2):
-					for row in range(4):
-						if (column == int(self.x_offset/8)) and (row == int(self.y_offset/4)):
-							self._base_grid_value.subject.get_button(column +6, row).send_value(self.navbox_selected)
-						else:
-							self._base_grid_value.subject.get_button(column +6, row).send_value(self.navbox_unselected)
+	@subject_slot('value')
+	def _shift_value(self, value, *a, **k):
+		self._is_shifted = not value is 0
+		mod = self.active_mod()
+		if mod:
+			mod.send('shift', value)
+		if self._is_shifted:
+			self.shift_layer.enter_mode()
+			if mod and mod.legacy:
+				self.legacy_shift_layer.enter_mode()
+		else:
+			self.legacy_shift_layer.leave_mode()
+			self.shift_layer.leave_mode()
+		self.update()
 	
 
 	def update(self, *a, **k):
-		if self._active_mod:
-			self._active_mod.restore()
-			if self._active_mod.legacy and self._shift_value.subject and self._shift_value.subject.is_pressed():
+		mod = self.active_mod()
+		if mod:
+			mod.restore()
+			if mod.legacy and self._shift_value.subject and self._shift_value.subject.is_pressed():
 				self._display_nav_box()
 		else:
 			if not self._base_grid_value.subject is None:
@@ -1040,11 +1064,9 @@ class Base(ControlSurface):
 		self._current_nav_buttons = []
 		self.flash_status = 1
 		self._touched = 0
-		self._update_linked_device_selection = None
 		self._last_pad_stream = [0 for i in range(0, 32)]
 		self._shift_latching = LatchingShiftedBehaviour if SHIFT_LATCHING else ShiftedBehaviour
 		with self.component_guard():
-			#self.set_pad_translations(make_pad_translations(15))
 			self._setup_monobridge()
 			if OSC_TRANSMIT:
 				self._setup_OSC_layer()
@@ -1058,13 +1080,15 @@ class Base(ControlSurface):
 			self._setup_device_control()
 			self._setup_session_recording_component()
 			self._setup_translations()
-			self._setup_mod()
 			self._setup_instrument()
+			self._setup_mod()
+			self._setup_modswitcher()
 			self._setup_main_modes()
 			self._setup_m4l_interface()
-			#self._device.add_device_listener(self._on_new_device_set)
+			self._device_selection_follows_track_selection = True
+			self._on_device_changed.subject = self.song()
 			self.set_feedback_channels(range(14, 15))
-		self.log_message("<<<<<<<<<<<<<<<<<= Base 2 log opened =>>>>>>>>>>>>>>>>>>>>>") 
+		self.log_message("<<<<<<<<<<<<<<<<<= Base log opened =>>>>>>>>>>>>>>>>>>>>>") 
 		self.schedule_message(3, self._check_connection)
 	
 
@@ -1111,6 +1135,7 @@ class Base(ControlSurface):
 		self._touchpad_matrix = ButtonMatrixElement(name = 'TouchPadMatrix', rows = [self._touchpad],)
 		self._touchpad_multi = MultiElement(self._touchpad[0], self._touchpad[1], self._touchpad[2], self._touchpad[3], self._touchpad[4], self._touchpad[5], self._touchpad[6], self._touchpad[7],)
 		self._runner = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_RUNNERS[index], 'Runner_' + str(index), self) for index in range(8)]
+		self._runner_matrix = ButtonMatrixElement(name = 'RunnerMatrix', rows = [self._runner])
 		self._stream_pads = [self._pad[index%8 + (abs((index/8)-3)*8)] for index in range(32)]
 		self._nav_buttons = ButtonMatrixElement( name = 'nav_buttons' )
 		self._nav_buttons.add_row(self._button[4:8])
@@ -1276,7 +1301,18 @@ class Base(ControlSurface):
 		self.monomodular.name = 'monomodular_switcher'
 		self.modhandler = BaseModHandler(script = self) #detect_mod = self._on_new_device_set)
 		self.modhandler.name = 'ModHandler'
-		self.modhandler.main_layer = Layer(priority = 8, base_grid = self._base_grid)
+		self.modhandler.layer = Layer(priority = 6, base_grid = self._base_grid, 
+													base_grid_CC = self._base_grid_CC,
+													parameter_controls = self._fader_matrix,
+													shift_button = self._button[4],
+													shiftlock_button = self._button[5],
+													alt_button = self._button[6],
+													lock_button = self._button[7],)
+		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
+													nav_matrix = self._base_grid.submatrix[6:8, :],))
+		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
+													key_buttons = self._touchpad_matrix,))
+		self.modhandler.set_enabled(False)
 	
 
 	def _setup_instrument(self):
@@ -1288,12 +1324,10 @@ class Base(ControlSurface):
 
 		quantgrid = ButtonMatrixElement([self._base_grid._orig_buttons[2][4:8], self._base_grid._orig_buttons[3][4:7]])
 
-		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution , mod = self.modhandler)
+		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution,) # modhandler = self.modhandler )
 		self._instrument.name = 'InstrumentModes'
-		#self._instrument._note_sequencer = self._note_sequencer
 		self._instrument.layer = Layer(priority = 5) #button_matrix = self._base_grid)
 		self._instrument.audioloop_layer = LayerMode(self._instrument, Layer(priority = 6, loop_selector_matrix = self._base_grid))
-		self._instrument.mod_layer = AddLayerMode(self.modhandler, self.modhandler.main_layer)
 		self._instrument.octave_toggle = AddLayerMode(self._instrument, Layer(octave_enable_button = self._button[4]))
 		self._instrument.shift_button1 = AddLayerMode(self._instrument, Layer(shift_button = self._button[1]))
 		self._instrument.shift_button2 = AddLayerMode(self._instrument, Layer(shift_button = self._button[2]))
@@ -1329,6 +1363,24 @@ class Base(ControlSurface):
 		self._instrument._split_mode_component._on_value = 1
 		self._instrument._sequencer_mode_component._on_value = 3
 		self._instrument.set_enabled(False)
+
+		self._instrument._main_modes = ModesComponent(name = 'InstrumentModes')
+		self._instrument._main_modes.add_mode('drumpad', [self._instrument._drumpad.main_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('drumpad_split', [self._instrument._drumpad.split_layer, self.splitvertical_mode_sysex])
+		self._instrument._main_modes.add_mode('drumpad_sequencer', [self._instrument._drumpad.sequencer_layer, self.splitvertical_mode_sysex])
+		self._instrument._main_modes.add_mode('drumpad_shifted', [self._instrument.drumpad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('drumpad_split_shifted', [self._instrument._drumpad.split_layer, self._instrument.drumpad_shift_layer])
+		self._instrument._main_modes.add_mode('drumpad_sequencer_shifted', [self._instrument._drumpad.sequencer_shift_layer, self._instrument.drumpad_shift_layer, self.splitvertical_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad', [self._instrument._keypad.main_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad_split', [self._instrument._keypad.split_layer, self.splithorizontal_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad_sequencer', [self._instrument._keypad.sequencer_layer, self.splithorizontal_mode_sysex], )
+		self._instrument._main_modes.add_mode('keypad_shifted', [self._instrument.keypad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad_split_shifted', [self._instrument._keypad.split_layer, self._instrument.keypad_shift_layer])
+		self._instrument._main_modes.add_mode('keypad_sequencer_shifted', [self._instrument._keypad.sequencer_shift_layer, self._instrument.keypad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('audioloop', [self._instrument.audioloop_layer, self.live_mode_sysex])
+		#self._instrument._main_modes.add_mode('mod', [self._instrument.mod_layer])
+		self._instrument.register_component(self._instrument._main_modes)
+		self._instrument.set_enabled(False)
 	
 
 	def _setup_OSC_layer(self):
@@ -1347,17 +1399,26 @@ class Base(ControlSurface):
 		self.oscServer = RemixNet.OSCServer('localhost', self._outPrt, 'localhost', 10001)
 	
 
+	def _setup_modswitcher(self):
+		self._modswitcher = BaseDisplayingModesComponent(name = 'ModSwitcher')
+		self._modswitcher.add_mode('mod', [self.modhandler], display_string = MODE_DATA['Mod'])
+		self._modswitcher.add_mode('instrument', [self._instrument])
+		self._modswitcher.add_mode('disabled', [])
+		self._modswitcher.selected_mode = 'disabled'
+		self._modswitcher.set_enabled(False)
+	
+
 	def _setup_main_modes(self):
 		self._main_modes = BaseDisplayingModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('Clips_shifted', [self._mixer.volume_layer, self._mixer.select_layer, self._mixer.channel_controls_layer, self.clips_layer_sysex, self.live_mode_sysex], groups = ['shifted'], behaviour = self._shift_latching(color = 8), display_string = MODE_DATA['Clips_shifted'])
 		self._main_modes.add_mode('Clips', [self._mixer.volume_layer, self._mixer.select_layer, self._session.cliplaunch_layer,  self._session.navigation_layer, self.clips_layer_sysex, self.live_mode_sysex ], behaviour = self._shift_latching(color = 1), display_string = MODE_DATA['Clips'])
-		self._main_modes.add_mode('Sends_shifted', [self._recorder.alt_layer, self._instrument.octave_toggle, self._instrument, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self.sends_layer_sysex, ], groups = ['shifted'], behaviour = self._shift_latching(color = 11), display_string = MODE_DATA['Sends_shifted'])
-		self._main_modes.add_mode('Sends', [self._mixer.select_layer, self._mixer.selected_sends_layer, self._mixer.returns_layer,  self._transport.overdub_layer, self._recorder.main_layer, self._instrument, self.sends_layer_sysex, ], behaviour = self._shift_latching(color = 4), display_string = MODE_DATA['Sends'])
-		self._main_modes.add_mode('Device_shifted', [self._instrument, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self._device, self._device.parameters_layer, self._device_navigator.alt_layer, self.device_layer_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 10), display_string = MODE_DATA['Device_shifted'])
-		self._main_modes.add_mode('Device', [self._mixer.select_layer, self._instrument, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer, self.device_layer_sysex ], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
+		self._main_modes.add_mode('Sends_shifted', [self.sends_layer_sysex, self._modswitcher, self._recorder.alt_layer, self._instrument.octave_toggle, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]),], groups = ['shifted'], behaviour = self._shift_latching(color = 11), display_string = MODE_DATA['Sends_shifted'])
+		self._main_modes.add_mode('Sends', [self.sends_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.selected_sends_layer, self._mixer.returns_layer,  self._transport.overdub_layer, self._recorder.main_layer,], behaviour = self._shift_latching(color = 4), display_string = MODE_DATA['Sends'])
+		self._main_modes.add_mode('Device_shifted', [self.device_layer_sysex, self._modswitcher, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self._device, self._device.parameters_layer, self._device_navigator.alt_layer,  ], groups = ['shifted'], behaviour = self._shift_latching(color = 10), display_string = MODE_DATA['Device_shifted'])
+		self._main_modes.add_mode('Device', [self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
 		self._main_modes.add_mode('User_shifted', [self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
 		self._main_modes.add_mode('User', [self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
-		self._main_modes.add_mode('Select', [self._mixer.select_layer, self._mixer.volume_layer, DelayMode(self._mixer.selected_channel_controls_layer), DelayMode(self._session.overlay_cliplaunch_layer), DelayMode(self._set_selected_channel_control_colors), DelayMode(self.clips_layer_sysex )], behaviour = ExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
+		self._main_modes.add_mode('Select', [self._mixer.select_layer, DelayMode(CompoundMode(self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self._set_selected_channel_control_colors, self.clips_layer_sysex ))], behaviour = ExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
 		self._main_modes.layer = Layer(priority = 4, Clips_button=self._button[0], Sends_button=self._button[1], Device_button=self._button[2], User_button=self._button[3], Select_button=self._touchpad_multi, display = self._display)
 		self._main_modes.selected_mode = 'Clips'
 	
@@ -1568,8 +1629,22 @@ class Base(ControlSurface):
 		#self._main_modes.selected_mode in ['Sends', 'Device'] and
 	
 
+	@subject_slot('appointed_device')
+	def _on_device_changed(self):
+		self.schedule_message(1, self._update_modswitcher)
+		#pass
+	
+
 	def _on_selected_track_changed(self):
 		super(Base, self)._on_selected_track_changed()
+		self.schedule_message(1, self._update_modswitcher)
+
+	def _update_modswitcher(self):
+		if self.modhandler.active_mod():
+			self._modswitcher.selected_mode = 'mod'
+		else:
+			self._modswitcher.selected_mode = 'instrument'
+	
 
 		"""if self._last_selected_track and self._last_selected_track.can_be_armed and not self._last_selected_track_arm:
 			self.schedule_message(1, self._disarm_track, self._last_selected_track)

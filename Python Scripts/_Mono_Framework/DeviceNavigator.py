@@ -94,9 +94,9 @@ class DeviceNavigator(ControlSurfaceComponent):
 		if value:
 			track = self._get_track()
 			if track and self._device._device and self._device._device in track.devices:
-					device = track.devices[min(len(track.devices)-1, max(0, [item for item in track.devices].index(self._device._device)-1))]
-					self._script.set_appointed_device(device)
-					self.song().view.select_device(device)
+				device = track.devices[min(len(track.devices)-1, max(0, [item for item in track.devices].index(self._device._device)-1))]
+				self._script.set_appointed_device(device)
+				self.song().view.select_device(device)
 	
 
 	@subject_slot('value')
@@ -104,7 +104,6 @@ class DeviceNavigator(ControlSurfaceComponent):
 		if value:
 			track = self._get_track()
 			if track and self._device._device and self._device._device in track.devices:
-				#debug('next button')
 				device = track.devices[min(len(track.devices)-1, max(0, [item for item in track.devices].index(self._device._device)+1))]
 				self._script.set_appointed_device(device)
 				self.song().view.select_device(device)
