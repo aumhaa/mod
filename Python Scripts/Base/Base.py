@@ -321,6 +321,18 @@ class ExcludingMomentaryBehaviour(ExcludingBehaviourMixin, MomentaryBehaviour):
 	
 
 
+class DelayedExcludingMomentaryBehaviour(ExcludingMomentaryBehaviour):
+
+
+	def press_immediate(self, component, mode):
+		pass
+	
+
+	def press_delayed(self, component, mode):
+		component.push_mode(mode)
+	
+
+
 class CancellableBehaviourWithRelease(CancellableBehaviour):
 
 
@@ -342,7 +354,6 @@ class ShiftedBehaviour(ModeButtonBehaviour):
 		debug('selected_mode:', component.selected_mode, 'mode:', mode, 'chosen_mode:', self._chosen_mode,)
 		if mode is component.selected_mode and not component.get_mode(mode+'_shifted') is None:
 			self._chosen_mode = mode+'_shifted'
-
 		else:
 			self._chosen_mode = mode
 		component.push_mode(self._chosen_mode)
@@ -368,7 +379,7 @@ class ShiftedBehaviour(ModeButtonBehaviour):
 		#debug('--------mode:', mode, 'selected:', selected_mode, 'chosen:', self._chosen_mode)
 		if mode == selected_mode:
 			button.send_value(self._color, True)
-		elif mode+'_shifted' == self._chosen_mode == selected_mode:
+		elif mode+'_shifted' == selected_mode:
 			button.send_value(self._color + 7, True)
 		else:
 			button.send_value(0, True)
@@ -379,21 +390,29 @@ class LatchingShiftedBehaviour(ShiftedBehaviour):
 
 
 	def press_immediate(self, component, mode):
-		debug('selected_mode:', component.selected_mode, 'mode:', mode, 'chosen_mode:', self._chosen_mode,)
-		if mode is component.selected_mode and not component.get_mode(mode+'_shifted') is None:
+		#debug('mode button for ->', mode, 'currently selected_mode:', component.selected_mode, 'last chosen mode:', self._chosen_mode)
+		if mode is component.selected_mode and component.get_mode(mode+'_shifted'):
 			self._chosen_mode = mode+'_shifted'
-		elif component.selected_mode.endswith('_shifted') and len(component.active_modes) > 1:
-			component.pop_mode(component.selected_mode)
-			self._chosen_mode = mode
+		#elif (component.selected_mode != mode + '_shifted') and (self._chosen_mode != mode + '_shifted'):
+		#	component.pop_groups(['shifted'])
+		#	self._chosen_mode = mode
 		else:
 			self._chosen_mode = mode
 		component.push_mode(self._chosen_mode)
+		debug('new chosen_mode:', self._chosen_mode,)
 	
 
 	def release_immediate(self, component, mode):
-		debug('chosen mode is:', self._chosen_mode)
 		if len(component.active_modes) > 1:
 			component.pop_unselected_modes()
+		#debug('selected mode:', component.selected_mode)
+	
+
+	def release_delayed(self, component, mode):
+		if not mode is self._chosen_mode is mode + '_shifted':
+			if len(component.active_modes) > 1:
+				component.pop_mode(component.selected_mode)
+		#debug('selected mode:', component.selected_mode)
 	
 
 
@@ -895,7 +914,7 @@ class BaseModHandler(ModHandler):
 	
 
 	def _receive_base_fader(self, num, value):
-		self.log_message('_receive_base_fader: %s %s' % (num, value))
+		#self.log_message('_receive_base_fader: %s %s' % (num, value))
 		if self.is_enabled():
 			self._script._send_midi((191, num+10, value))
 	
@@ -1303,12 +1322,14 @@ class Base(ControlSurface):
 		self.modhandler.name = 'ModHandler'
 		self.modhandler.layer = Layer(priority = 6, base_grid = self._base_grid, 
 													base_grid_CC = self._base_grid_CC,
+													key_buttons = self._runner_matrix,
 													parameter_controls = self._fader_matrix,
-													shift_button = self._button[4],
-													shiftlock_button = self._button[5],
 													alt_button = self._button[6],
 													lock_button = self._button[7],)
+		self.modhandler.alt_layer = AddLayerMode(self.modhandler, Layer(priority = 8,
+													device_selector_matrix = self._touchpad_matrix,))
 		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
+													channel_buttons = self._base_grid.submatrix[:6, :1],
 													nav_matrix = self._base_grid.submatrix[6:8, :],))
 		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
 													key_buttons = self._touchpad_matrix,))
@@ -1403,8 +1424,8 @@ class Base(ControlSurface):
 		self._modswitcher = BaseDisplayingModesComponent(name = 'ModSwitcher')
 		self._modswitcher.add_mode('mod', [self.modhandler], display_string = MODE_DATA['Mod'])
 		self._modswitcher.add_mode('instrument', [self._instrument])
-		self._modswitcher.add_mode('disabled', [])
-		self._modswitcher.selected_mode = 'disabled'
+		#self._modswitcher.add_mode('disabled', [])
+		self._modswitcher.selected_mode = 'instrument'
 		self._modswitcher.set_enabled(False)
 	
 
@@ -1418,17 +1439,19 @@ class Base(ControlSurface):
 		self._main_modes.add_mode('Device', [self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
 		self._main_modes.add_mode('User_shifted', [self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
 		self._main_modes.add_mode('User', [self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
-		self._main_modes.add_mode('Select', [self._mixer.select_layer, DelayMode(CompoundMode(self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self._set_selected_channel_control_colors, self.clips_layer_sysex ))], behaviour = ExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
+		self._main_modes.add_mode('Select', [self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self._set_selected_channel_control_colors, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
 		self._main_modes.layer = Layer(priority = 4, Clips_button=self._button[0], Sends_button=self._button[1], Device_button=self._button[2], User_button=self._button[3], Select_button=self._touchpad_multi, display = self._display)
 		self._main_modes.selected_mode = 'Clips'
 	
 
 	def _send_instrument_shifted(self):
-		self._instrument._on_shift_value(1)
+		self._instrument.is_enabled() and self._instrument._on_shift_value(1)
+		self.modhandler.is_enabled() and self.modhandler._shift_value(1)
 	
 
 	def _send_instrument_unshifted(self):
-		self._instrument._on_shift_value(0)
+		self._instrument.is_enabled() and self._instrument._on_shift_value(0)
+		self.modhandler.is_enabled() and self.modhandler._shift_value(0)
 	
 
 	def _set_selected_channel_control_colors(self):
@@ -1631,15 +1654,17 @@ class Base(ControlSurface):
 
 	@subject_slot('appointed_device')
 	def _on_device_changed(self):
-		self.schedule_message(1, self._update_modswitcher)
+		self.schedule_message(2, self._update_modswitcher)
 		#pass
 	
 
 	def _on_selected_track_changed(self):
 		super(Base, self)._on_selected_track_changed()
 		self.schedule_message(1, self._update_modswitcher)
+	
 
 	def _update_modswitcher(self):
+		debug('update modswitcher', self.modhandler.active_mod())
 		if self.modhandler.active_mod():
 			self._modswitcher.selected_mode = 'mod'
 		else:
@@ -1675,6 +1700,10 @@ class Base(ControlSurface):
 		self.modhandler.disconnect()
 		with self.component_guard():
 			self._setup_mod()
+	
+
+	def send_fader_color(self, num, value):
+		self._send_midi((191, num+10, value))
 	
 
 	"""some cheap overrides"""

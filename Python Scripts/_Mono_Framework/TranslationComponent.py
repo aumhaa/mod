@@ -8,7 +8,6 @@ class TranslationComponent(CompoundComponent):
 	def __init__(self, controls = [], user_channel_offset = 1, *a, **k):
 		super(TranslationComponent, self).__init__()
 		self._controls = controls
-		self._base_channel = 0
 		self._user_channel_offset = user_channel_offset
 		self._channel = 0
 		self._color = 0
@@ -54,7 +53,7 @@ class TranslationComponent(CompoundComponent):
 				control.set_enabled(False)
 		else:
 			for control in self._controls:
-				control.set_channel(self._base_channel)
+				control.use_default_message()
 				control.set_enabled(True)
 		self.update_channel_selector_buttons()
 	

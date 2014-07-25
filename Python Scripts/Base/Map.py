@@ -11,7 +11,7 @@ OSC_TRANSMIT = False
 
 OSC_OUTPORT = 9001
 
-SHIFT_LATCHING = False
+SHIFT_LATCHING = True
 
 CHANNEL = 0		#main channel (0 - 15)
 

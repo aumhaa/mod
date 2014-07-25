@@ -27,9 +27,6 @@ class MonoEncoderElement(EncoderElement):
 		self._parameter = None
 		self._script = script
 		self._is_enabled = True
-		#self._report_input = True
-		#self._report_output = True
-		#self._last_sent_val = -1
 		self._paramter_lcd_name = ' '
 		self._parameter_last_value = None
 		self._mapped_to_midi_velocity = False
