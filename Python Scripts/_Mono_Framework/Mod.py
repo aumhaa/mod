@@ -560,7 +560,7 @@ class ModHandler(CompoundComponent):
 	def update(self, *a, **k):
 		if self._active_mod:
 			self._active_mod.restore()
-		self._on_lock_value.subject and self._on_lock_value.subject.send_value(1 + (int(self.is_locked())*4), True)
+		self.update_buttons()
 	
 
 	def select_mod(self, mod = None):
@@ -625,6 +625,13 @@ class ModHandler(CompoundComponent):
 		#if self.is_enabled() and not self._device_component is None:
 		#	self.update_device()
 		pass
+	
+
+	def update_buttons(self):
+		self._shift_value.subject and self._shift_value.subject.send_value(7 + self.is_shifted()*7)
+		self._on_shiftlock_value.subject and self._on_shiftlock_value.subject.send_value(3 + self.is_shiftlocked()*7)
+		self._on_lock_value.subject and self._on_lock_value.subject.send_value(1 + self.is_locked()*7)
+		self._alt_value.subject and self._alt_value.subject.send_value(2 + self.is_alted()*7)
 	
 
 	def set_mod_nav_buttons(self, buttons):
@@ -777,7 +784,7 @@ class ModHandler(CompoundComponent):
 		if button:
 			button.send_value(self.is_alted())
 	
-	
+
 	def is_alted(self):
 		return self._is_alted
 	
@@ -808,8 +815,6 @@ class ModHandler(CompoundComponent):
 
 	def set_lock(self, value):
 		self._is_locked = value > 0
-		if not self._on_lock_value.subject is None:
-			self._on_lock_value.subject.send_value(self.is_locked()*8)
 		self.select_appointed_device()
 	
 
@@ -834,16 +839,14 @@ class ModHandler(CompoundComponent):
 		#debug('shiftlock value ' + str(value))
 		if value>0:
 			self._is_shiftlocked = not self.is_shiftlocked()
-			if not self._on_shiftlock_value.subject is None:
-				self._on_shiftlock_value.subject.send_value(self.is_shiftlocked())
 			self.update()
 	
 
 
 	def set_offset(self, x, y):
 		debug('setting offset:' + str(x) + str(y))
-		self.x_offset = max(0, min(x, 8))
-		self.y_offset = max(0, min(y, 8))
+		self.x_offset = max(0, min(x, 12))
+		self.y_offset = max(0, min(y, 12))
 		if self._active_mod and self._active_mod.legacy:
 			self._active_mod.send('offset', self.x_offset, self.y_offset)
 			self.update()
@@ -851,6 +854,10 @@ class ModHandler(CompoundComponent):
 
 	def _display_nav_box(self):
 		pass
+	
+
+	def set_nav_matrix(self, matrix):
+		self.nav_box and self.nav_box.set_matrix(matrix)
 	
 
 	def set_nav_buttons(self, buttons):
@@ -984,6 +991,7 @@ class NavigationBox(ControlSurfaceComponent):
 				new_y = (newy+yinc)-self._window_y
 			#new_x = x * self._x_inc
 			#new_y = y * self._y_inc
+			debug('new offsets:', new_x, new_y)
 			self.set_offset(new_x, new_y)
 	
 
@@ -1150,8 +1158,9 @@ class ModClient(NotifyingControlElement):
 
 	def connect(self, *a):
 		#self._device_listener.subject = self.device.canonical_parent
-		self._device_parent.add_devices_listener(self._device_listener)
-		self._parent.update_handlers()
+		#self._device_parent.add_devices_listener(self._device_listener)
+		#self._parent._host.schedule_message(5, update_handlers())
+		self._parent._task_group.add(sequence(delay(5), self._parent.update_handlers))
 	
 
 	def register_addresses(self):
@@ -1413,7 +1422,7 @@ class ModRouter(CompoundComponent):
 
 	
 
-	def update_handlers(self):
+	def update_handlers(self, *a, **k):
 		for handler in self._handlers:
 			handler._on_device_changed()
 	

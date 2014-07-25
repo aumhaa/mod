@@ -887,7 +887,7 @@ class BaseModHandler(ModHandler):
 					'base_fader': {'obj': BaseFaderArray('base_fader', 8), 'method':self._receive_base_fader}}
 		super(BaseModHandler, self).__init__(addresses = addresses, *a, **k)
 		self._is_shifted = False
-		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 2, 2, self.set_offset))
+		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 8, 4, self.set_offset))
 	
 
 	def _receive_base_grid(self, x, y, *a, **k):
@@ -936,7 +936,7 @@ class BaseModHandler(ModHandler):
 		old_grid = self._base_grid_value.subject
 		if old_grid:
 			for button, _ in old_grid.iterbuttons():
-				button.use_default_message() 
+				button and button.use_default_message() 
 		self._base_grid = grid
 		self._base_grid_value.subject = self._base_grid
 	
@@ -990,6 +990,12 @@ class BaseModHandler(ModHandler):
 		self.update()
 	
 
+	@subject_slot('appointed_device')
+	def _on_device_changed(self):
+		super(BaseModHandler, self)._on_device_changed()
+		self._script._on_device_changed()
+	
+
 	def update(self, *a, **k):
 		mod = self.active_mod()
 		if mod:
@@ -1001,7 +1007,8 @@ class BaseModHandler(ModHandler):
 				self._base_grid_value.subject.reset()
 			if not self._keys_value.subject is None:
 				self._keys_value.subject.reset()
-			#self.update_device()
+		self.update_buttons()
+		#self.update_device()
 	
 
 
@@ -1307,6 +1314,8 @@ class Base(ControlSurface):
 		controls = []
 		for button, _ in self._base_grid.iterbuttons():
 			controls.append(button)
+		for button, _ in self._base_grid_CC.iterbuttons():
+			controls.append(button)
 		for fader, _ in self._fader_matrix.iterbuttons():
 			controls.append(fader)
 		self._translations = TranslationComponent(controls, 10)
@@ -1525,7 +1534,6 @@ class Base(ControlSurface):
 				self._display_mode()
 	
 
-	"""called on timer"""
 	def update_display(self):
 		super(Base, self).update_display()
 		self._timer = (self._timer + 1) % 256
@@ -1654,7 +1662,7 @@ class Base(ControlSurface):
 
 	@subject_slot('appointed_device')
 	def _on_device_changed(self):
-		self.schedule_message(2, self._update_modswitcher)
+		self.schedule_message(1, self._update_modswitcher)
 		#pass
 	
 

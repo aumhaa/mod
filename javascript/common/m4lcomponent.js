@@ -68,7 +68,7 @@ function init()
 				}
 			}
 			outlet(0, 'path', finder.path);
-			break;
+			return;
 		}
 	}
 }
