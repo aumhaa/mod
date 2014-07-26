@@ -51,26 +51,32 @@ class DeviceNavigator(ControlSurfaceComponent):
 
 	def set_prev_button(self, button):
 		self._on_prev_value.subject = button
+		self._on_device_changed()
 	
 
 	def set_next_button(self, button):
 		self._on_next_value.subject = button
+		self._on_device_changed()
 	
 
 	def set_prev_chain_button(self, button):
 		self._on_prev_chain_value.subject = button
+		self._on_device_changed()
 	
 
 	def set_next_chain_button(self, button):
 		self._on_next_chain_value.subject = button
+		self._on_device_changed()
 	
 
 	def set_enter_button(self, button):
 		self._on_enter_value.subject = button
+		self._on_device_changed()
 	
 
 	def set_exit_button(self, button):
 		self._on_exit_value.subject = button
+		self._on_device_changed()
 	
 
 	def _find_track(self, obj):
@@ -159,7 +165,7 @@ class DeviceNavigator(ControlSurfaceComponent):
 	
 
 	def update(self):
-		debug('updating device navigator')
+		#debug('updating device navigator')
 		track = self._get_track()
 		if track != None:
 			if not self._on_prev_value.subject is None:

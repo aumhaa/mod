@@ -1,8 +1,8 @@
 """
 MonoInstrumentComponent.py
 
-Created by amounra on 2013-07-18.
-Copyright (c) 2013 __aumhaa__. All rights reserved.
+Created by amounra on 2014-07-18.
+Copyright (c) 2014 __aumhaa__. All rights reserved.
 """
 
 import Live
@@ -664,7 +664,6 @@ class MonoInstrumentComponent(CompoundComponent):
 
 		self._audio_loop = LoopSelectorComponent(follow_detail_clip=True, measure_length=1.0, name='Loop_Selector')
 
-		#self._audio_loop.layer = Layer(loop_selector_matrix=self._matrix)
 		self.set_loop_selector_matrix = self._audio_loop.set_loop_selector_matrix
 
 		self._main_modes = ModesComponent()
@@ -979,6 +978,7 @@ class MonoInstrumentComponent(CompoundComponent):
 		super(MonoInstrumentComponent, self).update()
 		if self.is_enabled():
 			new_mode = 'disabled'
+			self._main_modes._mode_stack.release_all()
 			cur_track = self.song().view.selected_track
 			if cur_track.has_audio_input:
 				new_mode = 'audioloop'
@@ -989,7 +989,6 @@ class MonoInstrumentComponent(CompoundComponent):
 				if scale == 'Auto':
 					scale = detect_instrument_type(cur_track)
 				new_mode = ['keypad', 'drumpad'][int(scale is 'DrumPad')]
-				debug('here')
 				if split:
 					new_mode += ['_split', '_sequencer'][int(sequencer)]
 				if self.is_shifted():
@@ -1015,7 +1014,6 @@ class MonoInstrumentComponent(CompoundComponent):
 		self._main_modes.add_mode('keypad_split_shifted', [self._keypad.split_layer, self.keypad_shift_layer])
 		self._main_modes.add_mode('keypad_sequencer_shifted', [self._keypad.sequencer_shift_layer, self.keypad_shift_layer])
 		self._main_modes.add_mode('audioloop', [self.audioloop_layer])
-		#self._main_modes.add_mode('mod', [self.mod_layer])
 	
 
 	def _top_device(self, selected_device):
@@ -1117,17 +1115,14 @@ class MonoScaleComponent(CompoundComponent):
 
 	def set_offset(self, val):
 		self._offset = val
-		#self.update()
 	
 
 	def set_vertical_offset(self, val):
 		self._vertoffset = val
-		#self.update()
 	
 
 	def set_scale_offset(self, val):
 		self._scale = val
-		#self.update()
 	
 
 	def set_note_matrix(self, matrix):
@@ -1189,9 +1184,11 @@ class MonoScaleComponent(CompoundComponent):
 				if button:
 					button.display_press = False
 					#button.set_channel(0)
+					#button.set_on_off_values('Sequencer.On', 'Sequencer.Off')
 					button.set_identifier(x + (y*width))
 			#self._control_surface.set_feedback_channels(range(14, 15))
 		self._note_sequencer.set_button_matrix(matrix)
+		#debug('playhead color is:', self._note_sequencer.playhead_color, int(self._skin[self._note_sequencer.playhead_color]))
 	
 
 	def set_split_matrix(self, matrix):
@@ -1253,44 +1250,6 @@ class MonoScaleComponent(CompoundComponent):
 
 	def update(self):
 		super(MonoScaleComponent, self).update()
-		"""if self.is_enabled():
-			matrix = self._on_note_matrix_value.subject
-			#debug('scale matrix is:' + str(matrix))
-			CC_matrix = self._on_note_CC_matrix_value.subject
-			vertoffset = self._vertoffset
-			offset = self._offset
-			scale = self._scale
-			if scale is 'Auto':
-				scale = DEFAULT_AUTO_SCALE
-			scale_len = len(SCALES[scale])
-			cur_chan = self._channel
-			if matrix:
-				height = matrix.height()
-				width = matrix.width()
-				for button, (x, y) in matrix.iterbuttons():
-					if button:
-						note_pos = x + (abs((height-1)-y)*vertoffset)
-						note = offset + SCALES[scale][note_pos%scale_len] + (12*int(note_pos/scale_len))
-						button.set_identifier(note%127)
-						button.scale_color = KEYCOLORS[(note%12 in WHITEKEYS) + (((note_pos%scale_len)==0)*2)]
-						button.display_press = True
-						button.press_flash(0, True)
-						#button._descriptor = str(NOTENAMES[self._pad[x + (y*8)]._msg_identifier])
-						#self._offset_component._shifted_value = 11
-						#debug('button:' + str(button.name) + str(button.message_identifier()) + str(button.scale_color))
-						button.send_value(button.scale_color, True)
-						button.set_enabled(False)
-						button.set_channel(cur_chan)
-			if CC_matrix:
-				height = CC_matrix.height()
-				width = CC_matrix.width()
-				for button, (x, y) in CC_matrix.iterbuttons():
-					if button:
-						note_pos = x + (abs((height-1)-y)*vertoffset)
-						note = offset + SCALES[scale][note_pos%scale_len] + (12*int(note_pos/scale_len))
-						button.set_identifier(note%127)
-						#button.set_enabled(False)
-						button.set_channel(cur_chan)"""
 	
 
 

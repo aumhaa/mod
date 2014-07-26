@@ -2,7 +2,7 @@
 """
 Base_Map.py
 
-Created by amounra on 2012-12-30.
+Created by amounra on 2014-7-26.
 
 This file allows the reassignment of the controls from their default arrangement.  The order is from left to right; 
 Buttons are Note #'s and Faders/Rotaries are Controller #'s
@@ -11,7 +11,7 @@ OSC_TRANSMIT = False
 
 OSC_OUTPORT = 9001
 
-SHIFT_LATCHING = True
+SHIFT_LATCHING = False
 
 CHANNEL = 0		#main channel (0 - 15)
 
@@ -27,9 +27,6 @@ BASE_RUNNERS = [68, 69, 70, 71, 72, 73, 74, 75]
 
 BASE_LCDS = [34, 35]
 
-FOLLOW = True		#this sets whether or not the last selected device on a track is selected for editing when you select a new track
-
-TRACK_BANKING_INCREMENT = 8
 
 """ The default assignment of colors within the OhmRGB is:
 Note 2 = white
@@ -44,7 +41,6 @@ Because the colors are reassignable, and the default colors have changed from th
 	here in the script.	 The color ordering is from 1 to 7.	 
 """
 COLOR_MAP = [2, 64, 4, 8, 16, 127, 32]
-#COLOR_MAP = [7, 1, 3, 2, 6, 5, 4]
 
 """This variable determines whether or not the script automatically arms an instruments track for recording when it is selected"""
 AUTO_ARM_SELECTED = True
@@ -66,10 +62,9 @@ UDLR = [0, 1, 2, 3]
 7 = 32 Bars
 """
 
+
 LENGTH_VALUES = [2, 3, 4]
 
-"""Setting this flag to True will cause Live's detail view to switch to the appropriate one (i.e. Clip vs. Device) when the mode updates"""
-SWITCH_VIEWS_ON_MODE_CHANGE = False
 
 """The following variables contain color values for different operational mode indicators"""
 """[blackkey, whitekey]"""
@@ -103,26 +98,10 @@ CHAIN_NAV = 11
 DEVICE_LAYER = 12
 
 
-TRACK_MUTE = 2
-TRACK_ARM = 5
-TRACK_SOLO = 3
-TRACK_STOP = 127
-
-STOP_CLIP = 127
-CLIP_TRG_PLAY = 13
-CLIP_TRG_REC = 11
-CLIP_STOP = 1
-CLIP_STARTED = 6
-CLIP_RECORDING = 5
-ZOOM_STOPPED = 127
-ZOOM_PLAYING = 6
-ZOOM_SELECTED = 8
-
 
 """The scale modes and drumpads use the following note maps"""
 
 NOTES = [24, 25, 26, 27, 28, 29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7]
-#DRUMNOTES = [48, 49, 50, 51, 64, 65, 66, 67, 44, 45, 46, 47, 60, 61, 62, 63, 40, 41, 42, 43, 56, 57, 58, 59, 36, 37, 38, 39, 52, 53, 54, 55]
 DRUMNOTES = [12, 13, 14, 15, 28, 29, 30, 31, 8, 9, 10, 11, 24, 25, 26, 27, 4, 5, 6, 7, 20, 21, 22, 23, 0, 1, 2, 3, 16, 17, 18, 19]
 SCALENOTES = [36, 38, 40, 41, 43, 45, 47, 48, 24, 26, 28, 29, 31, 33, 35, 36, 12, 14, 16, 17, 19, 21, 23, 24, 0, 2, 4, 5, 7, 9, 11, 12]
 WHITEKEYS = [0, 2, 4, 5, 7, 9, 11, 12]
@@ -202,4 +181,130 @@ DEFAULT_SCALE = 'Auto'
 """This is the default SplitMode used for all MIDI Channels"""
 DEFAULT_SPLIT = False
 
+from _Framework.ButtonElement import Color
+from _Mono_Framework.LividColors import *
 
+
+class BaseColors:
+
+
+	class DefaultButton:
+		On = LividRGB.WHITE
+		Off = LividRGB.OFF
+	
+
+	class Session:
+		StopClipTriggered = LividRGB.BlinkFast.BLUE
+		StopClip = LividRGB.BLUE
+		Scene = LividRGB.CYAN
+		NoScene = LividRGB.OFF
+		SceneTriggered = LividRGB.BlinkFast.BLUE
+		ClipTriggeredPlay = LividRGB.BlinkFast.GREEN
+		ClipTriggeredRecord = LividRGB.BlinkFast.RED
+		RecordButton = LividRGB.OFF
+		ClipStopped = LividRGB.WHITE
+		ClipStarted = LividRGB.GREEN
+		ClipRecording = LividRGB.RED
+		NavigationButtonOn = LividRGB.BLUE
+	
+
+	class NoteEditor:
+
+		class Step:
+			Low = LividRGB.CYAN
+			High = LividRGB.WHITE 
+			Full = LividRGB.YELLOW
+			Muted = LividRGB.YELLOW
+			StepEmpty = LividRGB.OFF
+		
+
+		class StepEditing:
+			High = LividRGB.GREEN
+			Low = LividRGB.CYAN
+			Full = LividRGB.YELLOW
+			Muted = LividRGB.WHITE
+		
+
+		StepEmpty = LividRGB.OFF
+		StepEmptyBase = LividRGB.OFF
+		StepEmptyScale = LividRGB.OFF
+		StepDisabled = LividRGB.OFF
+		Playhead = LividRGB.GREEN
+		PlayheadRecord = LividRGB.RED
+		StepSelected = LividRGB.GREEN
+		QuantizationSelected = LividRGB.RED
+		QuantizationUnselected = LividRGB.MAGENTA
+	
+
+	class LoopSelector:
+		Playhead = LividRGB.YELLOW
+		OutsideLoop = LividRGB.BLUE
+		InsideLoopStartBar = LividRGB.CYAN
+		SelectedPage = LividRGB.WHITE
+		InsideLoop = LividRGB.CYAN
+		PlayheadRecord = LividRGB.RED
+	
+
+	class DrumGroup:
+		PadAction = LividRGB.WHITE
+		PadFilled = LividRGB.GREEN
+		PadSelected = LividRGB.WHITE
+		PadEmpty = LividRGB.OFF
+		PadMuted = LividRGB.YELLOW
+		PadSoloed = LividRGB.CYAN
+		PadMutedSelected = LividRGB.BLUE
+		PadSoloedSelected = LividRGB.BLUE
+	
+
+	class Mixer:
+		SoloOn = LividRGB.CYAN
+		SoloOff = LividRGB.OFF
+		MuteOn = LividRGB.YELLOW
+		MuteOff = LividRGB.OFF
+		ArmSelected = LividRGB.RED
+		ArmUnselected = LividRGB.RED
+		ArmOff = LividRGB.OFF
+		StopClip = LividRGB.BLUE
+	
+
+	class Recording:
+		Transition = LividRGB.BlinkSlow.GREEN
+	
+
+	class Recorder:
+		On = LividRGB.WHITE
+		Off = LividRGB.BLUE
+		NewOn = LividRGB.BlinkFast.YELLOW
+		NewOff = LividRGB.YELLOW
+		FixedOn = LividRGB.BlinkFast.CYAN
+		FixedOff = LividRGB.CYAN
+		RecordOn = LividRGB.BlinkFast.GREEN
+		RecordOff = LividRGB.GREEN
+		FixedAssigned = LividRGB.MAGENTA
+		FixedNotAssigned = LividRGB.OFF
+	
+
+	class Transport:
+		OverdubOn = LividRGB.BlinkFast.RED
+		OverdubOff = LividRGB.RED
+	
+
+	class Sequencer:
+		OctaveOn = LividRGB.BlinkFast.CYAN
+		OctaveOff = LividRGB.OFF
+		On = LividRGB.WHITE
+		Off = LividRGB.OFF
+	
+
+	class Device:
+		NavOn = LividRGB.MAGENTA
+		NavOff = LividRGB.OFF
+		BankOn = LividRGB.YELLOW
+		BankOff = LividRGB.OFF
+		ChainNavOn = LividRGB.RED
+		ChainNavOff = LividRGB.OFF
+		ContainNavOn = LividRGB.CYAN
+		ContainNavOff = LividRGB.OFF
+	
+
+	

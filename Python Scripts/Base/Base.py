@@ -8,6 +8,7 @@ from _Tools.re import *
 from itertools import imap, chain, starmap
 
 """ _Framework files """
+from _Framework.Dependency import inject
 from _Framework.ButtonElement import ButtonElement
 from _Framework.ButtonMatrixElement import ButtonMatrixElement
 from _Framework.ChannelStripComponent import ChannelStripComponent
@@ -25,7 +26,6 @@ from _Framework.ModeSelectorComponent import ModeSelectorComponent
 from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.SceneComponent import SceneComponent
 from _Framework.SessionComponent import SessionComponent
-from _Framework.SessionZoomingComponent import DeprecatedSessionZoomingComponent as SessionZoomingComponent
 from _Framework.SliderElement import SliderElement
 from _Framework.TransportComponent import TransportComponent
 from _Framework.PhysicalDisplayElement import *
@@ -38,6 +38,7 @@ from _Framework.ModesComponent import Mode, CompoundMode, DisableMode, EnablingM
 from _Framework.ClipCreator import ClipCreator
 from _Framework.Resource import PrioritizedResource
 from _Framework.Util import mixin
+from _Framework.BackgroundComponent import BackgroundComponent
 
 """Custom files, overrides, and files from other scripts"""
 from _Mono_Framework.MonoButtonElement import *
@@ -49,6 +50,7 @@ from _Mono_Framework.TranslationComponent import TranslationComponent
 from _Mono_Framework.ModDevices import *
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
+from _Mono_Framework.LividColors import *
 
 import _Mono_Framework.modRemixNet as RemixNet
 import _Mono_Framework.modOSC
@@ -65,7 +67,6 @@ from Push.GridResolution import GridResolution
 from Push.ConfigurableButtonElement import ConfigurableButtonElement
 from Push.LoopSelectorComponent import LoopSelectorComponent
 from Push.Actions import CreateInstrumentTrackComponent, CreateDefaultTrackComponent, CaptureAndInsertSceneComponent, DuplicateDetailClipComponent, DuplicateLoopComponent, SelectComponent, DeleteComponent, DeleteSelectedClipComponent, DeleteSelectedSceneComponent, CreateDeviceComponent
-from Push.SkinDefault import make_default_skin
 
 from MonoScaleComponent import *
 
@@ -140,6 +141,10 @@ def make_pad_translations(chan):
 
 def return_empty():
 	return []
+
+
+def make_default_skin():
+	return Skin(BaseColors)
 
 
 
@@ -224,7 +229,7 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 		if len(displays) is 1:
 			message = self._translate_string(' ' + str(displays[0].display_string))
 			debug('message len:', len(message), 'message:', message)
-			messages = [tuple([176, 34, message[-1]]), tuple([176, 35, message[-2]])]
+			messages = [tuple([176, 34, message[-2]]), tuple([176, 35, message[-1]])]
 		elif len(displays):
 			for i in range(2):
 				messages.append(tuple([176, 34 + i, self._translate_char(self._build_display_message(displays[i]))]))
@@ -260,7 +265,7 @@ class BaseDisplayingModesComponent(ModesComponent):
 
 	def _update_data_sources(self, selected, *a, **k):
 		if self.is_enabled():
-			debug('setting data string to:', self._mode_data_string[selected])
+			#debug('setting data string to:', self._mode_data_string[selected])
 			self._data_source.set_display_string(self._mode_data_string[selected])
 	
 
@@ -488,29 +493,9 @@ class BlockingMonoButtonElement(MonoButtonElement):
 
 	def __init__(self, *a, **k):
 		super(BlockingMonoButtonElement, self).__init__(*a, **k)
-		self._is_held = False
-		self._held_value = 1
 		self.display_press = False
 		self._last_flash = 0
 		self.scale_color = 0
-		self._skin_colors = {'NoteEditor.Step.Low':3, 'NoteEditor.Step.High':1, 'NoteEditor.Step.Full':2, 'NoteEditor.Step.Muted':3, 'NoteEditor.Step.Empty':0,
-								'NoteEditor.StepLow':3, 'NoteEditor.StepHigh':1, 'NoteEditor.StepFull':2, 'NoteEditor.StepMuted':3, 'NoteEditor.StepEmpty':0, 'NoteEditor.StepEditing.High':6,
-								'NoteEditor.StepEmptyBase':0, 'NoteEditor.StepEmptyScale':0, 'NoteEditor.StepDisabled':0, 'NoteEditor.Playhead':2, 
-								'NoteEditor.StepSelected':6, 'NoteEditor.PlayheadRecord':5, 'NoteEditor.QuantizationSelected':5, 'NoteEditor.QuantizationUnselected':4,
-								'LoopSelector.Playhead':2, 'LoopSelector.OutsideLoop':7, 'LoopSelector.InsideLoopStartBar':3, 'LoopSelector.SelectedPage':1, 
-								'LoopSelector.InsideLoop':3, 'LoopSelector.PlayheadRecord':5, 
-								'DrumGroup.PadAction':1, 'DrumGroup.PadFilled':6, 'DrumGroup.PadSelected':1, 'DrumGroup.PadEmpty':0, 'DrumGroup.PadMuted':2, 
-								'DrumGroup.PadSoloed':3, 'DrumGroup.PadMutedSelected':7, 'DrumGroup.PadSoloedSelected':7,
-								 }
-
-	
-
-	"""def install_connections(self):
-		if self._is_enabled:
-			ButtonElement.install_connections(self)
-		elif ((self._msg_channel != self._original_channel) or (self._msg_identifier != self._original_identifier)):
-			self._install_translation(self._msg_type, self._original_identifier, self._original_channel, self._msg_identifier, self._msg_channel)
-			#self._install_original_forwarding(self)"""
 	
 
 	def press_flash(self, value, force = False):
@@ -533,34 +518,6 @@ class BlockingMonoButtonElement(MonoButtonElement):
 			status_byte +=	144
 			self.send_midi((status_byte, data_byte1, data_byte2))
 			self._last_flash = value
-	
-
-	def set_light(self, value):
-		if value is True:
-			self.send_value(self._on_value)
-		elif value is False:
-			self.send_value(self._off_value)
-		elif value in self._skin_colors.keys():
-			self.send_value(self._skin_colors[value])
-		else:
-			self._script.log_message('skin color: ' + str(value))
-			self.send_value(len(value))
-	
-
-	def set_on_off_values(self, on_value, off_value):
-		if not on_value in range(128):
-			if on_value in self._skin_colors.keys():
-				on_value = self._skin_colors[on_value]
-			else:
-				#self._script.log_message('on_value skin color: ' + str(on_value))
-				on_value = len(on_value)
-		if not off_value in range(128):
-			if off_value in self._skin_colors.keys():
-				off_value = self._skin_colors[off_value]
-			else:
-				#self._script.log_message('off_value skin color: ' + str(off_value))
-				off_value = len(off_value)
-		super(BlockingMonoButtonElement, self).set_on_off_values(on_value, off_value)
 	
 
 
@@ -595,6 +552,12 @@ class BaseMixerComponent(MixerComponent):
 			strip.set_volume_control(control)
 	
 
+	def set_stop_clip_buttons(self, buttons):
+		for strip, button in map(None, self._channel_strips, buttons or []):
+			strip.set_stop_button(button)
+			debug('set stop button:', button)
+	
+
 	def tracks_to_use(self):
 		return tuple(self.song().visible_tracks) + tuple(self.song().return_tracks)
 	
@@ -603,8 +566,15 @@ class BaseMixerComponent(MixerComponent):
 class BaseChannelStripComponent(ChannelStripComponent):
 
 
+	def __init__(self, *a, **k):
+		super(BaseChannelStripComponent, self).__init__(*a, **k)
+		self._record_button_value = 0
+	
+
 	def set_stop_button(self, button):
+		debug('setting stop button:', button)
 		self._on_stop_value.subject = button
+		button and button.set_light('Mixer.StopClip')
 	
 
 	@subject_slot('value')
@@ -622,152 +592,42 @@ class BaseChannelStripComponent(ChannelStripComponent):
 	def _on_mute_changed(self):
 		if self.is_enabled() and self._mute_button != None:
 			if self._track != None or self.empty_color == None:
-				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.mute == self._invert_mute_feedback:
-					self._mute_button.turn_on()
+				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.mute != self._invert_mute_feedback:
+					self._mute_button.set_light('Mixer.MuteOn')
 				else:
-					self._mute_button.turn_off()
+					self._mute_button.set_light('Mixer.MuteOff')
 			else:
 				self._mute_button.set_light(self.empty_color)
 	
 
-
-class BaseModeSelector(ModeSelectorComponent):
-
-
-	def __init__(self, script):
-		super(BaseModeSelector, self).__init__()
-		self._held = None
-		self._script = script
-		self._set_protected_mode_index(0)	
-	
-
-	def number_of_modes(self):
-		return 4
-	
-
-	def _mode_value(self, value, sender):
-		#if sender in (self._modes_buttons[1], self._modes_buttons[2]):
-			#if not sender is self._held and not self._script.pad_held()):
-		if not sender is self._held:
-			if not self._script.pad_held() or sender in (self._modes_buttons[1], self._modes_buttons[2]):
-				if value:
-					super(BaseModeSelector, self)._mode_value(value, sender)
-					self._held = sender
-					self._script._shift_update(self._mode_index, not self._held is None)
-					self._script.schedule_message(3, self._script._check_mode_shift, self._held)
-		elif value is 0:
-			#else:
-			self._held = None
-			self._script._shift_update(self._mode_index, not self._held is None)
-	
-
-	def update(self):
-		if self._is_enabled:
-			buttons = self._modes_buttons
-			for index in range(len(buttons)):
-				if index == self._mode_index:
-					buttons[index].turn_on(True)
+	def _on_solo_changed(self):
+		if self.is_enabled() and self._solo_button != None:
+			if self._track != None or self.empty_color == None:
+				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.solo:
+					self._solo_button.set_light('Mixer.SoloOn')
 				else:
-					buttons[index].turn_off(True)
-			#for index in range(8):
-				#self._script._send_midi((191, index+1, LAYERSPLASH[self._mode_index]))
+					self._solo_button.set_light('Mixer.SoloOff')
+			else:
+				self._solo_button.set_light(self.empty_color)
 	
 
-	def is_shifted(self):
-		return not self._held is None
-	
-
-	"""def set_mode_buttons(self, buttons):
-		for button in self._modes_buttons:
-			button.remove_value_listener(self._mode_value)
-		self._modes_buttons = []
-		if (buttons != None):
-			for button in buttons:
-				assert isinstance(button, MonoButtonElement)
-				identify_sender = True
-				button.add_value_listener(self._mode_value, identify_sender)
-				self._modes_buttons.append(button)
-			for index in range(len(self._modes_buttons)):
-				if (index == self._mode_index):
-					self._modes_buttons[index].turn_on()
+	def _on_arm_changed(self):
+		if self.is_enabled() and self._arm_button != None:
+			if self._track != None or self.empty_color == None:
+				if self._track in self.song().tracks and self._track.can_be_armed and self._track.arm:
+					self._arm_button.set_light('Mixer.ArmSelected')
 				else:
-					self._modes_buttons[index].turn_off()"""
-	
-
-
-class BaseUserModeSelector(ModeSelectorComponent):
-
-
-	def __init__(self, script):
-		super(BaseUserModeSelector, self).__init__()
-		self._held = None
-		self._script = script
-		self._set_protected_mode_index(0)	
-	
-
-	def number_of_modes(self):
-		return 8
-	
-
-	def _mode_value(self, value, sender):
-		if self._is_enabled:
-			if not sender is self._held:
-				super(BaseUserModeSelector, self)._mode_value(value, sender)
-				self._held = sender
-			elif value is 0:
-				self._held = None
-			self._script._user_shift_update(self._mode_index, not self._held is None)
-	
-
-	def update(self):
-		if self._is_enabled:
-			buttons = self._modes_buttons
-			for index in range(len(buttons)):
-				if index == self._mode_index:
-					buttons[index].turn_on(True)
-				else:
-					buttons[index].turn_off(True)
-	
-
-	def is_shifted(self):
-		return not self._held is None
-	
-
-
-class BaseMidiModeSelector(ModeSelectorComponent):
-
-
-	def __init__(self, callback):
-		super(BaseMidiModeSelector, self).__init__()
-		self._report_mode = callback
-		self._set_protected_mode_index(0)	
-	
-
-	def number_of_modes(self):
-		return 2
-	
-
-	def _mode_value(self, value, sender):
-		if self._is_enabled:
-			super(BaseMidiModeSelector, self)._mode_value(value, sender)
-			self._report_mode(self._mode_index)
-	
-
-	def update(self):
-		if self._is_enabled:
-			for index in range(len(self._modes_buttons)):
-				if self._mode_index == index:
-					self._modes_buttons[index].turn_on(True)
-				else:
-					self._modes_buttons[index].turn_off(True)
+					self._arm_button.set_light('Mixer.ArmOff')
+			else:
+				self._arm_button.set_light(self.empty_color)
 	
 
 
 class BaseSessionComponent(SessionComponent):
 
 
-	def __init__(self, num_tracks, num_scenes):
-		super(BaseSessionComponent, self).__init__(num_tracks, num_scenes)
+	def __init__(self, num_tracks, num_scenes, *a, **k):
+		super(BaseSessionComponent, self).__init__(num_tracks, num_scenes, *a, **k)
 	
 
 	def set_clip_launch_buttons(self, buttons):
@@ -1015,9 +875,46 @@ class BaseModHandler(ModHandler):
 class BaseMonoInstrumentComponent(MonoInstrumentComponent):
 
 
+	def __init__(self, *a, **k):
+		self._base_display = None
+		self._keys_offset_data = DisplayDataSource('')
+		self._drum_offset_data = DisplayDataSource('')
+		self._vertical_offset_data = DisplayDataSource('')
+		self._scale_offset_data = DisplayDataSource('')
+		super(BaseMonoInstrumentComponent, self).__init__(*a, **k)
+	
+
 	def set_shift_button(self, button):
 		self._shifted = 0
 		self._drumpad._step_sequencer._drum_group._select_button = button  #drum_group uses is_pressed() to determine an action
+	
+
+	def set_base_display(self, display):
+		self._base_display = display
+	
+
+	def _offset_value(self, offset):
+		super(BaseMonoInstrumentComponent, self)._offset_value(offset)
+		self._keys_offset_data.set_display_string(str(NOTENAMES[offset]))
+		self._base_display and self._base_display.set_data_sources([self._keys_offset_data])
+	
+
+	def _drum_offset_value(self, offset):
+		super(BaseMonoInstrumentComponent, self)._drum_offset_value(offset)
+		self._drum_offset_data.set_display_string(str(offset))
+		self._base_display and self._base_display.set_data_sources([self._drum_offset_data])
+	
+
+	def _vertical_offset_value(self, offset):
+		super(BaseMonoInstrumentComponent, self)._vertical_offset_value(offset)	
+		self._vertical_offset_data.set_display_string(str(offset))
+		self._base_display and self._base_display.set_data_sources([self._vertical_offset_data])	
+	
+
+	def _scale_offset_value(self, offset):
+		super(BaseMonoInstrumentComponent, self)._scale_offset_value(offset)
+		self._scale_offset_data.set_display_string(str(SCALEABBREVS[SCALENAMES[offset]]))
+		self._base_display and self._base_display.set_data_sources([self._scale_offset_data])
 	
 
 
@@ -1092,11 +989,14 @@ class Base(ControlSurface):
 		self._touched = 0
 		self._last_pad_stream = [0 for i in range(0, 32)]
 		self._shift_latching = LatchingShiftedBehaviour if SHIFT_LATCHING else ShiftedBehaviour
+		self._skin = Skin(BaseColors)
 		with self.component_guard():
 			self._setup_monobridge()
 			if OSC_TRANSMIT:
 				self._setup_OSC_layer()
+			#with inject(skin=const(self._skin)).everywhere():
 			self._setup_controls()
+			self._setup_background()
 			self._define_sysex()
 			self._setup_display()
 			self._setup_autoarm()
@@ -1153,14 +1053,14 @@ class Base(ControlSurface):
 		for fader in self._fader:
 			fader._mapping_feedback_delay = -1
 		self._fader_matrix = ButtonMatrixElement(name = 'FaderMatrix', rows = [self._fader[:8]])
-		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_BUTTONS[index], 'Button_' + str(index), self) for index in range(8)]
-		self._pad = [BlockingMonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_PADS[index],	 'Pad_' + str(index), self) for index in range(32)]
+		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_BUTTONS[index], 'Button_' + str(index), self, skin = self._skin) for index in range(8)]
+		self._pad = [BlockingMonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_PADS[index],	 'Pad_' + str(index), self, skin = self._skin) for index in range(32)]
 		self._pad_doublepress = [DoublePressElement(pad) for pad in self._pad]
 		self._pad_CC = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_PADS[index], Live.MidiMap.MapMode.absolute, 'Pad_CC_' + str(index), index, self) for index in range(32)]
-		self._touchpad = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_TOUCHPADS[index], 'TouchPad_' + str(index), self, resource_type = PrioritizedResource) for index in range(8)]
+		self._touchpad = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_TOUCHPADS[index], 'TouchPad_' + str(index), self, resource_type = PrioritizedResource, skin = self._skin) for index in range(8)]
 		self._touchpad_matrix = ButtonMatrixElement(name = 'TouchPadMatrix', rows = [self._touchpad],)
 		self._touchpad_multi = MultiElement(self._touchpad[0], self._touchpad[1], self._touchpad[2], self._touchpad[3], self._touchpad[4], self._touchpad[5], self._touchpad[6], self._touchpad[7],)
-		self._runner = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_RUNNERS[index], 'Runner_' + str(index), self) for index in range(8)]
+		self._runner = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_RUNNERS[index], 'Runner_' + str(index), self, skin = self._skin) for index in range(8)]
 		self._runner_matrix = ButtonMatrixElement(name = 'RunnerMatrix', rows = [self._runner])
 		self._stream_pads = [self._pad[index%8 + (abs((index/8)-3)*8)] for index in range(32)]
 		self._nav_buttons = ButtonMatrixElement( name = 'nav_buttons' )
@@ -1193,6 +1093,13 @@ class Base(ControlSurface):
 			touchpad._descriptor = 'None'
 		for pad in self._pad:
 			pad._descriptor = 'None'
+
+	
+
+	def _setup_background(self):
+		self._matrix_background = BackgroundComponent()
+		self._matrix_background.set_enabled(True)
+		self._matrix_background.layer = Layer(priority = 0, runners=self._runner_matrix)
 	
 
 	def _define_sysex(self):
@@ -1226,30 +1133,32 @@ class Base(ControlSurface):
 
 	def _setup_mixer_control(self):
 		is_momentary = True
-		self._num_tracks = (8) #A mixer is one-dimensional; 
+		self._num_tracks = (8)
 		self._mixer = BaseMixerComponent(script = self, num_tracks = 8, num_returns = 4, invert_mute_feedback = True, autoname = True)
 		self._mixer.name = 'Mixer'
-		self._mixer.set_track_offset(0) #Sets start point for mixer strip (offset from left)
+		self._mixer.set_track_offset(0)
 		self._mixer.master_strip().set_volume_control(self._fader[8])
 		self._mixer.volume_layer = AddLayerMode(self._mixer, Layer(priority = 4, volume_controls = self._fader_matrix))
 		self._mixer.select_layer = AddLayerMode(self._mixer, Layer(priority = 4, track_select_buttons = self._touchpad_matrix))
 		selected_strip = self._mixer.selected_strip()
-		self._mixer.selected_channel_controls_layer = DelayMode(AddLayerMode(selected_strip, Layer(priority = 9, arm_button = self._button[6], solo_button = self._button[5], mute_button = self._button[4], stop_button = self._button[7])))
+		selected_strip.set_invert_mute_feedback(True)
+		self._mixer.selected_channel_controls_layer = AddLayerMode(selected_strip, Layer(priority = 9, arm_button = self._button[6], solo_button = self._button[5], mute_button = self._button[4], stop_button = self._button[7]))
 		self._mixer.selected_sends_layer = AddLayerMode(selected_strip, Layer(priority = 4, send_controls = self._fader_matrix.submatrix[:4, :]))
 		self._mixer.returns_layer = AddLayerMode(self._mixer, Layer(priority = 4, return_controls = self._fader_matrix.submatrix[4:, :]))
-		self._mixer.channel_controls_layer = AddLayerMode(self._mixer, Layer(priority = 4, arm_buttons = self._base_grid.submatrix[:, 2:3],
-																		mute_buttons = self._base_grid.submatrix[:, :1],
-																		solo_buttons = self._base_grid.submatrix[:, 1:2],))
+		self._mixer.channel_controls_layer = AddLayerMode(self._mixer, Layer(priority = 6, mute_buttons = self._base_grid.submatrix[:, :1],
+																		solo_buttons = self._base_grid.submatrix[:, 1:2],
+																		arm_buttons = self._base_grid.submatrix[:, 2:3],
+																		stop_clip_buttons = self._base_grid.submatrix[:, 3:4]))
 		self._mixer.navigation_layer = AddLayerMode(self._mixer, Layer(priority = 6, previous_track_button = self._button[6], next_track_button = self._button[7]))
 		self.song().view.selected_track = self._mixer.channel_strip(0)._track 
 		self._mixer.set_enabled(True)
 	
 
 	def _setup_session_control(self):
-		self._session = BaseSessionComponent(8, 4)
+		self._session = BaseSessionComponent(8, 4, enable_skinning = True)
 		self._session.name = "Session"
+		self._session._enable_skinning()
 		self._session.set_offsets(0, 0)	 
-		self._session.set_stop_clip_value(STOP_CLIP)
 		self._scene = [None for index in range(4)]
 		for row in range(4):
 			self._scene[row] = self._session.scene(row)
@@ -1257,17 +1166,10 @@ class Base(ControlSurface):
 			for column in range(8):
 				clip_slot = self._scene[row].clip_slot(column)
 				clip_slot.name = str(column) + '_Clip_Slot_' + str(row)
-				clip_slot.set_triggered_to_play_value(CLIP_TRG_PLAY)
-				clip_slot.set_triggered_to_record_value(CLIP_TRG_REC)
-				clip_slot.set_stopped_value(CLIP_STOP)
-				clip_slot.set_started_value(CLIP_STARTED)
-				clip_slot.set_recording_value(CLIP_RECORDING)
 		self._session.set_mixer(self._mixer)
 		self._session.cliplaunch_layer = AddLayerMode(self._session, Layer(priority = 4, clip_launch_buttons = self._base_grid))
-		self._session.overlay_cliplaunch_layer = DelayMode(AddLayerMode(self._session, Layer(priority = 9, clip_launch_buttons = self._base_grid.submatrix[:7, :], scene_launch_buttons = self._base_grid.submatrix[7:, :])))
+		self._session.overlay_cliplaunch_layer = AddLayerMode(self._session, Layer(priority = 9, clip_launch_buttons = self._base_grid.submatrix[:7, :], scene_launch_buttons = self._base_grid.submatrix[7:, :]))
 		self._session.navigation_layer = AddLayerMode(self._session, Layer(priority = 6, scene_bank_up_button = self._button[4], scene_bank_down_button = self._button[5], track_bank_left_button = self._button[6], track_bank_right_button = self._button[7]))
-		#self._session.selected_stop_control = AddLayerMode(self._session, Layer(priority = 9, 
-		#self._session.set_track_banking_increment(TRACK_BANKING_INCREMENT)	 #this function was removed from the session component :(
 		self.set_highlighting_session_component(self._session)
 		self._session._do_show_highlight()
 	
@@ -1282,12 +1184,12 @@ class Base(ControlSurface):
 		self._device = BaseDeviceComponent()
 		self._device.name = 'Device_Component'
 		self._device.parameters_layer = AddLayerMode(self._device, Layer(priority = 4, parameter_controls = self._fader_matrix.submatrix[:8][:]))
-		self._device.nav_layer = AddLayerMode(self._device, Layer(priority = 5, bank_prev_button = self._button[4], bank_next_button = self._button[5]))
+		self._device.nav_layer = AddLayerMode(self._device, Layer(priority = 5, bank_prev_button = self._button[6], bank_next_button = self._button[7]))
 		self.set_device_component(self._device)
 		self._device_navigator = DeviceNavigator(self._device, self._mixer, self)
 		self._device_navigator.name = 'Device_Navigator'
 		self._device_navigator.main_layer = AddLayerMode(self._device_navigator, Layer(priority = 6, prev_button = self._button[4], next_button = self._button[5]))
-		self._device_navigator.alt_layer = AddLayerMode(self._device_navigator, Layer(priority = 6, prev_chain_button = self._button[4], next_chain_button = self._button[5], enter_button = self._button[6], exit_button = self._button[7]))
+		self._device_navigator.alt_layer = AddLayerMode(self._device_navigator, Layer(priority = 6, prev_chain_button = self._button[4], next_chain_button = self._button[5], enter_button = self._button[7], exit_button = self._button[6]))
 		self._device_selection_follows_track_selection = FOLLOW 
 		self._device.device_name_data_source().set_update_callback(self._on_device_name_changed)
 	
@@ -1320,6 +1222,7 @@ class Base(ControlSurface):
 			controls.append(fader)
 		self._translations = TranslationComponent(controls, 10)
 		self._translations.name = 'TranslationComponent'
+		self._translations._channel = 10
 		self._translations.layer = Layer(priority = 10, channel_selector_buttons = self._nav_buttons)
 		self._translations.set_enabled(False)
 	
@@ -1331,10 +1234,10 @@ class Base(ControlSurface):
 		self.modhandler.name = 'ModHandler'
 		self.modhandler.layer = Layer(priority = 6, base_grid = self._base_grid, 
 													base_grid_CC = self._base_grid_CC,
-													key_buttons = self._runner_matrix,
 													parameter_controls = self._fader_matrix,
 													alt_button = self._button[6],
 													lock_button = self._button[7],)
+													#key_buttons = self._runner_matrix,
 		self.modhandler.alt_layer = AddLayerMode(self.modhandler, Layer(priority = 8,
 													device_selector_matrix = self._touchpad_matrix,))
 		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
@@ -1356,7 +1259,7 @@ class Base(ControlSurface):
 
 		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution,) # modhandler = self.modhandler )
 		self._instrument.name = 'InstrumentModes'
-		self._instrument.layer = Layer(priority = 5) #button_matrix = self._base_grid)
+		self._instrument.layer = Layer(priority = 5, base_display = self._display) #button_matrix = self._base_grid)
 		self._instrument.audioloop_layer = LayerMode(self._instrument, Layer(priority = 6, loop_selector_matrix = self._base_grid))
 		self._instrument.octave_toggle = AddLayerMode(self._instrument, Layer(octave_enable_button = self._button[4]))
 		self._instrument.shift_button1 = AddLayerMode(self._instrument, Layer(shift_button = self._button[1]))
@@ -1395,20 +1298,20 @@ class Base(ControlSurface):
 		self._instrument.set_enabled(False)
 
 		self._instrument._main_modes = ModesComponent(name = 'InstrumentModes')
+		self._instrument._main_modes.add_mode('disabled', [])
 		self._instrument._main_modes.add_mode('drumpad', [self._instrument._drumpad.main_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('drumpad_split', [self._instrument._drumpad.split_layer, self.splitvertical_mode_sysex])
 		self._instrument._main_modes.add_mode('drumpad_sequencer', [self._instrument._drumpad.sequencer_layer, self.splitvertical_mode_sysex])
-		self._instrument._main_modes.add_mode('drumpad_shifted', [self._instrument.drumpad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('drumpad_shifted', [self._instrument._drumpad.main_layer, self._instrument.drumpad_shift_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('drumpad_split_shifted', [self._instrument._drumpad.split_layer, self._instrument.drumpad_shift_layer])
 		self._instrument._main_modes.add_mode('drumpad_sequencer_shifted', [self._instrument._drumpad.sequencer_shift_layer, self._instrument.drumpad_shift_layer, self.splitvertical_mode_sysex])
 		self._instrument._main_modes.add_mode('keypad', [self._instrument._keypad.main_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('keypad_split', [self._instrument._keypad.split_layer, self.splithorizontal_mode_sysex])
 		self._instrument._main_modes.add_mode('keypad_sequencer', [self._instrument._keypad.sequencer_layer, self.splithorizontal_mode_sysex], )
-		self._instrument._main_modes.add_mode('keypad_shifted', [self._instrument.keypad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad_shifted', [self._instrument._keypad.main_layer, self._instrument.keypad_shift_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('keypad_split_shifted', [self._instrument._keypad.split_layer, self._instrument.keypad_shift_layer])
 		self._instrument._main_modes.add_mode('keypad_sequencer_shifted', [self._instrument._keypad.sequencer_shift_layer, self._instrument.keypad_shift_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('audioloop', [self._instrument.audioloop_layer, self.live_mode_sysex])
-		#self._instrument._main_modes.add_mode('mod', [self._instrument.mod_layer])
 		self._instrument.register_component(self._instrument._main_modes)
 		self._instrument.set_enabled(False)
 	
@@ -1440,15 +1343,15 @@ class Base(ControlSurface):
 
 	def _setup_main_modes(self):
 		self._main_modes = BaseDisplayingModesComponent(name = 'MainModes')
-		self._main_modes.add_mode('Clips_shifted', [self._mixer.volume_layer, self._mixer.select_layer, self._mixer.channel_controls_layer, self.clips_layer_sysex, self.live_mode_sysex], groups = ['shifted'], behaviour = self._shift_latching(color = 8), display_string = MODE_DATA['Clips_shifted'])
-		self._main_modes.add_mode('Clips', [self._mixer.volume_layer, self._mixer.select_layer, self._session.cliplaunch_layer,  self._session.navigation_layer, self.clips_layer_sysex, self.live_mode_sysex ], behaviour = self._shift_latching(color = 1), display_string = MODE_DATA['Clips'])
-		self._main_modes.add_mode('Sends_shifted', [self.sends_layer_sysex, self._modswitcher, self._recorder.alt_layer, self._instrument.octave_toggle, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]),], groups = ['shifted'], behaviour = self._shift_latching(color = 11), display_string = MODE_DATA['Sends_shifted'])
-		self._main_modes.add_mode('Sends', [self.sends_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.selected_sends_layer, self._mixer.returns_layer,  self._transport.overdub_layer, self._recorder.main_layer,], behaviour = self._shift_latching(color = 4), display_string = MODE_DATA['Sends'])
-		self._main_modes.add_mode('Device_shifted', [self.device_layer_sysex, self._modswitcher, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self._device, self._device.parameters_layer, self._device_navigator.alt_layer,  ], groups = ['shifted'], behaviour = self._shift_latching(color = 10), display_string = MODE_DATA['Device_shifted'])
-		self._main_modes.add_mode('Device', [self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
-		self._main_modes.add_mode('User_shifted', [self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
-		self._main_modes.add_mode('User', [self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
-		self._main_modes.add_mode('Select', [self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self._set_selected_channel_control_colors, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
+		self._main_modes.add_mode('Clips_shifted', [self._set_nav_colors, self._mixer.volume_layer, self._mixer.select_layer, self._mixer.channel_controls_layer, self.clips_layer_sysex, self.live_mode_sysex], groups = ['shifted'], behaviour = self._shift_latching(color = 8), display_string = MODE_DATA['Clips_shifted'])
+		self._main_modes.add_mode('Clips', [self._set_nav_colors, self._mixer.volume_layer, self._mixer.select_layer,  self._session.cliplaunch_layer, self._session.navigation_layer, self.clips_layer_sysex, self.live_mode_sysex ], behaviour = self._shift_latching(color = 1), display_string = MODE_DATA['Clips'])
+		self._main_modes.add_mode('Sends_shifted', [self._set_fixed_length_colors, self.sends_layer_sysex, self._modswitcher, self._recorder.alt_layer, self._instrument.octave_toggle, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]),], groups = ['shifted'], behaviour = self._shift_latching(color = 11), display_string = MODE_DATA['Sends_shifted'])
+		self._main_modes.add_mode('Sends', [self._set_clip_creator_colors, self.sends_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.selected_sends_layer, self._mixer.returns_layer,  self._transport.overdub_layer, self._recorder.main_layer,], behaviour = self._shift_latching(color = 4), display_string = MODE_DATA['Sends'])
+		self._main_modes.add_mode('Device_shifted', [self._set_device_shift_nav_colors, self.device_layer_sysex, self._modswitcher, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self._device, self._device.parameters_layer, self._device_navigator.alt_layer,  ], groups = ['shifted'], behaviour = self._shift_latching(color = 10), display_string = MODE_DATA['Device_shifted'])
+		self._main_modes.add_mode('Device', [self._set_device_nav_colors, self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
+		#self._main_modes.add_mode('User_shifted', [self._set_user_page_colors, self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
+		self._main_modes.add_mode('User', [self._set_user_page_colors, self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
+		self._main_modes.add_mode('Select', [self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
 		self._main_modes.layer = Layer(priority = 4, Clips_button=self._button[0], Sends_button=self._button[1], Device_button=self._button[2], User_button=self._button[3], Select_button=self._touchpad_multi, display = self._display)
 		self._main_modes.selected_mode = 'Clips'
 	
@@ -1463,20 +1366,44 @@ class Base(ControlSurface):
 		self.modhandler.is_enabled() and self.modhandler._shift_value(0)
 	
 
-	def _set_selected_channel_control_colors(self):
-		self._button[4].set_on_off_values(2, 0)
-		self._button[5].set_on_off_values(3, 0)
-		self._button[6].set_on_off_values(5, 0)
-		self._button[7].set_on_off_values(7, 0)
-		self._button[7].send_value(7, True)
+	def _set_nav_colors(self):
+		for button in self._button[4:8]:
+			button.set_on_off_values('Session.NavigationButtonOn', 'DefaultButton.Off')
+	
+
+	def _set_clip_creator_colors(self):
+		self._button[4].set_on_off_values('Transport.OverdubOn', 'Transport.OverdubOff')
+		self._button[5].set_on_off_values('Recorder.NewOn', 'Recorder.NewOff')
+		self._button[6].set_on_off_values('Recorder.RecordOn', 'Recorder.RecordOff')
+		self._button[7].set_on_off_values('Recorder.FixedOn', 'Recorder.FixedOff')
+	
+
+	def _set_fixed_length_colors(self):
+		self._button[4].set_on_off_values('Sequencer.OctaveOn', 'Sequencer.OctaveOff')
+		self._button[5].set_on_off_values('Recorder.FixedAssigned', 'Recorder.FixedNotAssigned')
+		self._button[6].set_on_off_values('Recorder.FixedAssigned', 'Recorder.FixedNotAssigned')
+		self._button[7].set_on_off_values('Recorder.FixedAssigned', 'Recorder.FixedNotAssigned')
+	
+
+	def _set_device_nav_colors(self):
+		self._button[4].set_on_off_values('Device.NavOn', 'Device.NavOff')
+		self._button[5].set_on_off_values('Device.NavOn', 'Device.NavOff')
+		self._button[6].set_on_off_values('Device.BankOn', 'Device.BankOff')
+		self._button[7].set_on_off_values('Device.BankOn', 'Device.BankOff')
+	
+
+	def _set_device_shift_nav_colors(self):
+		self._button[4].set_on_off_values('Device.ChainNavOn', 'Device.ChainNavOff')
+		self._button[5].set_on_off_values('Device.ChainNavOn', 'Device.ChainNavOff')
+		self._button[6].set_on_off_values('Device.ContainNavOn', 'Device.ContainNavOff')
+		self._button[7].set_on_off_values('Device.ContainNavOn', 'Device.ContainNavOff')
 	
 
 	def _set_user_page_colors(self):
-		self._button[4].set_on_off_values(1, 0)
-		self._button[5].set_on_off_values(1, 0)
-		self._button[6].set_on_off_values(1, 0)
-		self._button[7].set_on_off_values(1, 0)
+		for button in self._button[4:8]:
+			button.set_on_off_values('DefaultButton.On', 'DefaultButton.Off')
 	
+
 
 	def _notify_descriptors(self):
 		if OSC_TRANSMIT:

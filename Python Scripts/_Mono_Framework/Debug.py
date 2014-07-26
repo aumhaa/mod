@@ -412,8 +412,8 @@ class Debug(ControlSurface):
 
 			# Record this filename's current mtime.
 			self.mtimes[filename] = mtime
-		self.log_message('changed files:' + str(self.changed_files))
-		self.schedule_message(100, self._scan)
+		#self.log_message('changed files:' + str(self.changed_files))
+		#self.schedule_message(100, self._scan)
 	
 
 	def rebuild_sys(self):
