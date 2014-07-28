@@ -608,10 +608,12 @@ class ModHandler(CompoundComponent):
 	
 
 	def set_parameter_controls(self, controls):
+		debug('setting parameter controls', controls)
 		self._parameter_controls = None
 		if not controls is None:
 			self._parameter_controls = [control for control, _ in controls.iterbuttons()]
 		if not self._active_mod is None:
+			debug('updating param component')
 			self._active_mod._param_component.update()
 	
 
@@ -1151,6 +1153,7 @@ class ModClient(NotifyingControlElement):
 		self._color_maps = {}
 		self.legacy = False
 		self._param_component = MonoDeviceComponent(self, MOD_BANK_DICT, MOD_TYPES)
+		self._param_component._device = self.device
 		self.register_addresses()
 		#self._device_listener.subject = device.canonical_parent
 		self._parent._task_group.add(sequence(delay(2), self.connect))

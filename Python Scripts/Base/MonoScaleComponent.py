@@ -882,6 +882,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['offset'] = offset
+				self._set_device_attribute(self._top_device(), 'offset', offset)
 				self._script.show_message('New root is Note# ' + str(self._offsets[cur_chan]['offset']) + ', ' + str(NOTENAMES[self._offsets[cur_chan]['offset']]))
 				self._display.set_value_string(str(self._offsets[cur_chan]['offset']) + ', ' + str(NOTENAMES[self._offsets[cur_chan]['offset']]), 3)
 				self._keypad.set_offset(offset)
@@ -894,6 +895,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['drumoffset'] = offset
+				self._set_device_attribute(self._top_device(), 'drumoffset', offset)
 				self._script.show_message('New drum root is ' + str(self._offsets[cur_chan]['drumoffset']))
 				self._display.set_value_string(str(self._offsets[cur_chan]['drumoffset']), 3)
 				self._drumpad.set_offset(offset)
@@ -906,6 +908,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['vertoffset'] = offset
+				self._set_device_attribute(self._top_device(), 'vertoffset', offset)
 				self._script.show_message('New vertical offset is ' + str(self._offsets[cur_chan]['vertoffset']))
 				self._display.set_value_string(str(self._offsets[cur_chan]['vertoffset']), 1)
 				self._keypad.set_vertical_offset(offset)
@@ -918,6 +921,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['scale'] = SCALENAMES[offset]
+				self._set_device_attribute(self._top_device(), 'scale', SCALENAMES[offset])
 				self._script.show_message('New scale is ' + str(self._offsets[cur_chan]['scale']))
 				self._display.set_value_string(str(self._offsets[cur_chan]['scale']), 2)
 				if len(SCALES[self._offsets[cur_chan]['scale']])>8:
@@ -933,6 +937,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['split'] = bool(mode)
+				self._set_device_attribute(self._top_device(), 'split', bool(mode))
 				self._display.set_value_string(str(bool(mode)), 0)
 				self.update()
 	
@@ -943,6 +948,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				self._offsets[cur_chan]['sequencer'] = bool(mode)
+				self._set_device_attribute(self._top_device(), 'sequencer', bool(mode))
 				self._display.set_value_string(str(bool(mode)), 0)
 				self.update()
 	
@@ -961,7 +967,6 @@ class MonoInstrumentComponent(CompoundComponent):
 			cur_chan = self._get_current_channel(cur_track)
 			if cur_chan in range(17):
 				offsets = self._current_device_offsets(self._offsets[cur_chan])
-				#debug('returned cur_chan: ' + str(cur_chan))
 				offset, vertoffset, scale, split, sequencer, drumoffset = offsets['offset'], offsets['vertoffset'], offsets['scale'], offsets['split'], offsets['sequencer'], offsets['drumoffset']
 				self._offset_component.set_offset(offset)
 				self._scale_offset_component.set_offset(SCALENAMES.index(scale))
@@ -994,8 +999,6 @@ class MonoInstrumentComponent(CompoundComponent):
 				if self.is_shifted():
 					new_mode += '_shifted'
 				self._script.set_feedback_channels(range(14, 15))
-
-			debug('new mode is:', new_mode)
 			self._main_modes.selected_mode = new_mode
 	
 
@@ -1016,8 +1019,9 @@ class MonoInstrumentComponent(CompoundComponent):
 		self._main_modes.add_mode('audioloop', [self.audioloop_layer])
 	
 
-	def _top_device(self, selected_device):
-		#selected_device = self._device._device
+	def _top_device(self, selected_device = None):
+		if selected_device is None:
+			selected_device = self.song().appointed_device
 		if not selected_device is None and hasattr(selected_device, 'canonical_parent'):
 			while not isinstance(selected_device.canonical_parent, Live.Track.Track):
 				selected_device = selected_device.canonical_parent
@@ -1296,7 +1300,7 @@ class MonoDrumpadComponent(CompoundComponent):
 	def _drum_group_update_pad_led(self, pad, button, soloed_pads):
 		DrumGroupComponent._update_pad_led(self._step_sequencer._drum_group, pad, button, soloed_pads)
 		#debug('updating leds:' + str(button.name))
-		button.send_value(button._off_value, True)
+		button.turn_off()
 	
 
 	def _update_control_from_script(self):

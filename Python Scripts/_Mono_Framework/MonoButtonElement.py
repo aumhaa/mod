@@ -89,6 +89,7 @@ class MonoButtonElement(ButtonElement):
 				color.draw(self)
 			except SkinColorMissingError:
 				#super(MonoButtonElement, self).turn_on()
+				debug('skin color missing', self._on_value)
 				self.send_value(127)
 	
 
@@ -102,6 +103,7 @@ class MonoButtonElement(ButtonElement):
 				color.draw(self)
 			except SkinColorMissingError:
 				#super(MonoButtonElement, self).turn_off()
+				debug('skin color missing', self._off_value)
 				self.send_value(0)
 	
 
@@ -124,34 +126,34 @@ class MonoButtonElement(ButtonElement):
 	
 
 	def send_value(self, value, force = False):
-		assert (value != None)
-		assert isinstance(value, int)
-		assert (value in range(128))
-		if (force or self._force_next_send or ((value != self._last_sent_value) and self._is_being_forwarded)):
-			data_byte1 = self._original_identifier
-			if value in range(1, 127):
-				data_byte2 = self._color_map[(value - 1) % (self._num_colors)]
-			elif value == 127:
-				data_byte2 = self._color_map[self._num_colors-1]
-			else:
-				data_byte2 = self._darkened
-			self._color = data_byte2
-			status_byte = self._original_channel
-			if (self._msg_type == MIDI_NOTE_TYPE):
-				status_byte += MIDI_NOTE_ON_STATUS
-			elif (self._msg_type == MIDI_CC_TYPE):
-				status_byte += MIDI_CC_STATUS
-			else:
-				assert False
-			self.send_midi(tuple([status_byte,
-			 data_byte1,
-			 data_byte2]))
-			self._last_sent_message = [value]
-			if self._report_output:
-				is_input = True
-				self._report_value(value, (not is_input))
-			self._flash_state = round((value -1)/self._num_colors)
-			self._force_next_value = False
+		if (value != None) and isinstance(value, int) and (value in range(128)):
+			if (force or self._force_next_send or ((value != self._last_sent_value) and self._is_being_forwarded)):
+				data_byte1 = self._original_identifier
+				if value in range(1, 127):
+					data_byte2 = self._color_map[(value - 1) % (self._num_colors)]
+				elif value == 127:
+					data_byte2 = self._color_map[self._num_colors-1]
+				else:
+					data_byte2 = self._darkened
+				self._color = data_byte2
+				status_byte = self._original_channel
+				if (self._msg_type == MIDI_NOTE_TYPE):
+					status_byte += MIDI_NOTE_ON_STATUS
+				elif (self._msg_type == MIDI_CC_TYPE):
+					status_byte += MIDI_CC_STATUS
+				else:
+					assert False
+				self.send_midi(tuple([status_byte,
+				 data_byte1,
+				 data_byte2]))
+				self._last_sent_message = [value]
+				if self._report_output:
+					is_input = True
+					self._report_value(value, (not is_input))
+				self._flash_state = round((value -1)/self._num_colors)
+				self._force_next_value = False
+		else:
+			debug('Button bad send value:', value)
 	
 
 	def script_wants_forwarding(self):

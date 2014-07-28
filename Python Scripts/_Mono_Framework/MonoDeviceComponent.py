@@ -6,7 +6,9 @@ from _Tools.re import *
 from _Framework.ControlSurfaceComponent import ControlSurfaceComponent
 from Live8DeviceComponent import Live8DeviceComponent as DeviceComponent
 from _Generic.Devices import *
+from Debug import *
 
+debug = initialize_debug()
 
 
 class MonoDeviceComponent(DeviceComponent):
@@ -780,7 +782,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 	
 
 	def _assign_parameters(self, host, *a):
-		#self.log_message('assign_parameters '+str(host))
+		debug('assign_parameters '+str(host))
 		assert (self._device != None)
 		if(host.is_enabled()):
 			for control in host._parameter_controls:
@@ -814,6 +816,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 						else:
 							host._parameter_controls[index].release_parameter()
 			else:
+				debug('setting defautl parameters-------------------')
 				parameters = self._device_parameters_to_map()
 				if not host._parameter_controls is None:
 					num_controls = len(host._parameter_controls)
@@ -1009,16 +1012,17 @@ class NewMonoDeviceComponent(DeviceComponent):
 	
 
 	def update(self):
-		#self.log_message('update!')
+		debug('monoDevice update!')
 		if self._device != None:
 			self._device_bank_registry[self._device] = self._bank_index
-			for host in self._parent._active_handlers:
+			for host in self._parent.active_handlers():
 				if host.is_enabled() and not host._parameter_controls is None and len(host._parameter_controls) > 0:
 					old_bank_name = self._bank_name
 					self._assign_parameters(host)
-					if self._bank_name != old_bank_name:
-						self._show_msg_callback(str(self._device.name) + ' Bank: ' + str(self._bank_name))
+					#if self._bank_name != old_bank_name:
+					#	self._show_msg_callback(str(self._device.name) + ' Bank: ' + str(self._bank_name))
 		else:
+			debug('device is none')
 			for host in self._parent._active_handlers:
 				if host._parameter_controls != None:
 					for control in host._parameter_controls:
@@ -1056,9 +1060,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 	
 
 	def _device_parameters_to_map(self):
-		raise self.is_enabled() or AssertionError
-		raise self._device != None or AssertionError
-		raise host._parameter_controls != None or AssertionError
+		assert(self._device != None)
 		return self._device.parameters[1:]
 	
 

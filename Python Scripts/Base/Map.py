@@ -27,19 +27,6 @@ BASE_RUNNERS = [68, 69, 70, 71, 72, 73, 74, 75]
 
 BASE_LCDS = [34, 35]
 
-
-""" The default assignment of colors within the OhmRGB is:
-Note 2 = white
-Note 4 = cyan 
-Note 8 = magenta 
-Note 16 = red 
-Note 32 = blue 
-Note 64 = yellow
-Note 127 = green
-Because the colors are reassignable, and the default colors have changed from the initial prototype,
-	MonOhm script utilizes a color map to assign colors to the buttons.	 This color map can be changed 
-	here in the script.	 The color ordering is from 1 to 7.	 
-"""
 COLOR_MAP = [2, 64, 4, 8, 16, 127, 32]
 
 """This variable determines whether or not the script automatically arms an instruments track for recording when it is selected"""
@@ -191,6 +178,8 @@ class BaseColors:
 	class DefaultButton:
 		On = LividRGB.WHITE
 		Off = LividRGB.OFF
+		Disabled = LividRGB.OFF
+		Alert = LividRGB.BlinkFast.WHITE
 	
 
 	class Session:
@@ -229,8 +218,8 @@ class BaseColors:
 		StepEmptyBase = LividRGB.OFF
 		StepEmptyScale = LividRGB.OFF
 		StepDisabled = LividRGB.OFF
-		Playhead = LividRGB.GREEN
-		PlayheadRecord = LividRGB.RED
+		Playhead = Color(31)
+		PlayheadRecord = Color(31)
 		StepSelected = LividRGB.GREEN
 		QuantizationSelected = LividRGB.RED
 		QuantizationUnselected = LividRGB.MAGENTA
@@ -249,11 +238,14 @@ class BaseColors:
 		PadAction = LividRGB.WHITE
 		PadFilled = LividRGB.GREEN
 		PadSelected = LividRGB.WHITE
+		PadSelectedNotSoloed = LividRGB.WHITE
 		PadEmpty = LividRGB.OFF
 		PadMuted = LividRGB.YELLOW
 		PadSoloed = LividRGB.CYAN
 		PadMutedSelected = LividRGB.BLUE
 		PadSoloedSelected = LividRGB.BLUE
+		PadInvisible = LividRGB.OFF
+		PadAction = LividRGB.RED
 	
 
 	class Mixer:
