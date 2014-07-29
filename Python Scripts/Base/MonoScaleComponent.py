@@ -72,6 +72,7 @@ DRUMCOLORS = [4, 6]
 """These are the scales we have available.  You can freely add your own scales to this """
 SCALES = 	{'Mod':[0,1,2,3,4,5,6,7,8,9,10,11],
 			'Session':[0,1,2,3,4,5,6,7,8,9,10,11],
+			'Keys':[0,2,4,5,7,9,11,12,1,3,3,6,8,10,10,13],
 			'Auto':[0,1,2,3,4,5,6,7,8,9,10,11],
 			'Chromatic':[0,1,2,3,4,5,6,7,8,9,10,11],
 			'DrumPad':[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
@@ -112,7 +113,7 @@ SCALES = 	{'Mod':[0,1,2,3,4,5,6,7,8,9,10,11],
 			'Spanish':[0,1,3,4,5,6,8,10]
 			}
 
-SCALEABBREVS = {'Auto':'-A','Chromatic':'12','DrumPad':'-D','Major':'M-','Minor':'m-','Dorian':'II','Mixolydian':'V',
+SCALEABBREVS = {'Auto':'-A','Keys':'-K','Chromatic':'12','DrumPad':'-D','Major':'M-','Minor':'m-','Dorian':'II','Mixolydian':'V',
 			'Lydian':'IV','Phrygian':'IH','Locrian':'VH','Diminished':'d-','Whole-half':'Wh','Whole Tone':'WT','Minor Blues':'mB',
 			'Minor Pentatonic':'mP','Major Pentatonic':'MP','Harmonic Minor':'mH','Melodic Minor':'mM','Dominant Sus':'D+','Super Locrian':'SL',
 			'Neopolitan Minor':'mN','Neopolitan Major':'MN','Enigmatic Minor':'mE','Enigmatic':'ME','Composite':'Cp','Bebop Locrian':'lB',
@@ -149,7 +150,7 @@ if SCALEABBREVS is None:
 	SCALEABBREVS = []
 
 """It is possible to create a custom list of scales to be used by the script.  For instance, the list below would include major, minor, auto, drumpad, and chromatic scales, in that order."""
-SCALENAMES = ['Major', 'Minor', 'Auto', 'DrumPad', 'Chromatic']
+SCALENAMES = ['Keys', 'Major', 'Minor', 'Auto', 'DrumPad', 'Chromatic']
 
 OFFSET_SHIFT_IS_MOMENTARY = True
 

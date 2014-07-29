@@ -498,7 +498,7 @@ class ModHandler(CompoundComponent):
 	def __init__(self, script, addresses = None, device_selector = None, *a, **k):
 		super(ModHandler, self).__init__(*a, **k)
 		self._script = script
-		self._device_selector = device_selector if not device_selector is None else DeviceSelectorComponent(script)
+		self._device_selector = device_selector or DeviceSelectorComponent(script)
 		self._color_type = 'RGB'
 		self.log_message = script.log_message
 		self.modrouter = script.monomodular
@@ -799,9 +799,12 @@ class ModHandler(CompoundComponent):
 	@subject_slot('value')
 	def _alt_value(self, value, *a, **k):
 		self._is_alted = not value is 0
-		if self.active_mod():
-			self.active_mod().send('alt', value)
-			self.update_device()
+		mod = self.active_mod()
+		if mod:
+			mod.send('alt', value)
+			mod._param_component._is_alted = bool(value)
+			mod._param_component.update()
+			#self.update_device()
 		self.update()
 	
 

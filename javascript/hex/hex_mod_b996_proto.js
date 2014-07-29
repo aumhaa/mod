@@ -19,7 +19,7 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
+var FORCELOAD = true;
 var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
@@ -594,7 +594,7 @@ function setup_translations()
 	mod.Send( 'add_translation', 'keys_batch', 'base_grid', 'base_keys', 0);
 	mod.Send( 'add_translation', 'keys_batch_fold', 'base_grid', 'base_keys', 0, 8);
 	mod.Send( 'add_translation', 'keys2_batch', 'base_grid', 'base_keys2', 2); 
-	mod.Send( 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys', 0, 8);
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys2', 2, 8);
 	mod.Send( 'enable_translation_group', 'base_keys', 0);
 
 	for(var i=0;i<8;i++)
@@ -791,7 +791,7 @@ function refresh_c_keys()
 				keygui.message(i, 0, selected.behavior[i]+8);
 			}while(i--);
 			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);			
+			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);
 			break;
 		case 3:
 			var p = presets[selected.num]-1;

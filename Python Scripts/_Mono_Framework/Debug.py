@@ -288,7 +288,7 @@ class Debug(ControlSurface):
 		#self._log_paths()
 		#self._log_dirs()
 		#self.log_filenames()
-		self.log_message('_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_ DEBUG ON 1_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_')
+		self.log_message('_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_ DEBUG ON _^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_^_')
 		self._scripts = []
 		self._scan()
 	

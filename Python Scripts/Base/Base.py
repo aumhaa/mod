@@ -740,7 +740,7 @@ class BaseGrid(Grid):
 
 	def __init__(self, name, width, height, active_handlers = return_empty, *a, **k):
 		super(BaseGrid, self).__init__(name, width, height, active_handlers = return_empty, *a, **k)
-		self._cell = [[StoredControlElement(active_handlers, _name = self._name + '_' + str(x) + '_' + str(y), _x = x, _y = y, identifier = -1, channel = -1) for y in range(height)] for x in range(width)]
+		self._cell = [[StoredControlElement(active_handlers, _name = self._name + '_' + str(x) + '_' + str(y), _x = x, _y = y, _identifier = -1, _channel = -1) for y in range(height)] for x in range(width)]
 	
 
 	def identifier(self, x, y, identifier = -1):
@@ -1090,9 +1090,7 @@ class Base(ControlSurface):
 
 	def _setup_controls(self):
 		is_momentary = True
-		self._fader = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_TOUCHSTRIPS[index], Live.MidiMap.MapMode.absolute, 'Fader_' + str(index), index, self) for index in range(9)]
-		for fader in self._fader:
-			fader._mapping_feedback_delay = -1
+		self._fader = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_TOUCHSTRIPS[index], Live.MidiMap.MapMode.absolute, 'Fader_' + str(index), index, self, mapping_feedback_delay = -1) for index in range(9)]
 		self._fader_matrix = ButtonMatrixElement(name = 'FaderMatrix', rows = [self._fader[:8]])
 		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_BUTTONS[index], 'Button_' + str(index), self, skin = self._skin) for index in range(8)]
 		self._pad = [BlockingMonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_PADS[index],	 'Pad_' + str(index), self, skin = self._skin) for index in range(32)]
@@ -1104,24 +1102,15 @@ class Base(ControlSurface):
 		self._runner = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_RUNNERS[index], 'Runner_' + str(index), self, skin = self._skin) for index in range(8)]
 		self._runner_matrix = ButtonMatrixElement(name = 'RunnerMatrix', rows = [self._runner])
 		self._stream_pads = [self._pad[index%8 + (abs((index/8)-3)*8)] for index in range(32)]
-		self._nav_buttons = ButtonMatrixElement( name = 'nav_buttons' )
-		self._nav_buttons.add_row(self._button[4:8])
-		self._on_nav_button_value.subject = self._nav_buttons
-		self._base_grid = ButtonMatrixElement()
-		self._base_grid.name = 'BaseGrid'
-		self._base_grid_CC = ButtonMatrixElement()
-		self._base_grid_CC.name = 'BaseGridCC'
-		self._keys = ButtonMatrixElement(name = 'Keys')
-		self._keys_display = ButtonMatrixElement(name = 'KeysDisplay')
-		for index in range(4):
-			self._base_grid.add_row(self._pad[(index*8):(index*8)+8])
-			self._base_grid_CC.add_row(self._pad_CC[(index*8):(index*8)+8])
+		self._mode_buttons = ButtonMatrixElement( name = 'mode_buttons' , rows = [self._button[0:4]])
+		self._nav_buttons = ButtonMatrixElement( name = 'nav_buttons', rows = [self._button[4:8]] )
+		self._base_grid = ButtonMatrixElement(name = 'BaseGrid', rows = [self._pad[(index*8):(index*8)+8] for index in range(4)] )
+		self._base_grid_CC = ButtonMatrixElement(name = 'BaseGridCC', rows = [self._pad_CC[(index*8):(index*8)+8] for index in range(4)] )
+		self._keys = ButtonMatrixElement(name = 'Keys', rows = [self._touchpad[0:8]])
+		self._keys_display = ButtonMatrixElement(name = 'KeysDisplay', rows = [self._runner[0:8]])
 		self._base_doublepress_grid = ButtonMatrixElement(name = 'doublepress_matrix', rows = [[self._pad_doublepress[column+(row*8)] for column in range(8)] for row in range(4)])
-		self._keys.add_row(self._touchpad[0:8])
-		self._keys_display.add_row(self._runner[0:8])
-		self._drumpad_grid = ButtonMatrixElement(name = 'DrumPadGrid')
-		for index in range(4):
-			self._drumpad_grid.add_row(self._pad[(index*8):(index*8)+4])
+		self._drumpad_grid = ButtonMatrixElement(name = 'DrumPadGrid', rows = [self._pad[(index*8):(index*8)+4] for index in range(4)])
+
 		self._up_button = self._nav_buttons[UDLR[0]]
 		self._dn_button = self._nav_buttons[UDLR[1]]
 		self._lt_button = self._nav_buttons[UDLR[2]]
@@ -1130,6 +1119,8 @@ class Base(ControlSurface):
 		"""We'll use this to store descriptor strings of control functions so we can send them to an LCD application"""
 		for control in self.controls:
 			control._descriptor = 'None'
+
+		#self._on_nav_button_value.subject = self._nav_buttons
 	
 
 	def _setup_background(self):
@@ -1281,6 +1272,8 @@ class Base(ControlSurface):
 		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
 													key_buttons = self._touchpad_matrix,
 													background_buttons = self._runner_matrix))
+		self.modhandler._device_selector._selection_layer = AddLayerMode(self.modhandler._device_selector, Layer(priority = 6,
+													matrix = self._mode_buttons))
 		self.modhandler.set_enabled(False)
 	
 
@@ -1387,7 +1380,7 @@ class Base(ControlSurface):
 		self._main_modes.add_mode('Device', [self._set_device_nav_colors, self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
 		#self._main_modes.add_mode('User_shifted', [self._set_user_page_colors, self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
 		self._main_modes.add_mode('User', [self._set_user_page_colors, self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
-		self._main_modes.add_mode('Select', [self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
+		self._main_modes.add_mode('Select', [self.modhandler._device_selector._selection_layer, self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
 		self._main_modes.layer = Layer(priority = 4, Clips_button=self._button[0], Sends_button=self._button[1], Device_button=self._button[2], User_button=self._button[3], Select_button=self._touchpad_multi, display = self._display)
 		self._main_modes.selected_mode = 'disabled'
 	

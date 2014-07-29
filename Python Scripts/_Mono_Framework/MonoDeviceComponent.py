@@ -597,14 +597,14 @@ class NewMonoDeviceComponent(DeviceComponent):
 		self._params = []
 		self._custom_parameter = []
 		self._nodevice = NoDevice()
+		self._is_alted = False
 	
 
 	def disconnect(self):
 		if self._device_parent != None:
-			if self._device_parent != None:
-				if self._device_parent.canonical_parent != None:
-					if self._device_parent.canonical_parent.devices_has_listener(self._parent_device_changed):
-						self._device_parent.canonical_parent.remove_devices_listener(self._parent_device_changed)
+			if self._device_parent.canonical_parent != None:
+				if self._device_parent.canonical_parent.devices_has_listener(self._parent_device_changed):
+					self._device_parent.canonical_parent.remove_devices_listener(self._parent_device_changed)
 		if self._device != None:
 			if self._device.canonical_parent != None:
 				if self._device.canonical_parent != None:
@@ -782,7 +782,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 	
 
 	def _assign_parameters(self, host, *a):
-		debug('assign_parameters '+str(host))
+		#debug('assign_parameters '+str(host))
 		assert (self._device != None)
 		if(host.is_enabled()):
 			for control in host._parameter_controls:
@@ -809,14 +809,15 @@ class NewMonoDeviceComponent(DeviceComponent):
 				if not host._parameter_controls is None:
 					for index in range(len(host._parameter_controls)):
 						parameter = None
-						if (bank != None) and (index in range(len(bank))):
-							parameter = self.get_parameter_by_name(self._device, bank[index])
+						corrected_index = index + (self._is_alted * 8)
+						if (bank != None) and (corrected_index in range(len(bank))):
+							parameter = self.get_parameter_by_name(self._device, bank[corrected_index])
 						if (parameter != None):
 							host._parameter_controls[index].connect_to(parameter)
 						else:
 							host._parameter_controls[index].release_parameter()
 			else:
-				debug('setting defautl parameters-------------------')
+				#debug('setting defautl parameters-------------------')
 				parameters = self._device_parameters_to_map()
 				if not host._parameter_controls is None:
 					num_controls = len(host._parameter_controls)
