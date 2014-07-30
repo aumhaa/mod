@@ -299,4 +299,36 @@ class BaseColors:
 		ContainNavOff = LividRGB.OFF
 	
 
+	class Mod:
+		
+		class Nav:
+			OnValue = LividRGB.RED
+			OffValue = LividRGB.WHITE
+		
+	
+
+	class MonoInstrument:
+
+		PressFlash = LividRGB.WHITE
+		OffsetOnValue = LividRGB.GREEN
+		ScaleOffsetOnValue = LividRGB.RED
+		SplitModeOnValue = LividRGB.WHITE
+		SequencerModeOnValue = LividRGB.CYAN
+		DrumOffsetOnValue = LividRGB.MAGENTA
+		VerticalOffsetOnValue = LividRGB.BLUE
+
+		class Keys:
+			SelectedNote = LividRGB.GREEN
+			RootWhiteValue = LividRGB.RED
+			RootBlackValue = LividRGB.MAGENTA
+			WhiteValue = LividRGB.CYAN
+			BlackValue = LividRGB.BLUE
+		
+
+		class Drums:
+			SelectedNote = LividRGB.BLUE
+			EvenValue = LividRGB.GREEN
+			OddValue = LividRGB.MAGENTA
+		
+
 	

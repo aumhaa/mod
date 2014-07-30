@@ -51,6 +51,7 @@ from _Mono_Framework.ModDevices import *
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
 from _Mono_Framework.LividColors import *
+from _Mono_Framework.MonoInstrumentComponent import *
 
 import _Mono_Framework.modRemixNet as RemixNet
 import _Mono_Framework.modOSC
@@ -68,7 +69,7 @@ from Push.ConfigurableButtonElement import ConfigurableButtonElement
 from Push.LoopSelectorComponent import LoopSelectorComponent
 from Push.Actions import CreateInstrumentTrackComponent, CreateDefaultTrackComponent, CaptureAndInsertSceneComponent, DuplicateDetailClipComponent, DuplicateLoopComponent, SelectComponent, DeleteComponent, DeleteSelectedClipComponent, DeleteSelectedSceneComponent, CreateDeviceComponent
 
-from MonoScaleComponent import *
+
 
 DIRS = [47, 48, 50, 49]
 _NOTENAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
@@ -236,7 +237,6 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 		debug('messages to send:', messages)
 		return messages
 	
-
 
 
 class BaseDisplayingModesComponent(ModesComponent):
@@ -496,28 +496,6 @@ class BlockingMonoButtonElement(MonoButtonElement):
 		self.display_press = False
 		self._last_flash = 0
 		self.scale_color = 0
-	
-
-	def press_flash(self, value, force = False):
-		assert (value != None)
-		assert isinstance(value, int)
-		assert (value in range(128))
-		#debug('blockbutton:' + str(self._original_identifier))
-		if self.display_press and (not value is self._last_flash or force):
-			data_byte1 = self._original_identifier
-			if value == 0:
-				if self.scale_color is 127:
-					data_byte2 = COLOR_MAP[-1]
-				elif self.scale_color is 0:
-					data_byte2 = 0
-				else:
-					data_byte2 = COLOR_MAP[max(0, (self.scale_color-1)%7)]
-			else:
-				data_byte2 = 1
-			status_byte = self._original_channel
-			status_byte +=	144
-			self.send_midi((status_byte, data_byte1, data_byte2))
-			self._last_flash = value
 	
 
 
@@ -809,12 +787,14 @@ class BaseModHandler(ModHandler):
 		pass
 	
 
-	def _receive_grid(self, x, y, value, is_id = False):
+	def _receive_grid(self, x, y, *a, **k):
 		#self.log_message('receive grid')
-		if self._active_mod and self._active_mod.legacy:
-			if not self._base_grid_value.subject is None:
-				if (x - self.x_offset) in range(8) and (y - self.y_offset) in range(4):
-					self._base_grid_value.subject.send_value(x - self.x_offset, y - self.y_offset, value, True)
+		mod = self.active_mod()
+		if mod and mod.legacy:
+			x = x - self.x_offset
+			y = y - self.y_offset
+			if x in range(8) and y in range(4):
+				self._receive_base_grid(x, y, *a, **k)
 	
 
 	def set_base_grid(self, grid):
@@ -1291,8 +1271,6 @@ class Base(ControlSurface):
 		self._instrument.layer = Layer(priority = 5, base_display = self._display) #button_matrix = self._base_grid)
 		self._instrument.audioloop_layer = LayerMode(self._instrument, Layer(priority = 6, loop_selector_matrix = self._base_grid))
 		self._instrument.octave_toggle = AddLayerMode(self._instrument, Layer(octave_enable_button = self._button[4]))
-		self._instrument.shift_button1 = AddLayerMode(self._instrument, Layer(shift_button = self._button[1]))
-		self._instrument.shift_button2 = AddLayerMode(self._instrument, Layer(shift_button = self._button[2]))
 		self._instrument.keypad_shift_layer = AddLayerMode(self._instrument, Layer(priority = 6, 
 									scale_up_button = self._touchpad[7], 
 									scale_down_button = self._touchpad[6],
@@ -1319,11 +1297,6 @@ class Base(ControlSurface):
 		self._instrument._drumpad.sequencer_layer = LayerMode(self._instrument._drumpad, Layer(priority = 6, playhead = self._playhead_element, drumpad_matrix = self._base_grid.submatrix[:4, :], sequencer_matrix = self._base_grid.submatrix[4:8, :]))
 		self._instrument._drumpad.split_layer = LayerMode(self._instrument._drumpad, Layer(priority = 6, drumpad_matrix = self._base_grid.submatrix[:4, :], split_matrix = self._base_grid.submatrix[4:8, :]))
 		self._instrument._drumpad.sequencer_shift_layer = LayerMode(self._instrument._drumpad, Layer(priority = 6, drumpad_matrix = self._base_grid.submatrix[:4, :4], loop_selector_matrix = self._base_grid.submatrix[4:8, :2], quantization_buttons = quantgrid, follow_button = self._pad[31]))
-		self._instrument._offset_component._on_value = 6
-		self._instrument._scale_offset_component._on_value = 5
-		self._instrument._drum_offset_component._on_value = 4
-		self._instrument._split_mode_component._on_value = 1
-		self._instrument._sequencer_mode_component._on_value = 3
 		self._instrument.set_enabled(False)
 
 		self._instrument._main_modes = ModesComponent(name = 'InstrumentModes')
@@ -1476,7 +1449,6 @@ class Base(ControlSurface):
 
 	def _register_pad_pressed(self, bytes):
 		assert(len(bytes) is 8)
-		#No damned bin() in Live.py math!!!???
 		decoded = []
 		for i in range(0, 8):
 			bin = bytes[i]
@@ -1485,7 +1457,14 @@ class Base(ControlSurface):
 				bin = bin>>1
 		self._last_pad_stream = decoded
 		for index in range(len(decoded)):
-			self._stream_pads[index].press_flash(decoded[index])
+			button = self._stream_pads[index]
+			value = decoded[index]
+			if button.display_press and (not value is button._last_flash):
+				if value:
+					button.set_light('MonoInstrument.PressFlash')
+				else:
+					button.set_light(button.scale_color)
+				button._last_flash = value
 	
 
 	@subject_slot('value')

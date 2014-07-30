@@ -20,8 +20,9 @@ class MonoEncoderElement(EncoderElement):
 	__module__ = __name__
 	__doc__ = ' Class representing a slider on the controller '
 
-	def __init__(self, msg_type, channel, identifier, map_mode, name, num, script, *a, **k):
+	def __init__(self, msg_type, channel, identifier, map_mode, name, num, script, mapping_feedback_delay = 1, *a, **k):
 		super(MonoEncoderElement, self).__init__(msg_type, channel, identifier, map_mode=Live.MidiMap.MapMode.absolute, *a, **k)
+		self._mapping_feedback_delay = mapping_feedback_delay
 		self.name = name
 		self.num = num
 		self._parameter = None

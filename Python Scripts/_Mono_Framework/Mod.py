@@ -27,6 +27,7 @@ from _Mono_Framework.MonoDeviceComponent import NewMonoDeviceComponent as MonoDe
 from _Mono_Framework.ModDevices import *
 from _Mono_Framework.Debug import *
 
+
 INITIAL_SCROLLING_DELAY = 5
 INTERVAL_SCROLLING_DELAY = 1
 
@@ -338,6 +339,34 @@ class Grid(object):
 	
 
 
+class ButtonGrid(Grid):
+
+
+	def __init__(self, name, width, height, active_handlers = return_empty, *a, **k):
+		self._active_handlers = active_handlers
+		self._name = name
+		self._cell = [[StoredElement(active_handlers, _name = self._name + '_' + str(x) + '_' + str(y), _x = x, _y = y, _identifier = -1, _channel = -1 ) for y in range(height)] for x in range(width)]
+	
+
+	def identifier(self, x, y, identifier = -1):
+		element = self._cell[x][y]
+		element._id = min(127, max(-1, identifier))
+		for handler in self._active_handlers():
+			handler.receive_address(self._name, element._x, element._y, element, True)
+	
+
+	def channel(self, x, y, channel = -1):
+		element = self._cell[x][y]
+		element._channel = min(15, max(-1, channel))
+		for handler in self._active_handlers():
+			handler.receive_address(self._name, element._x, element._y, element, True)
+	
+
+	def update_element(self, element):
+		for handler in self._active_handlers():
+			handler.receive_address(self._name, element._x, element._y, value = element._value, identifier = element._identifier, channel = element._channel)
+	
+
 
 class Array(object):
 
@@ -513,7 +542,7 @@ class ModHandler(CompoundComponent):
 		self._is_shifted = False
 		self._is_shiftlocked = False
 		self._receive_methods = {}
-		self._addresses =  {'grid': {'obj':Grid('grid', 16, 16), 'method':self._receive_grid},
+		self._addresses =  {'grid': {'obj':ButtonGrid('grid', 16, 16), 'method':self._receive_grid},
 							'key': {'obj':Array('key', 8), 'method':self._receive_key},
 							'shift': {'obj':StoredElement(_name = 'shift'), 'method':self._receive_shift},
 							'alt': {'obj':StoredElement(_name = 'alt'), 'method':self._receive_alt},
@@ -686,6 +715,7 @@ class ModHandler(CompoundComponent):
 			self.song().view.select_device(self.active_mod().linked_device())
 	
 
+
 	def set_grid(self, grid):
 		#debug('set grid:' + str(grid))
 		self._grid = grid
@@ -698,25 +728,19 @@ class ModHandler(CompoundComponent):
 		self.update()
 	
 
-	def _receive_grid(self, address):
-		pass
+	def _receive_grid(self, *a, **k):
+		debug('receive grid:  this should be overridden')
 	
 
 	@subject_slot('value')
 	def _grid_value(self, value, x, y, *a, **k):
-		#debug('_base_grid_value ' + str(x) + str(y) + str(value))
+		#debug('_grid_value ' + str(x) + str(y) + str(value))
 		if self.active_mod():
-			if self._active_mod.legacy:
-				if self.is_shifted():
-					if value > 0 and x in range(6, 8) and y in range(2,4):
-						self.set_offset((x - 6) * 8,  (y - 2) * 8)
-						self.update()
-				else:
-					self._active_mod.send('grid', x + self.x_offset, y + self.y_offset, value)
-			else:
-				self._active_mod.send('grid', x, y, value)
+			if self.active_mod().legacy:
+				x += self.x_offset
+				y += self.y_offset
+			self._active_mod.send('grid', x, y, value)
 	
-
 
 	def set_key_buttons(self, keys):
 		self._keys_value.subject = keys
@@ -861,6 +885,10 @@ class ModHandler(CompoundComponent):
 		pass
 	
 
+	def set_device_selector_matrix(self, matrix):
+		self._device_selector and self._device_selector.set_matrix(matrix)
+	
+
 	def set_nav_matrix(self, matrix):
 		self.nav_box and self.nav_box.set_matrix(matrix)
 	
@@ -935,6 +963,9 @@ class NavigationBox(ControlSurfaceComponent):
 	
 
 	def set_matrix(self, matrix):
+		if matrix:
+			for button, _ in matrix.iterbuttons():
+				button and button.set_on_off_values('Mod.Nav.OnValue', 'Mod.Nav.OffValue')
 		self._on_navigation_value.subject = matrix
 		if not matrix is None:
 			self._x_inc = int(self.width()/matrix.width())
@@ -942,7 +973,7 @@ class NavigationBox(ControlSurfaceComponent):
 		else:
 			self._x_inc = 0
 			self._y_inc = 0
-		debug('incs: ' + str(self._x_inc) + ' ' + str(self._y_inc))
+		#debug('incs: ' + str(self._x_inc) + ' ' + str(self._y_inc))
 		self.update()
 	
 
@@ -957,18 +988,22 @@ class NavigationBox(ControlSurfaceComponent):
 	
 
 	def set_nav_up_button(self, button):
+		button and button.set_on_off_values('Mod.Nav.OnValue', 'Mod.Nav.OffValue')
 		self._on_nav_up_value.subject = button
 	
 
 	def set_nav_down_button(self, button):
+		button and button.set_on_off_values('Mod.Nav.OnValue', 'Mod.Nav.OffValue')
 		self._on_nav_down_value.subject = button
 	
 
 	def set_nav_left_button(self, button):
+		button and button.set_on_off_values('Mod.Nav.OnValue', 'Mod.Nav.OffValue')
 		self._on_nav_left_value.subject = button
 	
 
 	def set_nav_right_button(self, button):
+		button and button.set_on_off_values('Mod.Nav.OnValue', 'Mod.Nav.OffValue')
 		self._on_nav_right_value.subject = button
 	
 
@@ -1060,30 +1095,11 @@ class NavigationBox(ControlSurfaceComponent):
 			for button, coord in nav_grid.iterbuttons():
 				x = coord[0]
 				y = coord[1]
-				if ((x*xinc) in range(xoff, xmax)) and ((y*yinc) in range(yoff, ymax)):
-					button.send_value(self.on_value, True)
-				else:
-					button.send_value(self.off_value, True)
-		if left_button:
-			if xoff>0:
-				left_button.send_value(self.on_value, True)
-			else:
-				left_button.send_value(self.off_value, True)
-		if right_button:
-			if xoff<(self.width()-self._window_x):
-				right_button.send_value(self.on_value, True)
-			else:
-				right_button.send_value(self.off_value, True)
-		if up_button:
-			if yoff>0:
-				up_button.send_value(self.on_value, True)
-			else:
-				up_button.send_value(self.off_value, True)
-		if down_button:
-			if yoff<(self.height()-self._window_y):
-				down_button.send_value(self.on_value, True)
-			else:
-				down_button.send_value(self.off_value, True)
+				button.set_light( ((x*xinc) in range(xoff, xmax)) and ((y*yinc) in range(yoff, ymax)) )
+		left_button and left_button.set_light(xoff>0)
+		right_button and right_button.set_light(xoff<(self.width()-self._window_x))
+		up_button and up_button.set_light(yoff>0)
+		down_button and down_button.set_light(yoff<(self.height()-self._window_y))
 	
 
 	def set_offset(self, x, y):

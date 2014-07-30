@@ -2,10 +2,7 @@
 
 import Live
 from _Framework.ButtonElement import ButtonElement, ON_VALUE, OFF_VALUE
-from _Framework.InputControlElement import InputControlElement
-from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.Skin import Skin, SkinColorMissingError
-from LividColors import *
 
 from Debug import *
 
@@ -74,10 +71,12 @@ class MonoButtonElement(ButtonElement):
 	def set_force_next_value(self):
 		self._last_sent_message = None
 		self._force_next_value = True
+	
 
 	def set_enabled(self, enabled):
 		self._is_enabled = enabled
 		self._request_rebuild()
+	
 
 	def turn_on(self, force = False):
 		self.force_next_send()
@@ -110,11 +109,6 @@ class MonoButtonElement(ButtonElement):
 	def reset(self, force = False):
 		self.force_next_send()
 		self.send_value(0)
-	
-
-	def receive_value(self, value):
-		self._last_sent_message = None
-		ButtonElement.receive_value(self, value)
 	
 
 	def set_light(self, value, *a, **k):
@@ -160,7 +154,7 @@ class MonoButtonElement(ButtonElement):
 		if not self._is_enabled and not self._force_forwarding:
 			return False
 		else:
-			return InputControlElement.script_wants_forwarding(self)
+			return super(MonoButtonElement, self).script_wants_forwarding()
 	
 
 	def flash(self, timer):
