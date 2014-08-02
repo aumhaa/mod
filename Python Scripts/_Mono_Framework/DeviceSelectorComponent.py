@@ -213,7 +213,7 @@ class NewDeviceSelectorComponent(ControlSurfaceComponent):
 				preset = self._device_registry[index] 
 			if not preset is None and isinstance(preset, Live.Device.Device):
 				self.song().view.select_device(preset)
-				self.song().set_appointed_device(preset)
+				self._script.set_appointed_device(preset)
 				try:
 					self._script.monomodular.is_mod(preset) and self._script.modhandler.select_mod(self._script.monomodular.is_mod(preset))
 				except:

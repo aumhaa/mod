@@ -31,70 +31,9 @@ CNTRLR_DIALS = [48, 51, 54, 57, 49, 52, 55, 58, 50, 53, 56, 59]		#there are 12 o
 
 CNTRLR_DIAL_BUTTONS = [48, 51, 54, 57, 49, 52, 55, 58, 50, 53, 56, 59]		#there are 12 of these
 
-BACKLIGHT_TYPE = ['static', 'pulse', 'up', 'down']	#this assigns the backlight mode for left_shift_modes 1-4.	If 'static', the value below will be used
-
-BACKLIGHT_VALUE = [127, 96, 64, 32]		#this assigns the led intensity for the backlight if it is in 'static' mode for left_shift_modes 1-4
-
-PAD_TRANSLATION =	((0, 0, 0, 9), (0, 1, 1, 9), (0, 2, 2, 9), (0, 3, 3, 9),		#this is used by DrumRacks to translate input to one of the visible grid squares for triggering
-					(1, 0, 4, 9), (1, 1, 5, 9), (1, 2, 6, 9), (1, 3, 7, 9),			#the format is (x position, y position, note-number, channel)
-					(2, 0, 8, 9), (2, 1, 9, 9), (2, 2, 10, 9), (2, 3, 11, 9),
-					(3, 0, 12, 9), (3, 1, 13, 9), (3, 2, 14, 9), (3, 3, 15, 9))
-					
-OHM_MAP_ID = [[0, 1, 2, 3, 4, 5, 6, 7],		#these are the notenumbers for the grid when in Livid_Mode
-			[8, 9, 10, 11, 12, 13, 14, 15],
-			[16, 17, 18 , 19, 20, 21, 22, 23],
-			[24, 25, 26, 27, 28, 29, 30, 31],
-			[32, 33, 34, 35, 36, 37, 38, 39],
-			[40, 41, 42, 43, 44, 45, 46, 47],
-			[48, 49, 50, 51, 52, 53, 54, 55],
-			[56, 57, 58, 59, 60, 61, 62, 63]]
-			
-OHM_MAP_CHANNEL = [[15, 15, 15, 15, 15, 15, 15, 15],		#these are the channels for each grid square in Livid_Mode
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15],
-				[15, 15, 15, 15, 15, 15, 15, 15]]
-				
-OHM_MAP_VALUE = [[4, 8, 5, 2, 0, 3, 0, 6],			#these are the values that are lit up in Livid_Mode
-				[8, 4, 2, 0, 2, 0, 3, 0],
-				[5, 2, 0, 3, 0, 2, 0, 3], 
-				[2, 0, 3, 0, 1, 0, 2, 0],
-				[0, 2, 0, 1, 0, 3, 0, 2], 
-				[3, 0, 2, 0, 3, 0, 2, 5],
-				[0, 3, 0, 2, 0, 2, 4, 8], 
-				[6, 0, 3, 0, 2, 5, 8, 4]]
-
 FOLLOW = True		#this sets whether or not the last selected device on a track is selected for editing when you select a new track
 
-CHOPPER_ENABLE = False		#when set True, this enables the Python ClipChopperComponent in modSlot 4 when a mod isn't present there
-
-#  These are the values for the track offset used for RIGHT_MIXER_MODEs 1-3:
-
-RIGHT_MODE_OFFSETS = [4, 8, 12]
-
-#	The default assignment of colors within the OhmRGB is:
-#	Note 2 = white
-#	Note 4 = cyan 
-#	Note 8 = magenta 
-#	Note 16 = red 
-#	Note 32 = blue 
-#	Note 64 = yellow
-#	Note 127 = green
-#	Because the colors are reassignable, and the default colors have changed from the initial prototype,
-#		MonOhm script utilizes a color map to assign colors to the buttons.	 This color map can be changed 
-#		here in the script.	 The color ordering is from 1 to 7.	 
-
 COLOR_MAP = [2, 64, 4, 8, 16, 127, 32]
-
-#	In addition, there are two further color maps that are used depending on whether the RGB or Monochrome 
-#		Ohm64 is detected.	The first number is the color used by the RGB (from the ordering in the COLOR_MAP array),
-#		the second the Monochrome.	Obviously the Monochrome doesn't use the colors.  
-#	However, the flashing status of a color is derived at by modulus.  Thus 1-7 are the raw colors, 8-14 are a fast
-#		flashing color, 15-21 flash a little slower, etc.  You can assign your own color maps here:
-
 
 ###	 the first number is Livid(OhmModes) standard, the second is Monomdular standard, the third is Monochrome
 MUTE = [2, 2, 127]
@@ -137,4 +76,200 @@ ZOOM_PLAYING = [6, 6, 15]
 ZOOM_SELECTED = [8, 1, 8]
 STOP_CLIP = [127, 127, 2]
 
+from _Framework.ButtonElement import Color
+from _Mono_Framework.LividColors import *
+
+class CntrlrColors:
+
+
+	ResetSendsColor = LividRGB.MAGENTA
+
+	class ModeButtons:
+		ModSwitcher = LividRGB.BlinkMedium.CYAN
+		ModSwitcherDisabled = LividRGB.CYAN
+		Translations = LividRGB.BlinkMedium.MAGENTA
+		TranslationsDisabled = LividRGB.MAGENTA
+		DeviceSelector = LividRGB.BlinkMedium.YELLOW
+		DeviceSelectorDisabled = LividRGB.YELLOW
+	
+
+	class DefaultButton:
+		On = LividRGB.WHITE
+		Off = LividRGB.OFF
+		Disabled = LividRGB.OFF
+		Alert = LividRGB.BlinkFast.WHITE
+	
+
+	class Session:
+		StopClipTriggered = LividRGB.BlinkFast.BLUE
+		StopClip = LividRGB.WHITE
+		Scene = LividRGB.CYAN
+		NoScene = LividRGB.OFF
+		SceneTriggered = LividRGB.BlinkFast.BLUE
+		ClipTriggeredPlay = LividRGB.BlinkFast.GREEN
+		ClipTriggeredRecord = LividRGB.BlinkFast.RED
+		RecordButton = LividRGB.OFF
+		ClipStopped = LividRGB.WHITE
+		ClipStarted = LividRGB.GREEN
+		ClipRecording = LividRGB.RED
+		NavigationButtonOn = LividRGB.CYAN
+		NavigationButtonOff = LividRGB.YELLOW
+		ZoomOn = LividRGB.BlinkFast.WHITE
+		ZoomOff = LividRGB.WHITE
+	
+
+	class Zooming:
+		Selected = LividRGB.BlinkFast.YELLOW
+		Stopped = LividRGB.WHITE
+		Playing = LividRGB.GREEN
+		Empty = LividRGB.OFF
+	
+
+	class NoteEditor:
+
+		class Step:
+			Low = LividRGB.CYAN
+			High = LividRGB.WHITE 
+			Full = LividRGB.YELLOW
+			Muted = LividRGB.YELLOW
+			StepEmpty = LividRGB.OFF
+		
+
+		class StepEditing:
+			High = LividRGB.GREEN
+			Low = LividRGB.CYAN
+			Full = LividRGB.YELLOW
+			Muted = LividRGB.WHITE
+		
+
+		StepEmpty = LividRGB.OFF
+		StepEmptyBase = LividRGB.OFF
+		StepEmptyScale = LividRGB.OFF
+		StepDisabled = LividRGB.OFF
+		Playhead = Color(31)
+		PlayheadRecord = Color(31)
+		StepSelected = LividRGB.GREEN
+		QuantizationSelected = LividRGB.RED
+		QuantizationUnselected = LividRGB.MAGENTA
+	
+
+	class LoopSelector:
+		Playhead = LividRGB.YELLOW
+		OutsideLoop = LividRGB.BLUE
+		InsideLoopStartBar = LividRGB.CYAN
+		SelectedPage = LividRGB.WHITE
+		InsideLoop = LividRGB.CYAN
+		PlayheadRecord = LividRGB.RED
+	
+
+	class DrumGroup:
+		PadAction = LividRGB.WHITE
+		PadFilled = LividRGB.GREEN
+		PadSelected = LividRGB.WHITE
+		PadSelectedNotSoloed = LividRGB.WHITE
+		PadEmpty = LividRGB.OFF
+		PadMuted = LividRGB.YELLOW
+		PadSoloed = LividRGB.CYAN
+		PadMutedSelected = LividRGB.BLUE
+		PadSoloedSelected = LividRGB.BLUE
+		PadInvisible = LividRGB.OFF
+		PadAction = LividRGB.RED
+	
+
+	class Transport:
+		PlayOn = LividRGB.BlinkMedium.GREEN
+		PlayOff = LividRGB.GREEN
+		StopOn = LividRGB.BLUE
+		RecordOn = LividRGB.BlinkMedium.RED
+		RecordOff = LividRGB.RED
+		OverdubOn = LividRGB.BlinkFast.RED
+		OverdubOff = LividRGB.RED	
+	
+
+	class Mixer:
+		SoloOn = LividRGB.CYAN
+		SoloOff = LividRGB.OFF
+		MuteOn = LividRGB.YELLOW
+		MuteOff = LividRGB.OFF
+		ArmSelected = LividRGB.RED
+		ArmUnselected = LividRGB.RED
+		ArmOff = LividRGB.OFF
+		StopClip = LividRGB.WHITE
+		SelectedOn = LividRGB.BLUE
+		SelectedOff = LividRGB.OFF
+	
+
+	class Recording:
+		Transition = LividRGB.BlinkFast.MAGENTA
+	
+
+	class Recorder:
+		On = LividRGB.WHITE
+		Off = LividRGB.BLUE
+		NewOn = LividRGB.BlinkMedium.YELLOW
+		NewOff = LividRGB.YELLOW
+		FixedOn = LividRGB.BlinkMedium.CYAN
+		FixedOff = LividRGB.CYAN
+		RecordOn = LividRGB.BlinkMedium.MAGENTA
+		RecordOff = LividRGB.MAGENTA
+		AutomationOn = LividRGB.BlinkMedium.CYAN
+		AutomationOff = LividRGB.CYAN
+		FixedAssigned = LividRGB.MAGENTA
+		FixedNotAssigned = LividRGB.OFF
+	
+
+	class Sequencer:
+		OctaveOn = LividRGB.BlinkFast.CYAN
+		OctaveOff = LividRGB.OFF
+		On = LividRGB.WHITE
+		Off = LividRGB.OFF
+	
+
+	class Device:
+		NavOn = LividRGB.MAGENTA
+		NavOff = LividRGB.OFF
+		BankOn = LividRGB.YELLOW
+		BankOff = LividRGB.OFF
+		ChainNavOn = LividRGB.RED
+		ChainNavOff = LividRGB.OFF
+		ContainNavOn = LividRGB.CYAN
+		ContainNavOff = LividRGB.OFF
+	
+
+	class Mod:
+		
+		class Nav:
+			OnValue = LividRGB.RED
+			OffValue = LividRGB.WHITE
+		
+	
+
+	class MonoInstrument:
+
+		PressFlash = LividRGB.WHITE
+		OffsetOnValue = LividRGB.GREEN
+		ScaleOffsetOnValue = LividRGB.RED
+		SplitModeOnValue = LividRGB.WHITE
+		SequencerModeOnValue = LividRGB.CYAN
+		DrumOffsetOnValue = LividRGB.MAGENTA
+		VerticalOffsetOnValue = LividRGB.BLUE
+		ShiftOn = LividRGB.BlinkFast.YELLOW
+		ShiftOff = LividRGB.YELLOW
+
+		class Keys:
+			SelectedNote = LividRGB.GREEN
+			RootWhiteValue = LividRGB.RED
+			RootBlackValue = LividRGB.MAGENTA
+			WhiteValue = LividRGB.CYAN
+			BlackValue = LividRGB.BLUE
+		
+
+		class Drums:
+			SelectedNote = LividRGB.BLUE
+			EvenValue = LividRGB.GREEN
+			OddValue = LividRGB.MAGENTA
+		
+	
+
 ## a  http://www.aumhaa.com
+

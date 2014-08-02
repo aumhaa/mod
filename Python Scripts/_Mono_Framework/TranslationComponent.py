@@ -2,6 +2,10 @@ from _Framework.ButtonMatrixElement import ButtonMatrixElement
 from _Framework.CompoundComponent import CompoundComponent
 from _Framework.SubjectSlot import SubjectEvent, subject_slot, subject_slot_group
 
+from Debug import *
+
+debug = initialize_debug()
+
 class TranslationComponent(CompoundComponent):
 
 
@@ -23,6 +27,21 @@ class TranslationComponent(CompoundComponent):
 		self.update_channel_selector_buttons()
 	
 
+	def set_channel_selector_control(self, control):
+		if self._on_channel_selector_control_value.subject:
+			self._on_channel_selector_control_value.subject.send_value(0)
+		self._on_channel_selector_control_value.subject = control
+		self.update_channel_selector_control()
+	
+
+	def update_channel_selector_control(self):
+		control = self._on_channel_selector_control_value.subject
+		if control:
+			chan_range = 14 - self._user_channel_offset
+			value =  ((self._channel-self._user_channel_offset)*127)/chan_range
+			control.send_value(  int(value)  )
+	
+
 	def update_channel_selector_buttons(self):
 		buttons = self._on_channel_seletor_button_value.subject
 		if buttons:
@@ -37,10 +56,19 @@ class TranslationComponent(CompoundComponent):
 	
 
 	@subject_slot('value')
+	def _on_channel_selector_control_value(self, value, *a, **k):
+		chan_range = 14 - self._user_channel_offset
+		channel = int((value*chan_range)/127)+self._user_channel_offset
+		if channel != self._channel:
+			self._channel = channel
+			self.update()
+	
+
+	@subject_slot('value')
 	def _on_channel_seletor_button_value(self, value, x, y, *a, **k):
 		if value:
 			x = x + (y*self._on_channel_seletor_button_value.subject.width())
-			self._channel = min(x+self._user_channel_offset, 15)
+			self._channel = min(x+self._user_channel_offset, 14)
 		self.update()
 	
 
@@ -56,4 +84,5 @@ class TranslationComponent(CompoundComponent):
 				control.use_default_message()
 				control.set_enabled(True)
 		self.update_channel_selector_buttons()
+		self.update_channel_selector_control()
 	

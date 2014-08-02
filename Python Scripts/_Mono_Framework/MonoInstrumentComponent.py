@@ -933,7 +933,7 @@ class MonoInstrumentComponent(CompoundComponent):
 			new_mode = 'disabled'
 			self._main_modes._mode_stack.release_all()
 			cur_track = self.song().view.selected_track
-			if cur_track.has_audio_input:
+			if cur_track.has_audio_input and cur_track in self.song().visible_tracks:
 				new_mode = 'audioloop'
 			elif cur_track.has_midi_input:
 				cur_chan = self._get_current_channel(cur_track)
@@ -949,6 +949,8 @@ class MonoInstrumentComponent(CompoundComponent):
 				self._script.set_feedback_channels(range(14, 15))
 			if new_mode in self._main_modes._mode_map or new_mode is None:
 				self._main_modes.selected_mode = new_mode
+			else:
+				self._main_modes.selected_mode = 'disabled'
 			debug('monoInstrument mode is:', self._main_modes.selected_mode)
 	
 

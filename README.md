@@ -20,4 +20,14 @@ Any help in testing is really awesome for me, please send me log.txt and Max win
 aumhaa@gmail.com
 
 
+080114  -   Adding rebuild of CNTRLR script.  Please check modes and let me know if their are issues.
 
+Layout:  top 4 encoder buttons:  Mod/Instrument toggle, ModLock, DeviceSelector, UserMode.
+
+UserMode's encoder selects channel output between 5 and 15 when UserMode is engaged.
+
+Buttons for instrument mode are similar to Base's, check out it's Wiki for more info.
+
+Holding down shift in instrument mode allows you to toggle splitMode and sequencerMode, or change scale/offsets/vertical offsets.  Most of the scales are currently disabled, I'll reenable them once I've tweaked a few things.
+
+Overall, I'm very unhappy with a)  not being able to continuously navigate channels when in modMode, b) how long it took me to write this script using Live's new _Framework methods.  I attempted to make things easier, but they seem just as complex as ever.  The new methods are useful, but very incomplete.  I keep finding myself having to finish up things in the _Framework that are only partially implemented, or written incorrectly.  But hopefully the script will be an improvement in the end.

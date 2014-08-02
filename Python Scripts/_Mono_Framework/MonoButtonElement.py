@@ -115,7 +115,8 @@ class MonoButtonElement(ButtonElement):
 		try:
 			self._skin[value]
 		except SkinColorMissingError:
-			debug('skin missing for', value)
+			#debug('skin missing for', value)
+			pass
 		super(MonoButtonElement, self).set_light(value, *a, **k)
 	
 

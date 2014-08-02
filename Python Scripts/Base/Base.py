@@ -1266,9 +1266,9 @@ class Base(ControlSurface):
 
 		quantgrid = ButtonMatrixElement([self._base_grid._orig_buttons[2][4:8], self._base_grid._orig_buttons[3][4:7]])
 
-		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution,) # modhandler = self.modhandler )
+		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution,)
 		self._instrument.name = 'InstrumentModes'
-		self._instrument.layer = Layer(priority = 5, base_display = self._display) #button_matrix = self._base_grid)
+		self._instrument.layer = Layer(priority = 5, base_display = self._display)
 		self._instrument.audioloop_layer = LayerMode(self._instrument, Layer(priority = 6, loop_selector_matrix = self._base_grid))
 		self._instrument.octave_toggle = AddLayerMode(self._instrument, Layer(octave_enable_button = self._button[4]))
 		self._instrument.keypad_shift_layer = AddLayerMode(self._instrument, Layer(priority = 6, 
