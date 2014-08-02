@@ -634,7 +634,7 @@ class Cntrlr(ControlSurface):
 		self._matrix = ButtonMatrixElement(name = 'Matrix', rows = [self._grid[index*4:(index*4)+4] for index in range(4)])
 		self._knob_left_matrix = ButtonMatrixElement(name = 'Knob_Left_Matrix', rows = [self._dial_left[index*4:(index*4)+4] for index in range(3)])
 		self._knob_right_matrix = ButtonMatrixElement(name = 'Knob_Right_Matrix', rows = [self._dial_right[index*4:(index*4)+4] for index in range(3)])
-		self._dial_matrix = EncoderMatrixElement(self, name = 'Dial_Matrix', rows = [self._encoder[index*4:(index*4)+4] for index in range(3)])
+		self._dial_matrix = ButtonMatrixElement(name = 'Dial_Matrix', rows = [self._encoder[index*4:(index*4)+4] for index in range(3)])
 		self._dial_button_matrix = ButtonMatrixElement(name = 'Dial_Button_Matrix', rows = [self._encoder_button[index*4:(index*4)+4] for index in range(1,3)])
 		self._key_matrix = ButtonMatrixElement(name = 'Key_Matrix', rows = [self._button[0:16], self._button[16:32]])
 		
@@ -757,10 +757,11 @@ class Cntrlr(ControlSurface):
 		self.modhandler = CntrlrModHandler(self) # is_enabled = False)
 		self.modhandler.name = 'ModHandler' 
 		self.modhandler.set_lock_button(self._encoder_button[1])
-		self.modhandler.layer = Layer(priority = 8, cntrlr_encoder_grid = self._dial_matrix, 
+		self.modhandler.layer = Layer(priority = 8, cntrlr_encoder_grid = self._dial_matrix,
 										cntrlr_encoder_button_grid = self._dial_button_matrix,
 										cntrlr_grid = self._matrix,
-										cntrlr_keys = self._key_matrix)
+										cntrlr_keys = self._key_matrix,)
+										#parameter_controls = self._dial_matrix)
 	
 
 	def _setup_instrument(self):
@@ -894,7 +895,7 @@ class Cntrlr(ControlSurface):
 
 	def set_controlled_track(self, track = None, *a):
 		if isinstance(track, Live.Track.Track):
-			super(Base, self).set_controlled_track(track)
+			super(Cntrlr, self).set_controlled_track(track)
 		else:
 			self.release_controlled_track()
 	
@@ -1089,9 +1090,9 @@ class CntrlrModHandler(ModHandler):
 
 	def set_cntrlr_encoder_grid(self, grid):
 		self._cntrlr_encoder_grid = grid
-		self._cntrlr_encoder_grid_value.subject = self._cntrlr_encoder_grid
+		#self._cntrlr_encoder_grid_value.subject = self._cntrlr_encoder_grid
 		self.set_parameter_controls(grid)
-		#self.log_message('parameter controls are: ' + str(self._parameter_controls))
+		self.log_message('parameter controls are: ' + str(self._parameter_controls))
 	
 
 	def set_cntrlr_encoder_button_grid(self, buttons):
