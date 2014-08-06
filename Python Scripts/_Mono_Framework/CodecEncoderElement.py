@@ -179,6 +179,7 @@ class CodecEncoderElement(EncoderElement):
 
 	def set_enabled(self, enabled):
 		self._is_enabled = enabled
+		self._request_rebuild()
 	
 
 	def forward_parameter_value(self):

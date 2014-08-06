@@ -58,13 +58,9 @@ class MonoEncoderElement(EncoderElement):
 		self.add_parameter_listener(self._parameter_to_map_to)
 	
 
-	#def release_parameter(self):
-	#	super(MonoEncoderDevice, self).release_parameter()
-	#	self.send_value(0, True)
-	
-
 	def set_enabled(self, enabled):
 		self._is_enabled = enabled
+		self._request_rebuild()
 
 	def set_value(self, value):
 		if(self._parameter_to_map_to != None):
@@ -80,12 +76,6 @@ class MonoEncoderElement(EncoderElement):
 			self.remove_parameter_listener(self._parameter_to_map_to)
 		super(MonoEncoderElement, self).release_parameter()
 	
-
-	"""def install_connections(self, *a, *k):	#this override has to be here so that translation will happen when buttons are disabled
-		if self._is_enabled:
-			EncoderElement.install_connections(self)
-		elif ((self._msg_channel != self._original_channel) or (self._msg_identifier != self._original_identifier)):
-			self._install_translation(self._msg_type, self._original_identifier, self._original_channel, self._msg_identifier, self._msg_channel)"""
 
 	def script_wants_forwarding(self):
 		if not self._is_enabled:

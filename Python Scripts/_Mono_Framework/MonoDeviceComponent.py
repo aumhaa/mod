@@ -1013,7 +1013,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 	
 
 	def update(self):
-		debug('monoDevice update!')
+		#debug('monoDevice update!')
 		if self._device != None:
 			self._device_bank_registry[self._device] = self._bank_index
 			for host in self._parent.active_handlers():
@@ -1023,7 +1023,7 @@ class NewMonoDeviceComponent(DeviceComponent):
 					#if self._bank_name != old_bank_name:
 					#	self._show_msg_callback(str(self._device.name) + ' Bank: ' + str(self._bank_name))
 		else:
-			debug('device is none')
+			#debug('device is none')
 			for host in self._parent._active_handlers:
 				if host._parameter_controls != None:
 					for control in host._parameter_controls:

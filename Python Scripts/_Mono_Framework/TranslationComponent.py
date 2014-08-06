@@ -9,12 +9,16 @@ debug = initialize_debug()
 class TranslationComponent(CompoundComponent):
 
 
-	def __init__(self, controls = [], user_channel_offset = 1, *a, **k):
+	def __init__(self, controls = [], user_channel_offset = 1, channel = 0, *a, **k):
 		super(TranslationComponent, self).__init__()
 		self._controls = controls
 		self._user_channel_offset = user_channel_offset
-		self._channel = 0
+		self._channel = channel or 0
 		self._color = 0
+	
+
+	def set_controls(self, controls):
+		self._controls = controls
 	
 
 	def add_control(self, control):
@@ -76,6 +80,7 @@ class TranslationComponent(CompoundComponent):
 		if self.is_enabled():
 			for control in self._controls:
 				control.clear_send_cache()
+				control.release_parameter()
 				control.send_value(self._color, True)
 				control.set_channel(self._channel)
 				control.set_enabled(False)

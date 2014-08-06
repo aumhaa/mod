@@ -749,6 +749,9 @@ class Cntrlr(ControlSurface):
 		self._translations.layer = Layer(priority = 10,)
 		self._translations.selector_layer = AddLayerMode(self._translations, Layer(channel_selector_control = self._encoder[3]))
 		self._translations.set_enabled(False)
+
+		self._optional_translations = CompoundMode(TranslationComponent(controls = self._fader, user_channel_offset = 4, channel = 4, name = 'FaderTranslation', is_enabled = False, layer = Layer(priority = 10)) if FADER_BANKING else None, 
+														TranslationComponent(controls = self._knobs, user_channel_offset = 4, channel = 4, name = 'DialTranslation', is_enabled = False, layer = Layer(priority = 10)) if DIAL_BANKING else None)
 	
 
 	def _setup_mod(self):
@@ -805,8 +808,9 @@ class Cntrlr(ControlSurface):
 
 	def _setup_modswitcher(self):
 		self._modswitcher = ModesComponent(name = 'ModSwitcher')  # is_enabled = False)
-		self._modswitcher.add_mode('mod', [self.modhandler])
-		self._modswitcher.add_mode('instrument', [self._instrument, self._instrument.shift_button_layer])
+		#self._modswitcher.add_mode('instrument', [self._optional_translations])
+		self._modswitcher.add_mode('mod', [self.modhandler, self._optional_translations])
+		self._modswitcher.add_mode('instrument', [self._instrument, self._instrument.shift_button_layer, self._optional_translations])
 		self._modswitcher.set_enabled(False)
 	
 
@@ -848,8 +852,8 @@ class Cntrlr(ControlSurface):
 
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('MixMode', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session_modes, self._session.nav_layer])
-		self._main_modes.add_mode('ModSwitcher', [self._modswitcher, main_faders, self._mixer.main_knobs_layer], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
-		self._main_modes.add_mode('Translations', [self._translations, DelayMode(self._translations.selector_layer), main_faders, self._mixer.main_knobs_layer], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
+		self._main_modes.add_mode('ModSwitcher', [main_faders, self._mixer.main_knobs_layer, self._modswitcher], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
+		self._main_modes.add_mode('Translations', [main_faders, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
 		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
 		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[0], Translations_button = self._encoder_button[3], DeviceSelector_button = self._encoder_button[2])
 	
