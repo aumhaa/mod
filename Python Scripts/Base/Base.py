@@ -179,7 +179,7 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 	def display_message(self, message):
 		if not self._block_messages:
 			message = str(message) + '  '
-			self._message_to_send = [tuple(176, 16, self._translate_char(message[0])), tuple(176, 17, self._translate_char(message[1]))]
+			self._message_to_send = [tuple([176, 16, self._translate_char(message[0])]), tuple([176, 17, self._translate_char(message[1])])]
 			self._request_send_message()
 	
 
