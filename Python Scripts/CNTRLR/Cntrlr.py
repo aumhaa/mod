@@ -869,7 +869,7 @@ class Cntrlr(ControlSurface):
 
 	def _can_auto_arm_track(self, track):
 		routing = track.current_input_routing
-		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Base Input')
+		return routing == 'Ext: All Ins' or routing == 'All Ins' or routing.startswith('Cntrlr Input')
 	
 
 	@subject_slot('appointed_device')
