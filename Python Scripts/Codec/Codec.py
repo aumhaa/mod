@@ -55,7 +55,7 @@ MixerComponent.tracks_to_use = tracks_to_use
 
 
 """ Here we define some global variables """
-factoryreset = (240,0,1,97,4,3,247)
+factoryreset = (240,0,1,97,4,6,247)
 btn_channels = (240, 0, 1, 97, 4, 19, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, 0, 247);
 enc_channels = (240, 0, 1, 97, 4, 20, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, CHANNEL, 247);
 
@@ -839,7 +839,7 @@ class Codec(ControlSurface):
 		self._main_mode = ShiftModeComponent(self._mode_update, self) 
 		self._main_mode.name = 'Shift_Mode'
 		self._main_mode.set_mode_buttons(tuple([self._row_button[0], self._row_button[1], self._row_button[2], self._row_button[3]]))
-		self._on_shift_doublepress_value.subject = self._livid.double_press
+		#self._on_shift_doublepress_value.subject = self._livid.double_press
 		self._shift_mode = ModesComponent()
 		self._shift_mode.add_mode('shift', tuple([self._enable_shift, self._disable_shift]), behaviour = ShiftCancellableBehaviourWithRelease())
 		self._shift_mode.set_mode_button('shift', self._livid)
@@ -862,6 +862,7 @@ class Codec(ControlSurface):
 		self.modhandler.code_buttons_layer = AddLayerMode(self.modhandler, Layer(code_buttons = self._code_buttons, priority = 3))
 		self.modhandler.keys_layer = AddLayerMode(self.modhandler, Layer(key_buttons = self._code_keys, priority = 3))
 		self.modhandler.code_keys_layer = AddLayerMode(self.modhandler, Layer(code_keys = self._code_keys, priority = 3))
+		self.modhandler.alt_layer = AddLayerMode(self.modhandler, Layer(lock_button = self._livid))
 	
 
 	def _setup_mixer_controls(self):
@@ -976,21 +977,28 @@ class Codec(ControlSurface):
 	
 
 	def _shift_value(self, value):
-		self._shift_pressed = value > 0
-		#self.log_message('shift_pressed ' + str(self._shift_pressed))
-		self._send_midi(ENCODER_SPEED[int(self._shift_pressed)])
-		self._main_mode.set_enabled(not self._shift_pressed)
-		self.update_modhandler_controls()
-		if self._shift_pressed:
-			self._alt_mode.pop_mode('alt')
-			self._alt_mode.set_mode_button('alt', None)
-		self.modhandler._shift_value(value)
+		debug('shift value:', value)
+		if self.modhandler.is_enabled() and self._alt_enabled:
+			self.modhandler.set_lock(not self.modhandler.is_locked())
+			if not self.modhandler.is_locked():
+				self.modhandler.select_appointed_device()
+				self._main_mode.update()
+		else:
+			self._shift_pressed = value > 0
+			#self.log_message('shift_pressed ' + str(self._shift_pressed))
+			self._send_midi(ENCODER_SPEED[int(self._shift_pressed)])
+			self._main_mode.set_enabled(not self._shift_pressed)
+			self.update_modhandler_controls()
+			if self._shift_pressed:
+				self._alt_mode.pop_mode('alt')
+				self._alt_mode.set_mode_button('alt', None)
+			self.modhandler._shift_value(value)
 		self._update_shift_button()
 	
 
 	def _update_shift_button(self):
 		if self._livid != None:
-			self._livid.send_value((self._shift_pressed > 0) or (self.modhandler.is_locked()*8), True)
+			self._livid.send_value((self._shift_pressed > 0) or (self.modhandler.is_locked()*16), True)
 	
 
 	def _enable_alt(self):
@@ -999,12 +1007,16 @@ class Codec(ControlSurface):
 		for index in range(8):
 			self._mixer.channel_strip(index).set_select_button(None)
 		self.update_modhandler_controls()
+		if self.modhandler.is_enabled():
+			self.modhandler._alt_value(1)
 		self._device_selector.set_enabled(True)
 	
 
 	def _disable_alt(self):
 		self._alt_enabled = False
 		self._main_mode.set_enabled(True)
+		if self.modhandler.is_enabled():
+			self.modhandler._alt_value(0)
 		self._device_selector.set_enabled(False)
 		self._mode_update()
 	
@@ -1046,7 +1058,7 @@ class Codec(ControlSurface):
 					handler.code_buttons_layer.enter_mode()
 					handler.set_mod_nav_buttons([None, None])
 			else:
-				if alt: 
+				if alt:
 					handler.set_mod_nav_buttons([self._code_buttons[0], self._code_buttons[1]])
 					handler.keys_layer.leave_mode()
 				else:
@@ -1054,7 +1066,6 @@ class Codec(ControlSurface):
 					handler.keys_layer.enter_mode()
 					handler.set_mod_nav_buttons([None, None])
 					handler.code_buttons_layer.leave_mode()
-					
 			handler.update()
 	
 
@@ -1559,6 +1570,15 @@ class CodecModHandler(ModHandler):
 		#self.log_message('set code buttons ' + str(buttons))
 		self._code_buttons = buttons
 		self._code_buttons_value.subject = self._code_buttons
+	
+
+	@subject_slot('value')
+	def _alt_value(self, value, *a, **k):
+		self._is_alted = not value is 0
+		mod = self.active_mod()
+		if mod:
+			mod.send('alt', value)
+		self.update()
 	
 
 	@subject_slot('value')

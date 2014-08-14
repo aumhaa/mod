@@ -122,6 +122,11 @@ class CancellableBehaviourWithRelease(CancellableBehaviour):
 class AumPushResetSendsComponent(ResetSendsComponent):
 
 
+	def __init__(self, *a, **k):
+		super(AumPushResetSendsComponent, self).__init__(*a, **k)
+		self._buttons = []
+	
+
 	def set_buttons(self, buttons):
 
 		for button in self._buttons:
@@ -282,7 +287,7 @@ class AumPushTrollComponent(CompoundComponent):
 				line1.append(self._mixer.channel_strip(index+12).track_name_data_source())
 				line2.append(self._mixer.channel_strip(index+12).track_parameter_graphic_sources(0))
 				line3.append(self._mixer.channel_strip(index+12).track_parameter_data_sources(0))
-			self._send_reset.set_buttons(tuple([None, None, None, None]))
+			self._send_reset.set_buttons(None)
 
 		elif mode == 2:
 			for index in range(4):
@@ -1004,7 +1009,7 @@ class AumPush(Push):
 
 	def set_highlighting_session_component(self, session_component):
 		self._highlighting_session_component = session_component
-		self._highlighting_session_component.set_highlighting_callback(self._set_session_highlight)
+		session_component and self._highlighting_session_component.set_highlighting_callback(self._set_session_highlight)
 	
 
 	def _can_auto_arm_track(self, track):

@@ -115,7 +115,7 @@ class Codex(Codec):
 	
 
 	def _deassign_all(self):
-		self._alt_send_reset.set_buttons(tuple([None for index in range(4)]))
+		self._alt_send_reset.set_buttons(None)
 		self._alt_send_reset.set_enabled(False)
 		self._alt_device_selector.set_buttons(None)
 		self._alt_device_selector.set_enabled(False)
@@ -152,7 +152,7 @@ class Codex(Codec):
 			self._mixer2.return_strip(0).set_send_controls([None, self._dial[4][2]])
 			self._mixer2.return_strip(1).set_send_controls([self._dial[5][2], None])
 		else:
-			self._alt_send_reset.set_buttons(tuple([self._button[4][2], self._button[5][2], self._button[6][2], self._button[7][2]]))
+			self._alt_send_reset.set_buttons(self._button_matrix.submatrix[4:, 2])
 			self._alt_send_reset.set_enabled(True)
 			self._mixer2.selected_strip().set_send_controls([self._dial[0][2], self._dial[1][2], self._dial[2][2], self._dial[3][2]])
 			for index in range(3):

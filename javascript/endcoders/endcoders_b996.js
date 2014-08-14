@@ -8,6 +8,10 @@ var DEBUG = false;
 var DEBUGLCD = 0;
 var SHOW_STORAGE = 0;
 
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
+
 var modColor=6;
 
 var FUNCTION_COLORS = [3, 6, 5, 0];
@@ -28,6 +32,8 @@ var assignments;
 var id_numbers;
 var active_preset = 0;
 var script = this;
+var is_shifted = false;
+var is_alted = false;
 
 var encs = [];
 for(var i=0;i<32;i++)
@@ -363,23 +369,23 @@ function _button(x, y, val)
 		{
 			if(rows[0].pressed>0)
 			{
-				select_knob(x);
-				this.patcher.getnamed('breakpoints').message('wclose');
-				this.patcher.getnamed('breakpoints').message('open', x+1);
+				for(var i=0;i<24;i++)
+				{
+					clear_breakpoint(i);
+				}
 			}
-			else if(rows[1].pressed>0)
+			else if(is_shifted)
 			{
 				for(var i=0;i<24;i++)
 				{
 					set_breakpoint(i);
 				}
 			}
-			else if(rows[2].pressed>0)
+			else if(is_alted)
 			{
-				for(var i=0;i<24;i++)
-				{
-					clear_breakpoint(i);
-				}
+				select_knob(x);
+				this.patcher.getnamed('breakpoints').message('wclose');
+				this.patcher.getnamed('breakpoints').message('open', x+1);
 			}
 			else
 			{
@@ -390,15 +396,15 @@ function _button(x, y, val)
 		{
 			if(rows[0].pressed>0)
 			{
-				select_parameter(((y-1)*8)+x);
+				clear_breakpoint(((y-1)*8)+x);
 			}
-			if(rows[1].pressed>0)
+			else if(is_shifted)
 			{
 				set_breakpoint(((y-1)*8)+x);
 			}
-			else if(rows[2].pressed>0)
+			else if(is_alted)
 			{
-				clear_breakpoint(((y-1)*8)+x);
+				select_parameter(((y-1)*8)+x);
 			}
 			else
 			{
@@ -623,6 +629,18 @@ function _dial_return(bank, number, value)
 	}
 }
 
+function _shift(value)
+{
+	is_shifted = value>0;
+	debug('shift', is_shifted);
+}
+
+function _alt(value)
+{
+	is_alted = value>0;
+	debug('alt', is_alted);
+}
+
 function set_breakpoint(num)
 {
 	selected[num].breakpoint.message('list', encs['Encoder_'+selected.num].val, encs['Encoder_'+(selected[num].num+8)].val);
@@ -637,7 +655,7 @@ function select_knob(num)
 {
 	if(DEBUG){post('select knob', num, '\n');}
 	selected = knob[num];
-	outlet(0, 'receive_device', 'set_device_bank', num);
+	outlet(0, 'receive_device', 'set_mod_device_bank', num);
 	gui_selected.message('set', num);
 	var i=7;do{
 		outlet(0, 'trans', 'm_button_'+i, 'value', (num == i)*127);
@@ -864,12 +882,4 @@ function _lcd()
 	}
 }
 
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
-{
-	if(FORCELOAD){init(1);}
-}
-
-forceload();
+forceload(this);

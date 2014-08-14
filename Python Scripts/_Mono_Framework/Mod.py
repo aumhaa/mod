@@ -292,7 +292,7 @@ class Grid(object):
 		element = self._cell[x][y]
 		if value > -1:
 			for handler in self._active_handlers():
-				handler.receive_address(self._name, element._x, element._y, value)
+				handler.receive_address(self._name, element._x, element._y, value = value)
 		else:
 			self.update_element(element)
 	

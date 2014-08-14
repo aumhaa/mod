@@ -19,7 +19,7 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
+var FORCELOAD = true;
 var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
@@ -642,7 +642,7 @@ function setup_translations()
 	mod.Send( 'add_translation', 'keys_batch', 'push_grid', 'push_keys', 2);
 	mod.Send( 'add_translation', 'keys_batch_fold', 'push_grid', 'push_keys', 2, 8);
 	mod.Send( 'add_translation', 'keys2_batch', 'push_grid', 'push_keys2', 4); 
-	mod.Send( 'add_translation', 'keys_batch_fold', 'push_grid', 'push_keys', 4, 8);
+	mod.Send( 'add_translation', 'keys2_batch_fold', 'push_grid', 'push_keys2', 4, 8);
 	for(var i=0;i<8;i++)
 	{
 		mod.Send( 'add_translation', 'buttons_'+i, 'push_grid', 'push_buttons', i, 6);
