@@ -7,7 +7,7 @@ function init()
 
 function display_message(message)
 {
-	display.call('display_message');
+	display.call('display_message', message);
 }
 
 function callback(){}

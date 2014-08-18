@@ -176,10 +176,11 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 		self._message_clear_all = [tuple([176, 16, 127]), tuple([176, 17, 127])]
 	
 
-	def display_message(self, message):
+	def display_message(self, message, *a, **k):
+		debug('display_message', message)
 		if not self._block_messages:
 			message = str(message) + '  '
-			self._message_to_send = [tuple([176, 16, self._translate_char(message[0])]), tuple([176, 17, self._translate_char(message[1])])]
+			self._message_to_send = [tuple([176, 34, self._translate_char(message[0])]), tuple([176, 35, self._translate_char(message[1])])]
 			self._request_send_message()
 	
 
@@ -1673,6 +1674,11 @@ class Base(ControlSurface):
 				if not self._connected:
 					self._connected = True
 					self._initialize_hardware()
+	
+
+	def display_message(self, message, *a, **k):
+		debug('display_message', message)
+		self._display.display_message(message)
 	
 
 
