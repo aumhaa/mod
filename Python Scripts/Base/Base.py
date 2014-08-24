@@ -95,10 +95,12 @@ FADER_COLORS = [96, 124, 108, 120, 116, 100, 104, 112]
 MIDIBUTTONMODE = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 247)
 USERBUTTONMODE = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 247)
 LIVEBUTTONMODE = (240, 0, 1, 97, 12, 66, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 247)
-SPLITVERTICAL = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 247)
-SPLITHORIZONTAL = (240, 0, 1, 97, 12, 66, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 247)
+SPLITVERTICAL = (240, 0, 1, 97, 12, 66, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 247)
+SPLITHORIZONTAL = (240, 0, 1, 97, 12, 66, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 247)
+SPLITVERTICALATON = (240, 0, 1, 97, 12, 66,  5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 247)
+SPLITHORIZONTALATON = (240, 0, 1, 97, 12, 66, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,247)
 
-ATOFFBUTTONMODE = (240, 0, 1, 97, 12, 10, 36, 2, 37, 0, 38, 0, 39, 0, 40, 0, 41, 0, 42, 0, 43, 0, 44, 0, 45, 0, 46, 0, 47, 0, 48, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 56, 0, 57, 0, 58, 0, 59, 0, 60, 2, 61, 0, 62, 0, 63, 0, 64, 0, 65, 0, 66, 0, 67, 0, 247)
+ATOFFBUTTONMODE = (240, 0, 1, 97, 12, 10, 36, 0, 37, 0, 38, 0, 39, 0, 40, 0, 41, 0, 42, 0, 43, 0, 44, 0, 45, 0, 46, 0, 47, 0, 48, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 56, 0, 57, 0, 58, 0, 59, 0, 60, 2, 61, 0, 62, 0, 63, 0, 64, 0, 65, 0, 66, 0, 67, 0, 247)
 ATONBUTTONMODE = (240, 0, 1, 97, 12, 10, 36, 2, 37, 2, 38, 2, 39, 2, 40, 2, 41, 2, 42, 2, 43, 2, 44, 2, 45, 2, 46, 2, 47, 2, 48, 2, 49, 2, 50, 2, 51, 2, 52, 2, 53, 2, 54, 2, 55, 2, 56, 2, 57, 2, 58, 2, 59, 2, 60, 2, 61, 2, 62, 2, 63, 2, 64, 2, 65, 2, 66, 2, 67, 2, 247)
 
 CLIPS_FADER_COLORS = tuple([240, 0, 1, 97, 12, 61, 7, 7, 7, 7, 7, 7, 7, 7, 2, 247])
@@ -1050,6 +1052,7 @@ class Base(ControlSurface):
 		self._send_midi(STREAMINGON)
 		self._send_midi(LINKFUNCBUTTONS)
 		self._send_midi(DISABLECAPFADERNOTES)
+		self._send_midi(ATONBUTTONMODE if AFTERTOUCH is True else ATOFFBUTTONMODE)
 		self._send_midi((191, 122, 64))
 		self._main_modes.selected_mode = 'Clips'
 	
@@ -1116,11 +1119,12 @@ class Base(ControlSurface):
 		self.user_layer_sysex = SendSysexMode(script = self, sysex = USER_FADER_COLORS)
 		self.mod_layer_sysex = SendSysexMode(script = self, sysex = USER_FADER_COLORS)
 
-		self.midi_mode_sysex = SendSysexMode(script = self, sysex = MIDIBUTTONMODE)
+		self.midi_mode_sysex = SendSysexMode(script = self, sysex = USERBUTTONMODE if AFTERTOUCH else MIDIBUTTONMODE)
 		self.user_mode_sysex = SendSysexMode(script = self, sysex = USERBUTTONMODE)
 		self.live_mode_sysex = SendSysexMode(script = self, sysex = LIVEBUTTONMODE)
-		self.splitvertical_mode_sysex = SendSysexMode(script = self, sysex = SPLITVERTICAL)
-		self.splithorizontal_mode_sysex = SendSysexMode(script = self, sysex = SPLITHORIZONTAL)
+		self.splitvertical_mode_sysex = SendSysexMode(script = self, sysex = SPLITVERTICALATON if AFTERTOUCH else SPLITVERTICAL)
+		self.splithorizontal_mode_sysex = SendSysexMode(script = self, sysex = SPLITHORIZONTALATON if AFTERTOUCH else SPLITHORIZONTAL)
+
 		self.atoff_mode_sysex = SendSysexMode(script = self, sysex = ATOFFBUTTONMODE)
 		self.aton_mode_sysex = SendSysexMode(script = self, sysex = ATONBUTTONMODE)
 	
@@ -1313,7 +1317,7 @@ class Base(ControlSurface):
 		self._instrument._main_modes.add_mode('keypad_sequencer', [self._instrument._keypad.sequencer_layer, self.splithorizontal_mode_sysex], )
 		self._instrument._main_modes.add_mode('keypad_shifted', [self._instrument._keypad.main_layer, self._instrument.keypad_shift_layer, self.midi_mode_sysex])
 		self._instrument._main_modes.add_mode('keypad_split_shifted', [self._instrument._keypad.split_layer, self._instrument.keypad_shift_layer])
-		self._instrument._main_modes.add_mode('keypad_sequencer_shifted', [self._instrument._keypad.sequencer_shift_layer, self._instrument.keypad_shift_layer, self.midi_mode_sysex])
+		self._instrument._main_modes.add_mode('keypad_sequencer_shifted', [self._instrument._keypad.sequencer_shift_layer, self._instrument.keypad_shift_layer, self.splithorizontal_mode_sysex])
 		self._instrument._main_modes.add_mode('audioloop', [self._instrument.audioloop_layer, self.live_mode_sysex])
 		self._instrument.register_component(self._instrument._main_modes)
 		self._instrument.set_enabled(False)
