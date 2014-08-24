@@ -173,7 +173,6 @@ DEFAULT_SPLIT = False
 from _Framework.ButtonElement import Color
 from _Mono_Framework.LividColors import *
 
-
 class BaseColors:
 
 
@@ -332,5 +331,158 @@ class BaseColors:
 			EvenValue = LividRGB.GREEN
 			OddValue = LividRGB.MAGENTA
 		
+
+	
+
+	class Translation:
+
+		class Channel_10:
+			Pad_0 = LividRGB.OFF
+			Pad_1 = LividRGB.OFF
+			Pad_2 = LividRGB.OFF
+			Pad_3 = LividRGB.OFF
+			Pad_4 = LividRGB.OFF
+			Pad_5 = LividRGB.OFF
+			Pad_6 = LividRGB.OFF
+			Pad_7 = LividRGB.OFF
+			Pad_8 = LividRGB.OFF
+			Pad_9 = LividRGB.OFF
+			Pad_10 = LividRGB.OFF
+			Pad_11 = LividRGB.OFF
+			Pad_12 = LividRGB.OFF
+			Pad_13 = LividRGB.OFF
+			Pad_14 = LividRGB.OFF
+			Pad_15 = LividRGB.OFF
+			Pad_16 = LividRGB.OFF
+			Pad_17 = LividRGB.OFF
+			Pad_18 = LividRGB.OFF
+			Pad_19 = LividRGB.OFF
+			Pad_20 = LividRGB.OFF
+			Pad_21 = LividRGB.OFF
+			Pad_22 = LividRGB.OFF
+			Pad_23 = LividRGB.OFF
+			Pad_24 = LividRGB.OFF
+			Pad_25 = LividRGB.OFF
+			Pad_26 = LividRGB.OFF
+			Pad_27 = LividRGB.OFF
+			Pad_28 = LividRGB.OFF
+			Pad_29 = LividRGB.OFF
+			Pad_30 = LividRGB.OFF
+			Pad_31 = LividRGB.OFF
+		
+
+		class Channel_11:
+			Pad_0 = LividRGB.OFF
+			Pad_1 = LividRGB.OFF
+			Pad_2 = LividRGB.OFF
+			Pad_3 = LividRGB.OFF
+			Pad_4 = LividRGB.OFF
+			Pad_5 = LividRGB.OFF
+			Pad_6 = LividRGB.OFF
+			Pad_7 = LividRGB.OFF
+			Pad_8 = LividRGB.OFF
+			Pad_9 = LividRGB.OFF
+			Pad_10 = LividRGB.OFF
+			Pad_11 = LividRGB.OFF
+			Pad_12 = LividRGB.OFF
+			Pad_13 = LividRGB.OFF
+			Pad_14 = LividRGB.OFF
+			Pad_15 = LividRGB.OFF
+			Pad_16 = LividRGB.OFF
+			Pad_17 = LividRGB.OFF
+			Pad_18 = LividRGB.OFF
+			Pad_19 = LividRGB.OFF
+			Pad_20 = LividRGB.OFF
+			Pad_21 = LividRGB.OFF
+			Pad_22 = LividRGB.OFF
+			Pad_23 = LividRGB.OFF
+			Pad_24 = LividRGB.OFF
+			Pad_25 = LividRGB.OFF
+			Pad_26 = LividRGB.OFF
+			Pad_27 = LividRGB.OFF
+			Pad_28 = LividRGB.OFF
+			Pad_29 = LividRGB.OFF
+			Pad_30 = LividRGB.OFF
+			Pad_31 = LividRGB.OFF
+		
+
+		class Channel_12:
+			Pad_0 = LividRGB.OFF
+			Pad_1 = LividRGB.OFF
+			Pad_2 = LividRGB.OFF
+			Pad_3 = LividRGB.OFF
+			Pad_4 = LividRGB.OFF
+			Pad_5 = LividRGB.OFF
+			Pad_6 = LividRGB.OFF
+			Pad_7 = LividRGB.OFF
+			Pad_8 = LividRGB.OFF
+			Pad_9 = LividRGB.OFF
+			Pad_10 = LividRGB.OFF
+			Pad_11 = LividRGB.OFF
+			Pad_12 = LividRGB.OFF
+			Pad_13 = LividRGB.OFF
+			Pad_14 = LividRGB.OFF
+			Pad_15 = LividRGB.OFF
+			Pad_16 = LividRGB.OFF
+			Pad_17 = LividRGB.OFF
+			Pad_18 = LividRGB.OFF
+			Pad_19 = LividRGB.OFF
+			Pad_20 = LividRGB.OFF
+			Pad_21 = LividRGB.OFF
+			Pad_22 = LividRGB.OFF
+			Pad_23 = LividRGB.OFF
+			Pad_24 = LividRGB.OFF
+			Pad_25 = LividRGB.OFF
+			Pad_26 = LividRGB.OFF
+			Pad_27 = LividRGB.OFF
+			Pad_28 = LividRGB.OFF
+			Pad_29 = LividRGB.OFF
+			Pad_30 = LividRGB.OFF
+			Pad_31 = LividRGB.OFF
+		
+
+		class Channel_13:
+			Pad_0 = LividRGB.OFF
+			Pad_1 = LividRGB.OFF
+			Pad_2 = LividRGB.OFF
+			Pad_3 = LividRGB.OFF
+			Pad_4 = LividRGB.OFF
+			Pad_5 = LividRGB.OFF
+			Pad_6 = LividRGB.OFF
+			Pad_7 = LividRGB.OFF
+			Pad_8 = LividRGB.OFF
+			Pad_9 = LividRGB.OFF
+			Pad_10 = LividRGB.OFF
+			Pad_11 = LividRGB.OFF
+			Pad_12 = LividRGB.OFF
+			Pad_13 = LividRGB.OFF
+			Pad_14 = LividRGB.OFF
+			Pad_15 = LividRGB.OFF
+			Pad_16 = LividRGB.OFF
+			Pad_17 = LividRGB.OFF
+			Pad_18 = LividRGB.OFF
+			Pad_19 = LividRGB.OFF
+			Pad_20 = LividRGB.OFF
+			Pad_21 = LividRGB.OFF
+			Pad_22 = LividRGB.OFF
+			Pad_23 = LividRGB.OFF
+			Pad_24 = LividRGB.OFF
+			Pad_25 = LividRGB.OFF
+			Pad_26 = LividRGB.OFF
+			Pad_27 = LividRGB.OFF
+			Pad_28 = LividRGB.OFF
+			Pad_29 = LividRGB.OFF
+			Pad_30 = LividRGB.OFF
+			Pad_31 = LividRGB.OFF
+		
+
+	
+
+
+
+
+
+
+
 
 	

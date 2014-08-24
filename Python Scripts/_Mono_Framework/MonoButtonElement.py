@@ -24,10 +24,9 @@ class MonoButtonElement(ButtonElement):
 	__doc__ = ' Special button class that can be configured with custom on- and off-values, some of which flash at specified intervals called by _Update_Display'
 
 
-	def __init__(self, is_momentary, msg_type, channel, identifier, name, cs, *a, **k):
-		super(MonoButtonElement, self).__init__(is_momentary, msg_type, channel, identifier, *a, **k)
-		self.name = name
-		self._script = cs
+	def __init__(self, is_momentary, msg_type, channel, identifier, name = 'Button', script = None, *a, **k):
+		super(MonoButtonElement, self).__init__(is_momentary, msg_type, channel, identifier, name = name, *a, **k)
+		self._script = script
 		self._color_map = [2, 64, 4, 8, 16, 127, 32]
 		self._num_colors = 7
 		self._num_flash_states = 18
