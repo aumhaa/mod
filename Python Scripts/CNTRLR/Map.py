@@ -36,7 +36,7 @@ FOLLOW = True		#this sets whether or not the last selected device on a track is 
 COLOR_MAP = [2, 64, 4, 8, 16, 127, 32]
 
 ###	 the first number is Livid(OhmModes) standard, the second is Monomdular standard, the third is Monochrome
-MUTE = [2, 2, 127]
+"""MUTE = [2, 2, 127]
 SOLO = [3, 9, 127]
 ARM = [5, 5, 8]
 SEND_RESET = [1, 7, 7]
@@ -74,7 +74,7 @@ CLIP_TRG_PLAY = [12, 2, 15]
 ZOOM_STOPPED = [1, 127, 127]
 ZOOM_PLAYING = [6, 6, 15]
 ZOOM_SELECTED = [8, 1, 8]
-STOP_CLIP = [127, 127, 2]
+STOP_CLIP = [127, 127, 2]"""
 
 from _Framework.ButtonElement import Color
 from _Mono_Framework.LividColors import *
@@ -269,6 +269,426 @@ class CntrlrColors:
 			EvenValue = LividRGB.GREEN
 			OddValue = LividRGB.MAGENTA
 		
+	
+
+	class Translation:
+
+		class Channel_4:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_5:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_6:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_7:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_8:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_9:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_10:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
+		class Channel_11:
+			Grid_0 = LividRGB.OFF
+			Grid_1 = LividRGB.OFF
+			Grid_2 = LividRGB.OFF
+			Grid_3 = LividRGB.OFF
+			Grid_4 = LividRGB.OFF
+			Grid_5 = LividRGB.OFF
+			Grid_6 = LividRGB.OFF
+			Grid_7 = LividRGB.OFF
+			Grid_8 = LividRGB.OFF
+			Grid_9 = LividRGB.OFF
+			Grid_10 = LividRGB.OFF
+			Grid_11 = LividRGB.OFF
+			Grid_12 = LividRGB.OFF
+			Grid_13 = LividRGB.OFF
+			Grid_14 = LividRGB.OFF
+			Grid_15 = LividRGB.OFF
+
+			Button_0 = LividRGB.OFF
+			Button_1 = LividRGB.OFF
+			Button_2 = LividRGB.OFF
+			Button_3 = LividRGB.OFF
+			Button_4 = LividRGB.OFF
+			Button_5 = LividRGB.OFF
+			Button_6 = LividRGB.OFF
+			Button_7 = LividRGB.OFF
+			Button_8 = LividRGB.OFF
+			Button_9 = LividRGB.OFF
+			Button_10 = LividRGB.OFF
+			Button_11 = LividRGB.OFF
+			Button_12 = LividRGB.OFF
+			Button_13 = LividRGB.OFF
+			Button_14 = LividRGB.OFF
+			Button_15 = LividRGB.OFF
+			Button_16 = LividRGB.OFF
+			Button_17 = LividRGB.OFF
+			Button_18 = LividRGB.OFF
+			Button_19 = LividRGB.OFF
+			Button_20 = LividRGB.OFF
+			Button_21 = LividRGB.OFF
+			Button_22 = LividRGB.OFF
+			Button_23 = LividRGB.OFF
+			Button_24 = LividRGB.OFF
+			Button_25 = LividRGB.OFF
+			Button_26 = LividRGB.OFF
+			Button_27 = LividRGB.OFF
+			Button_28 = LividRGB.OFF
+			Button_29 = LividRGB.OFF
+			Button_30 = LividRGB.OFF
+			Button_31 = LividRGB.OFF
+		
+
 	
 
 ## a  http://www.aumhaa.com

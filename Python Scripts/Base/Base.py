@@ -11,7 +11,7 @@ from itertools import imap, chain, starmap
 from _Framework.Dependency import inject
 from _Framework.ButtonElement import ButtonElement
 from _Framework.ButtonMatrixElement import ButtonMatrixElement
-from _Framework.ChannelStripComponent import ChannelStripComponent
+#from _Framework.ChannelStripComponent import ChannelStripComponent
 from _Framework.ClipSlotComponent import ClipSlotComponent
 from _Framework.CompoundComponent import CompoundComponent
 from _Framework.ControlElement import ControlElement, ControlElementClient
@@ -21,7 +21,7 @@ from _Framework.DisplayDataSource import DisplayDataSource
 from _Framework.DeviceComponent import DeviceComponent
 from _Framework.EncoderElement import EncoderElement
 from _Framework.InputControlElement import *
-from _Framework.MixerComponent import MixerComponent
+#from _Framework.MixerComponent import MixerComponent
 from _Framework.ModeSelectorComponent import ModeSelectorComponent
 from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.SceneComponent import SceneComponent
@@ -45,8 +45,11 @@ from _Mono_Framework.MonoButtonElement import *
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement
 from _Mono_Framework.MonoDeviceComponent import MonoDeviceComponent
+from _Mono_Framework.MonoMixerComponent import MixerComponent
 from _Mono_Framework.DeviceNavigator import DeviceNavigator
 from _Mono_Framework.TranslationComponent import TranslationComponent
+from _Mono_Framework.MonoM4LInterfaceComponent import MonoM4LInterfaceComponent
+from _Mono_Framework.MonoModes import SendSysexMode, MomentaryBehaviour, ExcludingMomentaryBehaviour, DelayedExcludingMomentaryBehaviour, CancellableBehaviourWithRelease, ShiftedBehaviour, LatchingShiftedBehaviour, FlashingBehaviour
 from _Mono_Framework.ModDevices import *
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
@@ -149,24 +152,6 @@ def return_empty():
 def make_default_skin():
 	return Skin(BaseColors)
 
-
-
-class SendSysexMode(Mode):
-
-
-	def __init__(self, script = None, sysex = None, *a, **k):
-		super(SendSysexMode, self).__init__(*a, **k)
-		self._send_midi = script._send_midi
-		self._sysex = sysex
-	
-
-	def enter_mode(self):
-		self._send_midi and self._send_midi(self._sysex)
-	
-
-	def leave_mode(self):
-		pass
-	
 
 
 class BasePhysicalDisplayElement(PhysicalDisplayElement):
@@ -303,146 +288,6 @@ class BaseDeviceComponent(DeviceComponent):
 	
 
 
-class MomentaryBehaviour(ModeButtonBehaviour):
-
-
-	def press_immediate(self, component, mode):
-		component.push_mode(mode)
-	
-
-	def release_immediate(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_mode(mode)
-	
-
-	def release_delayed(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_mode(mode)
-	
-
-
-class ExcludingMomentaryBehaviour(ExcludingBehaviourMixin, MomentaryBehaviour):
-
-
-	def update_button(self, *a, **k):
-		pass
-	
-
-
-class DelayedExcludingMomentaryBehaviour(ExcludingMomentaryBehaviour):
-
-
-	def press_immediate(self, component, mode):
-		pass
-	
-
-	def press_delayed(self, component, mode):
-		component.push_mode(mode)
-	
-
-
-class CancellableBehaviourWithRelease(CancellableBehaviour):
-
-
-	def release_delayed(self, component, mode):
-		component.pop_mode(mode)
-	
-
-
-class ShiftedBehaviour(ModeButtonBehaviour):
-
-
-	def __init__(self, color = 1, *a, **k):
-		super(ShiftedBehaviour, self).__init__(*a, **k)
-		self._color = color
-		self._chosen_mode = None
-	
-
-	def press_immediate(self, component, mode):
-		debug('selected_mode:', component.selected_mode, 'mode:', mode, 'chosen_mode:', self._chosen_mode,)
-		if mode is component.selected_mode and not component.get_mode(mode+'_shifted') is None:
-			self._chosen_mode = mode+'_shifted'
-		else:
-			self._chosen_mode = mode
-		component.push_mode(self._chosen_mode)
-	
-
-	def release_immediate(self, component, mode):
-		debug('chosen mode is:', self._chosen_mode)
-		if component.selected_mode.endswith('_shifted'):
-			component.pop_groups(['shifted'])
-		elif len(component.active_modes) > 1:
-			component.pop_unselected_modes()
-	
-
-	def release_delayed(self, component, mode):
-		debug('chosen mode is:', self._chosen_mode)
-		component.pop_mode(self._chosen_mode)
-	
-
-	def update_button(self, component, mode, selected_mode):
-		button = component.get_mode_button(mode)
-		groups = component.get_mode_groups(mode)
-		selected_groups = component.get_mode_groups(selected_mode)
-		#debug('--------mode:', mode, 'selected:', selected_mode, 'chosen:', self._chosen_mode)
-		if mode == selected_mode:
-			button.send_value(self._color, True)
-		elif mode+'_shifted' == selected_mode:
-			button.send_value(self._color + 7, True)
-		else:
-			button.send_value(0, True)
-	
-
-
-class LatchingShiftedBehaviour(ShiftedBehaviour):
-
-
-	def press_immediate(self, component, mode):
-		#debug('mode button for ->', mode, 'currently selected_mode:', component.selected_mode, 'last chosen mode:', self._chosen_mode)
-		if mode is component.selected_mode and component.get_mode(mode+'_shifted'):
-			self._chosen_mode = mode+'_shifted'
-		#elif (component.selected_mode != mode + '_shifted') and (self._chosen_mode != mode + '_shifted'):
-		#	component.pop_groups(['shifted'])
-		#	self._chosen_mode = mode
-		else:
-			self._chosen_mode = mode
-		component.push_mode(self._chosen_mode)
-		debug('new chosen_mode:', self._chosen_mode,)
-	
-
-	def release_immediate(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_unselected_modes()
-		#debug('selected mode:', component.selected_mode)
-	
-
-	def release_delayed(self, component, mode):
-		if not mode is self._chosen_mode is mode + '_shifted':
-			if len(component.active_modes) > 1:
-				component.pop_mode(component.selected_mode)
-		#debug('selected mode:', component.selected_mode)
-	
-
-
-class FlashingBehaviour(CancellableBehaviourWithRelease):
-
-
-	def __init__(self, color = 1, *a, **k):
-		super(FlashingBehaviour, self).__init__(*a, **k)
-		self._color = color
-	
-
-	def update_button(self, component, mode, selected_mode):
-		button = component.get_mode_button(mode)
-		groups = component.get_mode_groups(mode)
-		selected_groups = component.get_mode_groups(selected_mode)
-		if mode == selected_mode or bool(groups & selected_groups):
-			button.send_value(self._color + 7, True)
-		else:
-			button.send_value(self._color, True)
-	
-
-
 class BaseSessionRecordingComponent(FixedLengthSessionRecordingComponent):
 
 
@@ -499,133 +344,6 @@ class BlockingMonoButtonElement(MonoButtonElement):
 		self.display_press = False
 		self._last_flash = 0
 		self.scale_color = 0
-	
-
-
-class BaseMixerComponent(MixerComponent):
-
-
-	def __init__(self, script, *a, **k):
-		super(BaseMixerComponent,self).__init__( *a, **k)
-		self._script = script
-	
-
-	def _create_strip(self):
-		return BaseChannelStripComponent()
-	
-
-	def set_next_track_button(self, next_button):
-		if next_button is not self._next_track_button:
-			self._next_track_button = next_button
-			self._next_track_button_slot.subject = next_button
-			self.on_selected_track_changed()
-	
-
-	def set_previous_track_button(self, prev_button):
-		if prev_button is not self._prev_track_button:
-			self._prev_track_button = prev_button
-			self._prev_track_button_slot.subject = prev_button
-			self.on_selected_track_changed()
-	
-
-	def set_return_controls(self, controls):
-		for strip, control in map(None, self._return_strips, controls or []):
-			debug('strip and control:', strip, control)
-			strip.set_volume_control(control)
-	
-
-	def set_stop_clip_buttons(self, buttons):
-		for strip, button in map(None, self._channel_strips, buttons or []):
-			strip.set_stop_button(button)
-			debug('set stop button:', button)
-	
-
-	def tracks_to_use(self):
-		return tuple(self.song().visible_tracks) + tuple(self.song().return_tracks)
-	
-
-
-class BaseChannelStripComponent(ChannelStripComponent):
-
-
-	def __init__(self, *a, **k):
-		super(BaseChannelStripComponent, self).__init__(*a, **k)
-		self._record_button_value = 0
-	
-
-	def _connect_parameters(self):
-		if self._pan_control != None:
-			self._pan_control.connect_to(self._track.mixer_device.panning)
-		if self._volume_control != None:
-			self._volume_control.connect_to(self._track.mixer_device.volume)
-		if self._send_controls != None:
-			index = 0
-			for send_control in self._send_controls:
-				if send_control != None:
-					if index < len(self._track.mixer_device.sends):
-						send_control.connect_to(self._track.mixer_device.sends[index])
-					else:
-						send_control.release_parameter()
-						send_control.send_value(0, True)
-						self._empty_control_slots.register_slot(send_control, nop, 'value')
-				index += 1
-	
-
-	def _disconnect_parameters(self):
-		for control in self._all_controls():
-			control and control.send_value(0, True)
-		super(BaseChannelStripComponent, self)._disconnect_parameters()
-	
-
-	def set_stop_button(self, button):
-		debug('setting stop button:', button)
-		self._on_stop_value.subject = button
-		button and button.set_light('Mixer.StopClip')
-	
-
-	@subject_slot('value')
-	def _on_stop_value(self, value):
-		if self._track:
-			self._track.stop_all_clips()
-	
-
-	def set_invert_mute_feedback(self, invert_feedback):
-		assert(isinstance(invert_feedback, type(False)))
-		self._invert_mute_feedback = invert_feedback
-		self.update()
-	
-
-	def _on_mute_changed(self):
-		if self.is_enabled() and self._mute_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.mute != self._invert_mute_feedback:
-					self._mute_button.set_light('Mixer.MuteOn')
-				else:
-					self._mute_button.set_light('Mixer.MuteOff')
-			else:
-				self._mute_button.set_light(self.empty_color)
-	
-
-	def _on_solo_changed(self):
-		if self.is_enabled() and self._solo_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.solo:
-					self._solo_button.set_light('Mixer.SoloOn')
-				else:
-					self._solo_button.set_light('Mixer.SoloOff')
-			else:
-				self._solo_button.set_light(self.empty_color)
-	
-
-	def _on_arm_changed(self):
-		if self.is_enabled() and self._arm_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in self.song().tracks and self._track.can_be_armed and self._track.arm:
-					self._arm_button.set_light('Mixer.ArmSelected')
-				else:
-					self._arm_button.set_light('Mixer.ArmOff')
-			else:
-				self._arm_button.set_light(self.empty_color)
 	
 
 
@@ -943,58 +661,6 @@ class BaseMonoInstrumentComponent(MonoInstrumentComponent):
 	
 
 
-class BaseM4LInterfaceComponent(ControlSurfaceComponent, ControlElementClient):
-	"""
-	Simplified API for interaction from M4L as a high priority layer
-	superposed on top of any functionality.
-	"""
-
-
-	def __init__(self, controls = None, component_guard = None, priority = 1, *a, **k):
-		super(BaseM4LInterfaceComponent, self).__init__(self, *a, **k)
-		self._priority = priority
-		self._controls = dict(map(lambda x: (x.name, x), controls))
-		self._grabbed_controls = []
-		self._component_guard = component_guard
-	
-
-	def disconnect(self):
-		for control in self._grabbed_controls[:]:
-			self.release_control(control)
-		super(BaseM4LInterfaceComponent, self).disconnect()
-	
-
-	def set_control_element(self, control, grabbed):
-		if hasattr(control, 'release_parameter'):
-			control.release_parameter()
-		control.reset()
-	
-
-	def get_control_names(self):
-		return self._controls.keys()
-	
-
-	def get_control(self, control_name):
-		return self._controls[control_name] if control_name in self._controls else None
-	
-
-	def grab_control(self, control):
-		assert(control in self._controls.values())
-		with self._component_guard():
-			if control not in self._grabbed_controls:
-				control.resource.grab(self, priority=self._priority)
-				self._grabbed_controls.append(control)
-	
-
-	def release_control(self, control):
-		assert(control in self._controls.values())
-		with self._component_guard():
-			if control in self._grabbed_controls:
-				self._grabbed_controls.remove(control)
-				control.resource.release(self)
-	
-
-
 class Base(ControlSurface):
 	__module__ = __name__
 	__doc__ = " Base controller script "
@@ -1145,7 +811,7 @@ class Base(ControlSurface):
 	def _setup_mixer_control(self):
 		is_momentary = True
 		self._num_tracks = (8)
-		self._mixer = BaseMixerComponent(script = self, num_tracks = 8, num_returns = 4, invert_mute_feedback = True, autoname = True)
+		self._mixer = MixerComponent(num_tracks = 8, num_returns = 4, invert_mute_feedback = True, autoname = True)
 		self._mixer.name = 'Mixer'
 		self._mixer.set_track_offset(0)
 		self._mixer.master_strip().set_volume_control(self._fader[8])
@@ -1215,7 +881,7 @@ class Base(ControlSurface):
 	
 
 	def _setup_m4l_interface(self):
-		self._m4l_interface = BaseM4LInterfaceComponent(controls=self.controls, component_guard=self.component_guard, priority = 10)
+		self._m4l_interface = MonoM4LInterfaceComponent(controls=self.controls, component_guard=self.component_guard, priority = 10)
 		self._m4l_interface.name = "M4LInterface"
 		self.get_control_names = self._m4l_interface.get_control_names
 		self.get_control = self._m4l_interface.get_control
@@ -1356,7 +1022,7 @@ class Base(ControlSurface):
 		self._main_modes.add_mode('Sends', [self._set_clip_creator_colors, self.sends_layer_sysex, self._instrument, self._mixer.select_layer, self._mixer.selected_sends_layer, self._mixer.returns_layer,  self._transport.overdub_layer, self._recorder.main_layer,], behaviour = self._shift_latching(color = 4), display_string = MODE_DATA['Sends'])
 		self._main_modes.add_mode('Device_shifted', [self._set_device_shift_nav_colors, self.device_layer_sysex, self._modswitcher, tuple([self._send_instrument_shifted, self._send_instrument_unshifted]), self._device, self._device.parameters_layer, self._device_navigator.alt_layer,  ], groups = ['shifted'], behaviour = self._shift_latching(color = 10), display_string = MODE_DATA['Device_shifted'])
 		self._main_modes.add_mode('Device', [self._set_device_nav_colors, self.device_layer_sysex, self._modswitcher, self._mixer.select_layer, self._mixer.select_layer, self._device, self._device.parameters_layer, self._device.nav_layer, self._device_navigator.main_layer,], behaviour = self._shift_latching(color = 3), display_string = MODE_DATA['Device'])
-		#self._main_modes.add_mode('User_shifted', [self._set_user_page_colors, self._translations, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
+		self._main_modes.add_mode('User_shifted', [self._set_user_page_colors, self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex ], groups = ['shifted'], behaviour = self._shift_latching(color = 12), display_string = MODE_DATA['User_shifted'])
 		self._main_modes.add_mode('User', [self._set_user_page_colors, self._translations, self._mixer.select_layer, self.user_layer_sysex, self.user_mode_sysex], behaviour = self._shift_latching(color = 5), display_string = MODE_DATA['User'])
 		self._main_modes.add_mode('Select', [self.modhandler._device_selector._selection_layer, self._mixer.select_layer, self._mixer.volume_layer, self._mixer.selected_channel_controls_layer, self._session.overlay_cliplaunch_layer, self.clips_layer_sysex], behaviour = DelayedExcludingMomentaryBehaviour(excluded_groups = ['shifted']), display_string = MODE_DATA['Select'])
 		self._main_modes.layer = Layer(priority = 4, Clips_button=self._button[0], Sends_button=self._button[1], Device_button=self._button[2], User_button=self._button[3], Select_button=self._touchpad_multi, display = self._display)
@@ -1418,7 +1084,6 @@ class Base(ControlSurface):
 		for button in self._button[4:8]:
 			button.set_on_off_values('DefaultButton.On', 'DefaultButton.Off')
 	
-
 
 	def _notify_descriptors(self):
 		if OSC_TRANSMIT:

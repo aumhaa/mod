@@ -258,6 +258,8 @@ class BaseColors:
 		ArmUnselected = LividRGB.RED
 		ArmOff = LividRGB.OFF
 		StopClip = LividRGB.BLUE
+		SelectedOn = LividRGB.BLUE
+		SelectedOff = LividRGB.OFF
 	
 
 	class Recording:

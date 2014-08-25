@@ -1416,7 +1416,9 @@ class MonoDrumpadComponent(CompoundComponent):
 			cur_chan = self._channel
 			note = (DRUMNOTES[x + (y*8)] + (offset*4))%127
 			self._step_sequencer._note_editor._set_editing_note(note)
-			self.set_drumpad_matrix(matrix)
+			if self._step_sequencer._drum_group._drum_group_device:
+				self._step_sequencer._drum_group._drum_group_device.view.selected_drum_pad = self._step_sequencer._drum_group._drum_group_device.drum_pads[note]
+			#self.set_drumpad_matrix(matrix)
 	
 
 	@subject_slot('value')

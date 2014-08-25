@@ -10,7 +10,7 @@ import sys
 from _Framework.Dependency import inject
 from _Framework.ButtonElement import ButtonElement
 from _Framework.ButtonMatrixElement import ButtonMatrixElement
-from _Framework.ChannelStripComponent import ChannelStripComponent
+#from _Framework.ChannelStripComponent import ChannelStripComponent
 from _Framework.ClipSlotComponent import ClipSlotComponent
 from _Framework.CompoundComponent import CompoundComponent
 from _Framework.ControlElement import ControlElement, ControlElementClient
@@ -19,7 +19,7 @@ from _Framework.ControlSurfaceComponent import ControlSurfaceComponent
 from _Framework.DeviceComponent import DeviceComponent
 from _Framework.EncoderElement import EncoderElement
 from _Framework.InputControlElement import *
-from _Framework.MixerComponent import MixerComponent
+#from _Framework.MixerComponent import MixerComponent
 from _Framework.ModeSelectorComponent import ModeSelectorComponent
 from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.SceneComponent import SceneComponent
@@ -46,6 +46,9 @@ from _Mono_Framework.DetailViewControllerComponent import DetailViewControllerCo
 from _Mono_Framework.DeviceSelectorComponent import NewDeviceSelectorComponent as DeviceSelectorComponent
 from _Mono_Framework.MonoDeviceComponent import MonoDeviceComponent
 from _Mono_Framework.DeviceNavigator import DeviceNavigator
+from _Mono_Framework.MonoM4LInterfaceComponent import MonoM4LInterfaceComponent
+from _Mono_Framework.MonoMixerComponent import MixerComponent
+from _Mono_Framework.MonoModes import SendSysexMode, CancellableBehaviourWithRelease, ColoredCancellableBehaviourWithRelease, MomentaryBehaviour, BicoloredMomentaryBehaviour, DefaultedBehaviour
 from _Mono_Framework.LiveUtils import *
 from _Mono_Framework.Debug import *
 from _Mono_Framework.Mod import *
@@ -75,119 +78,12 @@ from Push.LoopSelectorComponent import LoopSelectorComponent
 from Push.Actions import CreateInstrumentTrackComponent, CreateDefaultTrackComponent, CaptureAndInsertSceneComponent, DuplicateDetailClipComponent, DuplicateLoopComponent, SelectComponent, DeleteComponent, DeleteSelectedClipComponent, DeleteSelectedSceneComponent, CreateDeviceComponent
 from Push.SelectPlayingClipComponent import SelectPlayingClipComponent
 
-EQ_DEVICES = {'Eq8': {'Gains': [ '%i Gain A' % (index + 1) for index in range(8) ]},
- 'FilterEQ3': {'Gains': ['GainHi', 'GainMid', 'GainLo'],
-			   'Cuts': ['LowOn', 'MidOn', 'HighOn']}}
-
 
 check_model = (240, 126, 127, 6, 1, 247)
 factoryreset = (240,0,1,97,8,6,247)
 SLOWENCODER = (240, 0, 1, 97, 8, 30, 69, 00, 247)
 NORMALENCODER = (240, 0, 1, 97, 8, 30, 00, 00, 247)
 FASTENCODER = (240, 0, 1, 97, 8, 30, 04, 00, 247)
-
-def release_control(control):
-	if control != None:
-		control.release_parameter()
-
-
-
-class CancellableBehaviourWithRelease(CancellableBehaviour):
-
-
-	def release_delayed(self, component, mode):
-		component.pop_mode(mode)
-	
-
-	def update_button(self, component, mode, selected_mode):
-		button = component.get_mode_button(mode)
-		groups = component.get_mode_groups(mode)
-		selected_groups = component.get_mode_groups(selected_mode)
-		value = (mode == selected_mode or bool(groups & selected_groups))*32 or 1
-		button.send_value(value, True)
-	
-
-
-class ColoredCancellableBehaviourWithRelease(CancellableBehaviourWithRelease):
-
-
-	def __init__(self, color = 'ButtonDefault.On', off_color = 'ButtonDefault.Off', *a, **k):
-		super(ColoredCancellableBehaviourWithRelease, self).__init__(*a, **k)
-		self._color = color
-		self._off_color = off_color
-	
-
-	def update_button(self, component, mode, selected_mode):
-		button = component.get_mode_button(mode)
-		groups = component.get_mode_groups(mode)
-		selected_groups = component.get_mode_groups(selected_mode)
-		if mode == selected_mode:
-			button.set_light(self._color)
-		else:
-			button.set_light(self._off_color)
-	
-
-
-class MomentaryBehaviour(ModeButtonBehaviour):
-
-
-	def press_immediate(self, component, mode):
-		component.push_mode(mode)
-	
-
-	def release_immediate(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_mode(mode)
-	
-
-	def release_delayed(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_mode(mode)
-	
-
-
-class BicoloredMomentaryBehaviour(MomentaryBehaviour):
-
-
-	def __init__(self, color = 'DefaultButton.On', off_color = 'DefaultButton.Off', *a, **k):
-		super(BicoloredMomentaryBehaviour, self).__init__(*a, **k)
-		self._color = color
-		self._off_color = off_color
-	
-
-	def update_button(self, component, mode, selected_mode):
-		button = component.get_mode_button(mode)
-		groups = component.get_mode_groups(mode)
-		selected_groups = component.get_mode_groups(selected_mode)
-		if mode == selected_mode:
-			button.set_light(self._color)
-		else:
-			button.set_light(self._off_color)
-	
-
-
-class DefaultedBehaviour(ColoredCancellableBehaviourWithRelease):
-
-
-	def __init__(self, default_mode = 'disabled', *a, **k):
-		super(DefaultedBehaviour, self).__init__(*a, **k)
-		self._default_mode = default_mode
-	
-
-	def press_immediate(self, component, mode):
-		if mode is component.selected_mode:
-			mode = self._default_mode
-		component.push_mode(mode)
-	
-
-	def release_immediate(self, component, mode):
-		if len(component.active_modes) > 1:
-			component.pop_unselected_modes()
-	
-
-	def release_delayed(self, component, mode):
-		component.pop_mode(mode)
-	
 
 
 class CntrlrSessionRecordingComponent(SessionRecordingComponent):
@@ -289,206 +185,6 @@ class CntrlrTransportComponent(TransportComponent):
 	
 
 
-class CntrlrMixerComponent(MixerComponent):
-
-
-	def _create_strip(self):
-		return CntrlrChannelStripComponent()
-	
-
-	def set_next_track_button(self, next_button):
-		if next_button is not self._next_track_button:
-			self._next_track_button = next_button
-			self._next_track_button_slot.subject = next_button
-			self.on_selected_track_changed()
-	
-
-	def set_previous_track_button(self, prev_button):
-		if prev_button is not self._prev_track_button:
-			self._prev_track_button = prev_button
-			self._prev_track_button_slot.subject = prev_button
-			self.on_selected_track_changed()
-	
-
-	def set_send_controls(self, controls):
-		self._send_controls = controls
-		for index, channel_strip in enumerate(self._channel_strips):
-			if self.send_index is None:
-				channel_strip.set_send_controls([None])
-			else:
-				send_controls = [ controls.get_button(index, i) for i in xrange(2) ] if controls else [None]
-				skipped_sends = [ None for _ in xrange(self.send_index) ]
-				channel_strip.set_send_controls(skipped_sends + send_controls)
-	
-
-	def set_send_controls(self, controls):
-		self._send_controls = controls
-		if controls:
-			for index in range(len(self._channel_strips)):
-				send_controls = [controls.get_button(index, row) for row in range(controls.height())]
-				if self.send_index > controls.height:
-					send_controls = send_controls + [None for _ in range(self.send_index - controls.height)]
-				self._channel_strips[index].set_send_controls(send_controls)
-		else:
-			for strip in self._channel_strips:
-				strip.set_send_controls([None for _ in range(self.send_index)])
-	
-
-	def set_return_controls(self, controls):
-		for strip, control in map(None, self._return_strips, controls or []):
-			strip.set_volume_control(control)
-	
-
-	def set_stop_clip_buttons(self, buttons):
-		for strip, button in map(None, self._channel_strips, buttons or []):
-			strip.set_stop_button(button)
-			#debug('set stop button:', button)
-	
-
-	def set_eq_gain_controls(self, controls):
-		self._eq_controls = controls
-		if controls:
-			for index in range(len(self._channel_strips)):
-				eq_controls = [controls.get_button(index, row) for row in range(controls.height())]
-				self._channel_strips[index].set_eq_gain_controls(eq_controls)
-		else:
-			for strip in self._channel_strips:
-				strip.set_eq_gain_controls(None)
-	
-
-	def tracks_to_use(self):
-		return tuple(self.song().visible_tracks)
-	
-
-
-class CntrlrChannelStripComponent(ChannelStripComponent):
-
-
-	def __init__(self, *a, **k):
-		super(CntrlrChannelStripComponent, self).__init__(*a, **k)
-		self._eq_gain_controls = None
-		self._eq_device = None
-	
-
-	@subject_slot('devices')
-	def _on_devices_changed(self):
-		debug(self.name, 'on devices changed')
-		self._detect_eq(self._track)
-		self.update()
-	
-
-	def _detect_eq(self, track = None):
-		self._eq_device = None
-		if not track is None:
-			for index in range(len(track.devices)):
-				device = track.devices[-1 * (index + 1)]
-				if device.class_name in EQ_DEVICES.keys():
-					self._eq_device = device
-					break
-	
-
-	def set_track(self, track):
-		assert(isinstance(track, (type(None), Live.Track.Track)))
-		self._on_devices_changed.subject = track
-		self._detect_eq(track)
-		super(CntrlrChannelStripComponent,self).set_track(track)
-	
-
-	def set_invert_mute_feedback(self, invert_feedback):
-		assert(isinstance(invert_feedback, type(False)))
-		self._invert_mute_feedback = invert_feedback
-		self.update()
-	
-
-	def _on_mute_changed(self):
-		if self.is_enabled() and self._mute_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.mute != self._invert_mute_feedback:
-					self._mute_button.set_light('Mixer.MuteOn')
-				else:
-					self._mute_button.set_light('Mixer.MuteOff')
-			else:
-				self._mute_button.set_light(self.empty_color)
-	
-
-	def _on_solo_changed(self):
-		if self.is_enabled() and self._solo_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in chain(self.song().tracks, self.song().return_tracks) and self._track.solo:
-					self._solo_button.set_light('Mixer.SoloOn')
-				else:
-					self._solo_button.set_light('Mixer.SoloOff')
-			else:
-				self._solo_button.set_light(self.empty_color)
-	
-
-	def _on_arm_changed(self):
-		if self.is_enabled() and self._arm_button != None:
-			if self._track != None or self.empty_color == None:
-				if self._track in self.song().tracks and self._track.can_be_armed and self._track.arm:
-					self._arm_button.set_light('Mixer.ArmSelected')
-				else:
-					self._arm_button.set_light('Mixer.ArmOff')
-			else:
-				self._arm_button.set_light(self.empty_color)
-	
-
-	def set_stop_button(self, button):
-		self._on_stop_value.subject = button
-		button and button.set_light('Mixer.StopClip')
-	
-
-	def on_selected_track_changed(self):
-		if self.is_enabled() and self._select_button != None:
-			if self._track != None or self.empty_color == None:
-				if self.song().view.selected_track == self._track:
-					self._select_button.set_light('Mixer.SelectedOn')
-				else:
-					self._select_button.set_light('Mixer.SelectedOff')
-			else:
-				self._select_button.set_light(self.empty_color)
-	
-
-	@subject_slot('value')
-	def _on_stop_value(self, value):
-		if self._track:
-			self._track.stop_all_clips()
-	
-
-	def set_eq_gain_controls(self, controls):
-		for control in list(self._eq_gain_controls or []):
-			release_control(control)
-		self._eq_gain_controls = controls
-		self.update()
-	
-
-	def _all_controls(self):
-		return [self._pan_control, self._volume_control] + list(self._send_controls or []) + list(self._eq_gain_controls or [])
-	
-
-	def _connect_parameters(self):
-		super(CntrlrChannelStripComponent, self)._connect_parameters()
-		if not self._eq_device is None:
-			device_dict = EQ_DEVICES[self._eq_device.class_name]
-			if self._eq_gain_controls != None:
-				gain_names = device_dict['Gains']
-				index = 0
-				for eq_gain_control in self._eq_gain_controls:
-					if eq_gain_control != None:
-						if len(gain_names) > index:
-							parameter = get_parameter_by_name(self._eq_device, gain_names[index])
-							if parameter != None:
-								eq_gain_control.connect_to(parameter)
-							else:
-								eq_gain_control.release_parameter()
-								self._empty_control_slots.register_slot(eq_gain_control, nop, 'value')
-						else:
-							eq_gain_control.release_parameter()
-							self._empty_control_slots.register_slot(eq_gain_control, nop, 'value')
-					index += 1
-	
-
-
 class CntrlrSessionComponent(SessionComponent):
 
 
@@ -504,7 +200,51 @@ class CntrlrSessionComponent(SessionComponent):
 		self._horizontal_banking.scroll_down_button.disabled_color = 'Session.NavigationButtonOff'
 	
 
+	def set_track_select_dial(self, dial):
+		self._on_track_select_dial_value.subject = dial
 	
+
+	@subject_slot('value')
+	def _on_track_select_dial_value(self, value):
+		debug('_on_track_select_dial_value', value)
+		if value > 64:
+			self._bank_left()
+		else:
+			self._bank_right()
+	
+
+	def set_scene_select_dial(self, dial):
+		self._on_scene_select_dial_value.subject = dial
+	
+
+	@subject_slot('value')
+	def _on_scene_select_dial_value(self, value):
+		#debug('_on_scene_select_dial_value', value)
+		if value > 64:
+			self.select_prev_scene()
+		else:
+			self.select_next_scene()
+	
+
+	def select_next_scene(self):
+		if self.is_enabled():
+			selected_scene = self.song().view.selected_scene
+			all_scenes = self.song().scenes
+			if selected_scene != all_scenes[-1]:
+				index = list(all_scenes).index(selected_scene)
+				self.song().view.selected_scene = all_scenes[index + 1]
+	
+
+	def select_prev_scene(self):
+		if self.is_enabled():
+			selected_scene = self.song().view.selected_scene
+			all_scenes = self.song().scenes
+			if selected_scene != all_scenes[0]:
+				index = list(all_scenes).index(selected_scene)
+				self.song().view.selected_scene = all_scenes[index - 1]
+	
+
+
 class CntrlrM4LInterfaceComponent(ControlSurfaceComponent, ControlElementClient):
 	"""
 	Simplified API for interaction from M4L as a high priority layer
@@ -588,6 +328,7 @@ class Cntrlr(ControlSurface):
 		with self.component_guard():
 			self._setup_monobridge()
 			self._setup_controls()
+			self._define_sysex()
 			self._setup_transport_control()
 			self._setup_autoarm()
 			self._setup_session_recording_component()
@@ -625,9 +366,9 @@ class Cntrlr(ControlSurface):
 		self._dial_left = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, CNTRLR_KNOBS_LEFT[index], Live.MidiMap.MapMode.absolute, 'Dial_Left_' + str(index), CNTRLR_KNOBS_LEFT[index], self) for index in range(12)]
 		self._dial_right = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, CNTRLR_KNOBS_RIGHT[index], Live.MidiMap.MapMode.absolute, 'Dial_Right_' + str(index), CNTRLR_KNOBS_RIGHT[index], self) for index in range(12)]
 		self._encoder = [CodecEncoderElement(MIDI_CC_TYPE, CHANNEL, CNTRLR_DIALS[index], Live.MidiMap.MapMode.absolute, 'Encoder_' + str(index), CNTRLR_DIALS[index], self) for index in range(12)]	
-		self._encoder_button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_DIAL_BUTTONS[index], 'Encoder_Button_' + str(index), self, skin = self._skin) for index in range(12)]	
-		self._grid = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_GRID[index], 'Grid' + str(index), self, skin = self._skin) for index in range(16)]
-		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_BUTTONS[index], 'Button_' + str(index), self, skin = self._skin) for index in range(32)]
+		self._encoder_button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_DIAL_BUTTONS[index], name = 'Encoder_Button_' + str(index), script = self, skin = self._skin) for index in range(12)]	
+		self._grid = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_GRID[index], name = 'Grid_' + str(index), script = self, skin = self._skin) for index in range(16)]
+		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, CNTRLR_BUTTONS[index], name = 'Button_' + str(index), script = self, skin = self._skin) for index in range(32)]
 		self._knobs = self._dial_left + self._dial_right
 
 		self._fader_matrix = ButtonMatrixElement(name = 'Fader_Matrix', rows = [self._fader])
@@ -638,7 +379,12 @@ class Cntrlr(ControlSurface):
 		self._dial_button_matrix = ButtonMatrixElement(name = 'Dial_Button_Matrix', rows = [self._encoder_button[index*4:(index*4)+4] for index in range(1,3)])
 		self._key_matrix = ButtonMatrixElement(name = 'Key_Matrix', rows = [self._button[0:16], self._button[16:32]])
 		
-		self._translated_controls = self._fader + self._knobs + self._encoder[4:] + self._encoder_button[4:] + self._grid + self._button
+		self._translated_controls = self._fader + self._knobs + self._encoder[4:] + self._grid + self._button
+	
+
+	def _define_sysex(self):
+		self.encoder_navigation_on = SendSysexMode(script = self, sysex = (240, 0, 1, 97, 8, 17, 15, 0, 0, 0, 0, 0, 0, 0, 247))
+		self.encoder_navigation_off = SendSysexMode(script = self, sysex = (240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247))
 	
 
 	def _setup_transport_control(self):
@@ -666,7 +412,7 @@ class Cntrlr(ControlSurface):
 	def _setup_mixer_control(self):
 		is_momentary = True
 		self._num_tracks = (4)
-		self._mixer = CntrlrMixerComponent(4, num_returns = 2, name = 'Mixer', auto_name = True, invert_mute_feedback = True)
+		self._mixer = MixerComponent(num_tracks = 4, num_returns = 2, name = 'Mixer', auto_name = True, invert_mute_feedback = True)
 		self._mixer.set_track_offset(0)
 		if self._mixer.channel_strip(0)._track:
 			self.song().view.selected_track = self._mixer.channel_strip(0)._track
@@ -690,6 +436,8 @@ class Cntrlr(ControlSurface):
 		self._mixer.instrument_buttons_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											mute_buttons = self._key_matrix.submatrix[:4, 1:],
 											track_select_buttons = self._key_matrix.submatrix[4:8, 1:],))
+		self._mixer.dial_nav_layer = AddLayerMode(self._mixer, Layer(priority = 4,
+									track_select_dial = self._encoder[3]))
 	
 
 	def _setup_send_resets(self):
@@ -708,6 +456,8 @@ class Cntrlr(ControlSurface):
 									scene_bank_up_button = self._button[15],
 									track_bank_left_button = self._button[12],
 									track_bank_right_button = self._button[13]))
+		self._session.dial_nav_layer = AddLayerMode(self._session, Layer(priority = 4,
+									scene_select_dial = self._encoder[2]))
 
 		self._session_zoom = SessionZoomingComponent(session = self._session, name = 'Session_Overview', enable_skinning = True)  # is_enabled = False)  #
 		self._session_zoom.buttons_layer = AddLayerMode(self._session_zoom, Layer(priority = 4, button_matrix = self._matrix))
@@ -738,16 +488,15 @@ class Cntrlr(ControlSurface):
 	def _setup_device_selector(self):
 		self._device_selector = DeviceSelectorComponent(self)  # is_enabled = False)
 		self._device_selector.name = 'Device_Selector'
-		self._device_selector.layer = Layer(matrix = self._matrix)
+		self._device_selector.layer = Layer(matrix = self._matrix.submatrix[:, :2])
 		self._device_selector.set_enabled(False)
 	
 
 	def _setup_translations(self):
-		self._translations = TranslationComponent(self._translated_controls, 4)  # is_enabled = False)
+		self._translations = TranslationComponent(self._translated_controls, user_channel_offset = 4, channel = 4)  # is_enabled = False)
 		self._translations.name = 'TranslationComponent'
-		self._translations._channel = 4
 		self._translations.layer = Layer(priority = 10,)
-		self._translations.selector_layer = AddLayerMode(self._translations, Layer(channel_selector_control = self._encoder[3]))
+		self._translations.selector_layer = AddLayerMode(self._translations, Layer(priority = 10, channel_selector_buttons = self._dial_button_matrix))
 		self._translations.set_enabled(False)
 
 		self._optional_translations = CompoundMode(TranslationComponent(controls = self._fader, user_channel_offset = 4, channel = 4, name = 'FaderTranslation', is_enabled = False, layer = Layer(priority = 10)) if FADER_BANKING else None, 
@@ -827,7 +576,7 @@ class Cntrlr(ControlSurface):
 		bottom_buttons=CompoundMode(self._mixer.instrument_buttons_layer, self._recorder, self._view_control)
 
 		self._instrument._main_modes = ModesComponent(name = 'InstrumentModes')
-		self._instrument._main_modes.add_mode('disabled', [main_buttons_instrument, main_faders, self._mixer.main_knobs_layer, self._device, self._session, self._recorder, self._view_control, self._send_reset, self._session.nav_layer])
+		self._instrument._main_modes.add_mode('disabled', [main_buttons_instrument, main_faders, self._mixer.main_knobs_layer, self._device, self._session, self._recorder, self._view_control, self._send_reset, self._session.nav_layer,])
 		self._instrument._main_modes.add_mode('drumpad', [self._instrument._drumpad.main_layer, main_buttons_instrument, self._send_reset, self._session.nav_layer])
 		self._instrument._main_modes.add_mode('drumpad_split', [self._instrument._drumpad.split_layer, self._send_reset, self._session.nav_layer])
 		self._instrument._main_modes.add_mode('drumpad_sequencer', [self._instrument._drumpad.sequencer_layer, bottom_buttons])
@@ -851,7 +600,7 @@ class Cntrlr(ControlSurface):
 		self._session_modes.selected_mode = 'Session'
 
 		self._main_modes = ModesComponent(name = 'MainModes')
-		self._main_modes.add_mode('MixMode', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session_modes, self._session.nav_layer])
+		self._main_modes.add_mode('MixMode', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session_modes, self._session.nav_layer, self._session.dial_nav_layer, self._mixer.dial_nav_layer, self.encoder_navigation_on])
 		self._main_modes.add_mode('ModSwitcher', [main_faders, self._mixer.main_knobs_layer, self._modswitcher], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
 		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
@@ -859,7 +608,7 @@ class Cntrlr(ControlSurface):
 	
 
 	def _setup_m4l_interface(self):
-		self._m4l_interface = CntrlrM4LInterfaceComponent(controls=self.controls, component_guard=self.component_guard, priority = 10)
+		self._m4l_interface = MonoM4LInterfaceComponent(controls=self.controls, component_guard=self.component_guard, priority = 10)
 		self._m4l_interface.name = "M4LInterface"
 		self.get_control_names = self._m4l_interface.get_control_names
 		self.get_control = self._m4l_interface.get_control
@@ -1061,7 +810,7 @@ class CntrlrModHandler(ModHandler):
 	def _receive_cntrlr_encoder_grid_relative(self, value, *a):
 		#self.log_message('_receive_cntrlr_encoder_grid_relative: %(v)s' % {'v':value})
 		if self.is_enabled() and self._active_mod:
-			value and self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 127, 127, 127, 127, 127, 127, 127, 127, 247])) or self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247]))
+			value and self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 127, 127, 127, 127, 247])) or self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 247]))
 	
 
 	def _receive_cntrlr_encoder_grid_local(self, value, *a):
@@ -1163,7 +912,7 @@ class CntrlrModHandler(ModHandler):
 			mod.restore()
 		else:
 			#debug('disabling modhandler')
-			self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247]))
+			#self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 0, 0, 0, 0, 247]))
 			self._script._send_midi(tuple([240, 0, 1, 97, 8, 8, 72, 247]))
 			if not self._cntrlr_grid_value.subject is None:
 				self._cntrlr_grid_value.subject.reset()
