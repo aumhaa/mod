@@ -5,6 +5,7 @@ import Live
 from _Framework.SubjectSlot import subject_slot, subject_slot_group
 from _Framework.MixerComponent import MixerComponent as MixerComponentBase
 from _Framework.ChannelStripComponent import ChannelStripComponent as ChannelStripComponentBase
+from _Generic.Devices import *
 
 from Debug import *
 

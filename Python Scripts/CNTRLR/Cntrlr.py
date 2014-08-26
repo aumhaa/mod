@@ -608,7 +608,7 @@ class Cntrlr(ControlSurface):
 		self._session_modes.selected_mode = 'Session'
 
 		self._main_modes = ModesComponent(name = 'MainModes')
-		self._main_modes.add_mode('MixMode', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session_modes, self._session.nav_layer, self._session.dial_nav_layer, self._mixer.dial_nav_layer, self.encoder_navigation_on])
+		self._main_modes.add_mode('MixMode', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session_modes, self._session.nav_layer,])  # self._session.dial_nav_layer, self._mixer.dial_nav_layer, self.encoder_navigation_on])
 		self._main_modes.add_mode('ModSwitcher', [main_faders, self._mixer.main_knobs_layer, self._modswitcher], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
 		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator, self._view_control.selector_layer], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
