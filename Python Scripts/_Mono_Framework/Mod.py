@@ -1041,7 +1041,7 @@ class NavigationBox(ControlSurfaceComponent):
 			self._scroll_up_ticks_delay = INITIAL_SCROLLING_DELAY
 			if (not self._is_scrolling()):
 				self.set_offset(self.x_offset, self.y_offset - 1)
-				self.update()
+				#self.update()
 		else:
 			self._scroll_up_ticks_delay = -1
 	
@@ -1052,7 +1052,7 @@ class NavigationBox(ControlSurfaceComponent):
 			self._scroll_down_ticks_delay = INITIAL_SCROLLING_DELAY
 			if (not self._is_scrolling()):
 				self.set_offset(self.x_offset, self.y_offset + 1)
-				self.update()
+				#self.update()
 		else:
 			self._scroll_down_ticks_delay = -1
 	
@@ -1063,7 +1063,7 @@ class NavigationBox(ControlSurfaceComponent):
 			self._scroll_left_ticks_delay = INITIAL_SCROLLING_DELAY
 			if (not self._is_scrolling()):
 				self.set_offset(self.x_offset - 1, self.y_offset)
-				self.update()
+				#self.update()
 		else:
 			self._scroll_left_ticks_delay = -1
 	
@@ -1074,7 +1074,7 @@ class NavigationBox(ControlSurfaceComponent):
 			self._scroll_right_ticks_delay = INITIAL_SCROLLING_DELAY
 			if (not self._is_scrolling()):
 				self.set_offset(self.x_offset + 1, self.y_offset)
-				self.update()
+				#self.update()
 		else:
 			self._scroll_right_ticks_delay = -1
 	

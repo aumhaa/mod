@@ -42,6 +42,7 @@ from _Framework.BackgroundComponent import BackgroundComponent
 
 """Custom files, overrides, and files from other scripts"""
 from _Mono_Framework.MonoButtonElement import *
+from _Mono_Framework.LividUtilities import LividSettings
 from _Mono_Framework.MonoEncoderElement import MonoEncoderElement
 from _Mono_Framework.MonoBridgeElement import MonoBridgeElement
 from _Mono_Framework.MonoDeviceComponent import MonoDeviceComponent
@@ -49,7 +50,7 @@ from _Mono_Framework.MonoMixerComponent import MixerComponent
 from _Mono_Framework.DeviceNavigator import DeviceNavigator
 from _Mono_Framework.TranslationComponent import TranslationComponent
 from _Mono_Framework.MonoM4LInterfaceComponent import MonoM4LInterfaceComponent
-from _Mono_Framework.MonoModes import SendSysexMode, MomentaryBehaviour, ExcludingMomentaryBehaviour, DelayedExcludingMomentaryBehaviour, CancellableBehaviourWithRelease, ShiftedBehaviour, LatchingShiftedBehaviour, FlashingBehaviour
+from _Mono_Framework.MonoModes import SendLividSysexMode, MomentaryBehaviour, ExcludingMomentaryBehaviour, DelayedExcludingMomentaryBehaviour, CancellableBehaviourWithRelease, ShiftedBehaviour, LatchingShiftedBehaviour, FlashingBehaviour
 from _Mono_Framework.ModDevices import *
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
@@ -117,6 +118,25 @@ STREAMINGOFF = (240, 0, 1, 97, 12, 62, 0, 247)
 LINKFUNCBUTTONS = (240, 0, 1, 97, 12, 68, 1, 247)
 DISABLECAPFADERNOTES = (240, 0, 1, 97, 12, 69, 1, 247)
 QUERYSURFACE = (240, 126, 127, 6, 1, 247)
+
+ATOFF = [36, 0, 37, 0, 38, 0, 39, 0, 40, 0, 41, 0, 42, 0, 43, 0, 44, 0, 45, 0, 46, 0, 47, 0, 48, 0, 49, 0, 50, 0, 51, 0, 52, 0, 53, 0, 54, 0, 55, 0, 56, 0, 57, 0, 58, 0, 59, 0, 60, 2, 61, 0, 62, 0, 63, 0, 64, 0, 65, 0, 66, 0, 67, 0]
+ATON = [36, 2, 37, 2, 38, 2, 39, 2, 40, 2, 41, 2, 42, 2, 43, 2, 44, 2, 45, 2, 46, 2, 47, 2, 48, 2, 49, 2, 50, 2, 51, 2, 52, 2, 53, 2, 54, 2, 55, 2, 56, 2, 57, 2, 58, 2, 59, 2, 60, 2, 61, 2, 62, 2, 63, 2, 64, 2, 65, 2, 66, 2, 67, 2]
+
+STREAMINGON = [127]
+STREAMINGOFF = [0]
+MIDIBUTTONMODE = [1 for index in range(32)]
+USERBUTTONMODE = [3 for index in range(32)]
+LIVEBUTTONMODE = [5 for index in range(32)]
+SPLITVERTICAL = [5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 5, 5, 1, 1, 1, 1]
+SPLITHORIZONTAL = [1 for index in range(16)] + [5 for index in range(16)]
+SPLITVERTICALATON = [5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3,]
+SPLITHORIZONTALATON = [3 for index in range(16)] + [5 for index in range(16)]
+CLIPS_FADER_COLORS = [7, 7, 7, 7, 7, 7, 7, 7, 2]
+SENDS_FADER_COLORS = [5, 5, 5, 5, 4, 4, 4, 4, 2]
+DEVICE_FADER_COLORS = [6, 6, 6, 6, 6, 6, 6, 6, 2]
+USER_FADER_COLORS = [1, 1, 1, 1, 1, 1, 1, 1, 2]
+MOD_FADER_COLORS = [7, 7, 7, 7, 7, 7, 7, 7, 2]
+
 
 MIDI_NOTE_TYPE = 0
 MIDI_CC_TYPE = 1
@@ -603,8 +623,6 @@ class BaseModHandler(ModHandler):
 		mod = self.active_mod()
 		if mod:
 			mod.restore()
-			if mod.legacy and self._shift_value.subject and self._shift_value.subject.is_pressed():
-				self._display_nav_box()
 		else:
 			if not self._base_grid_value.subject is None:
 				self._base_grid_value.subject.reset()
@@ -715,17 +733,23 @@ class Base(ControlSurface):
 	"""script initialization methods"""
 	def _initialize_hardware(self):
 		#self._send_sysex((240, 0, 1, 97, 12, 22, 16, 247))
-		self._send_midi(STREAMINGON)
-		self._send_midi(LINKFUNCBUTTONS)
-		self._send_midi(DISABLECAPFADERNOTES)
-		self._send_midi(ATONBUTTONMODE if AFTERTOUCH is True else ATOFFBUTTONMODE)
+		#self._send_midi(STREAMINGON)
+		#self._send_midi(LINKFUNCBUTTONS)
+		#self._send_midi(DISABLECAPFADERNOTES)
+		#self._send_midi(ATONBUTTONMODE if AFTERTOUCH is True else ATOFFBUTTONMODE)
+		
+		self._livid_settings.send('set_streaming_enabled', STREAMINGON)
+		self._livid_settings.send('set_function_button_leds_linked', [1])
+		self._livid_settings.send('set_capacitive_fader_note_output_enabled', [1])
+		self._livid_settings.send('set_pad_pressure_output_type', ATON if AFTERTOUCH is True else ATOFF)
 		self._send_midi((191, 122, 64))
 		self._main_modes.selected_mode = 'Clips'
 	
 
 	def _check_connection(self):
 		if not self._connected:
-			self._send_midi(QUERYSURFACE)
+			#self._send_midi(QUERYSURFACE)
+			self._livid_settings.query_surface()
 			self.schedule_message(100, self._check_connection)
 	
 
@@ -779,20 +803,22 @@ class Base(ControlSurface):
 	
 
 	def _define_sysex(self):
-		self.clips_layer_sysex = SendSysexMode(script = self, sysex = CLIPS_FADER_COLORS)
-		self.sends_layer_sysex = SendSysexMode(script = self, sysex = SENDS_FADER_COLORS)
-		self.device_layer_sysex = SendSysexMode(script = self, sysex = DEVICE_FADER_COLORS)
-		self.user_layer_sysex = SendSysexMode(script = self, sysex = USER_FADER_COLORS)
-		self.mod_layer_sysex = SendSysexMode(script = self, sysex = USER_FADER_COLORS)
+		self._livid_settings = LividSettings(model = 12, control_surface = self)
 
-		self.midi_mode_sysex = SendSysexMode(script = self, sysex = USERBUTTONMODE if AFTERTOUCH else MIDIBUTTONMODE)
-		self.user_mode_sysex = SendSysexMode(script = self, sysex = USERBUTTONMODE)
-		self.live_mode_sysex = SendSysexMode(script = self, sysex = LIVEBUTTONMODE)
-		self.splitvertical_mode_sysex = SendSysexMode(script = self, sysex = SPLITVERTICALATON if AFTERTOUCH else SPLITVERTICAL)
-		self.splithorizontal_mode_sysex = SendSysexMode(script = self, sysex = SPLITHORIZONTALATON if AFTERTOUCH else SPLITHORIZONTAL)
+		self.clips_layer_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_fader_led_colors', message = CLIPS_FADER_COLORS)
+		self.sends_layer_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_fader_led_colors', message = SENDS_FADER_COLORS)
+		self.device_layer_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_fader_led_colors', message = DEVICE_FADER_COLORS)
+		self.user_layer_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_fader_led_colors', message = USER_FADER_COLORS)
+		self.mod_layer_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_fader_led_colors', message = USER_FADER_COLORS)
 
-		self.atoff_mode_sysex = SendSysexMode(script = self, sysex = ATOFFBUTTONMODE)
-		self.aton_mode_sysex = SendSysexMode(script = self, sysex = ATONBUTTONMODE)
+		self.midi_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_output_type', message = USERBUTTONMODE if AFTERTOUCH else MIDIBUTTONMODE)
+		self.user_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_output_type', message = USERBUTTONMODE)
+		self.live_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_output_type', message = LIVEBUTTONMODE)
+		self.splitvertical_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_output_type', message = SPLITVERTICALATON if AFTERTOUCH else SPLITVERTICAL)
+		self.splithorizontal_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_output_type', message = SPLITHORIZONTALATON if AFTERTOUCH else SPLITHORIZONTAL)
+
+		self.atoff_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_pressure_output_type', message = ATOFFBUTTONMODE)
+		self.aton_mode_sysex = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_pad_pressure_output_type', message = ATONBUTTONMODE)
 	
 
 	def _setup_display(self):
@@ -1335,13 +1361,16 @@ class Base(ControlSurface):
 	
 
 	def handle_sysex(self, midi_bytes):
-		#self.log_message('sysex: ' + str(midi_bytes))
+		debug('sysex: ', str(midi_bytes))
 		if len(midi_bytes) > 14:
 			if midi_bytes[:6] == tuple([240, 0, 1, 97, 12, 64]):
+				self._register_pad_pressed(midi_bytes[6:14])
+			elif midi_bytes[:6] == tuple([240, 0, 1, 97, 17, 64]):
 				self._register_pad_pressed(midi_bytes[6:14])
 			elif midi_bytes[3:10] == tuple([6, 2, 0, 1, 97, 1, 0]):
 				if not self._connected:
 					self._connected = True
+					self._livid_settings.set_model(midi_bytes[11])
 					self._initialize_hardware()
 	
 

@@ -24,6 +24,28 @@ class SendSysexMode(Mode):
 	
 
 
+class SendLividSysexMode(Mode):
+
+
+	def __init__(self, livid_settings = None, call = None, message = None, *a, **k):
+		super(SendLividSysexMode, self).__init__(*a, **k)
+		self._send = livid_settings.send if hasattr(livid_settings, 'send') else self.fallback_send
+		self._call = call
+		self._message = message
+	
+
+	def fallback_send(self, call = 'no call', message = 'no message', *a, **k):
+		debug('sysex call made to invalid livid_settings object:', call, message)
+	
+
+	def enter_mode(self):
+		self._send(self._call, self._message)
+	
+
+	def leave_mode(self):
+		pass
+	
+
 class MomentaryBehaviour(ModeButtonBehaviour):
 
 
