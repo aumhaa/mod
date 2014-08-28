@@ -7,6 +7,9 @@ from _Framework.ControlSurface import ControlSurface
 from _Framework.InputControlElement import *
 from _Framework.ButtonElement import *
 from _Framework.ButtonMatrixElement import ButtonMatrixElement
+from _Framework.Layer import Layer
+from _Framework.ModesComponent import AddLayerMode
+from _Framework.Skin import Skin
 
 from Launchpad.Launchpad import Launchpad
 from Launchpad.SubSelectorComponent import SubSelectorComponent as LaunchpadSubSelectorComponent
@@ -18,16 +21,40 @@ from _Mono_Framework.MonoButtonElement import MonoButtonElement
 from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
 
+debug = initialize_debug()
+
 SIDE_NOTES = (8, 24, 40, 56, 72, 88, 104, 120)
 DRUM_NOTES = (41, 42, 43, 44, 45, 46, 47, 57, 58, 59, 60, 61, 62, 63, 73, 74, 75, 76, 77, 78, 79, 89, 90, 91, 92, 93, 94, 95, 105, 106, 107)
 
 START_IN_MOD = False
+
+
+from _Mono_Framework.LividColors import *
+
+class LaunchModColors:
+
+
+	class DefaultButton:
+		On = Color(127)
+		Off = Color(0)
+		Disabled = Color(0)
+		Alert = Color(64)
+	
+
+	class Mod:
+		
+		class Nav:
+			OnValue = Color(64)
+			OffValue = Color(5)
+		
+	
 
 class LaunchMod(Launchpad):
 
 
 	def __init__(self, *a, **k):
 		ControlSurface.__init__(self, *a, **k)
+		self._skin = Skin(LaunchModColors)
 		with self.component_guard():
 			self._monomod_version = 'b996'
 			self._host_name = 'LaunchMod'
@@ -46,12 +73,11 @@ class LaunchMod(Launchpad):
 			self._user_byte_write_button.add_value_listener(self._user_byte_value)
 			self._wrote_user_byte = False
 			self._challenge = Live.Application.get_random_int(0, 400000000) & 2139062143
-			matrix = ButtonMatrixElement()
-			matrix.name = 'Button_Matrix'
+			matrix = ButtonMatrixElement(name = 'Button_Matrix')
 			for row in range(8):
-				button_row = [ ConfigurableButtonElement(is_momentary, MIDI_NOTE_TYPE, 0, row * 16 + column, str(column) + '_Clip_' + str(row) + '_Button', self) for column in range(8) ]
+				button_row = [ ConfigurableButtonElement(is_momentary, MIDI_NOTE_TYPE, 0, row * 16 + column, str(column) + '_Clip_' + str(row) + '_Button', self, skin = self._skin) for column in range(8) ]
 				matrix.add_row(tuple(button_row))
-
+			self._matrix = matrix
 			self._config_button = ButtonElement(is_momentary, MIDI_CC_TYPE, 0, 0, optimized_send_midi=False)
 			self._config_button.add_value_listener(self._config_value)
 			top_button_names = ['Bank_Select_Up_Button',
@@ -70,10 +96,10 @@ class LaunchMod(Launchpad):
 			 'Trk_On_Button',
 			 'Solo_Button',
 			 'Arm_Button']
-			top_buttons = [ ConfigurableButtonElement(is_momentary, MIDI_CC_TYPE, 0, 104 + index, top_button_names[index], self) for index in range(8) ]
-			side_buttons = [ ConfigurableButtonElement(is_momentary, MIDI_NOTE_TYPE, 0, SIDE_NOTES[index], side_button_names[index], self) for index in range(8) ]
-			self._side_buttons = ButtonMatrixElement()
-			self._side_buttons.add_row(side_buttons)
+			top_buttons = [ ConfigurableButtonElement(is_momentary, MIDI_CC_TYPE, 0, 104 + index, top_button_names[index], self, skin = self._skin) for index in range(8) ]
+			self._top_buttons = top_buttons
+			side_buttons = [ ConfigurableButtonElement(is_momentary, MIDI_NOTE_TYPE, 0, SIDE_NOTES[index], side_button_names[index], self, skin = self._skin) for index in range(8) ]
+			self._side_buttons = ButtonMatrixElement(name = 'SideButtons', rows = [side_buttons])
 			self._setup_monobridge()
 			self._setup_mod()
 			self._selector = MainSelectorComponent(self, matrix, tuple(top_buttons), tuple(side_buttons), self._config_button)
@@ -96,9 +122,17 @@ class LaunchMod(Launchpad):
 		self.monomodular.name = 'monomodular_switcher'
 		self.modhandler = LaunchModHandler(self)
 		self.modhandler.name = 'ModHandler'
-		#self.modhandler.layer = Layer( lock_button = self._note_mode_button, push_grid = self._matrix, shift_button = self._shift_button, alt_button = self._select_button, key_buttons = self._track_state_buttons)
-		#self.modhandler.layer.priority = 4
-		#self.modhandler.nav_buttons_layer = AddLayerMode( self.modhandler, Layer(nav_up_button = self._nav_up_button, nav_down_button = self._nav_down_button, nav_left_button = self._nav_left_button, nav_right_button = self._nav_right_button) )
+		self.modhandler.layer = Layer( 	shift_button = self._top_buttons[4],
+										lock_button = self._top_buttons[5],
+										alt_button = self._top_buttons[6], 
+										key_buttons = self._side_buttons,
+										nav_up_button = self._top_buttons[0], 
+										nav_down_button = self._top_buttons[1],
+										nav_left_button = self._top_buttons[2],
+										nav_right_button = self._top_buttons[3])
+		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(device_selector_matrix = self._matrix.submatrix[:, :1]))
+		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(channel_buttons = self._matrix.submatrix[:, 1:2],
+													nav_matrix = self._matrix.submatrix[2:6, 2:6],))
 	
 
 	def update_display(self):
@@ -127,13 +161,20 @@ class LaunchModHandler(ModHandler):
 		super(LaunchModHandler, self).__init__(*a, **k)
 		self._color_type = 'RGB'
 		self._colors = range(128)
+		self._is_shifted = False
+		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 8, 8, self.set_offset))
 	
 
 	def _receive_grid(self, x, y, value, *a, **k):
-		if self.is_enabled() and self._active_mod and self._active_mod.legacy:
-			if not self._grid is None:
-				if (x - self.x_offset) in range(8) and (y - self.y_offset) in range(8):
-					self._grid.send_value(x - self.x_offset, y - self.y_offset, self._colors[value], True)
+		#debug('receive grid', x, y, value)
+		if self.is_enabled() and self._grid:
+			mod = self.active_mod()
+			if mod:
+				if mod.legacy:
+					x = x - self.x_offset
+					y = y - self.y_offset
+				if x in range(8) and y in range(8):
+					self._grid.send_value(x, y, self._colors[value], True)
 	
 
 	def set_grid(self, grid):
@@ -141,49 +182,45 @@ class LaunchModHandler(ModHandler):
 		self._grid_value.subject = self._grid
 	
 
-	def set_lock_button(self, button):
-		pass
+	@subject_slot('value')
+	def _grid_value(self, value, x, y, *a, **k):
+		#debug('_base_grid_value ', str(x), str(y), str(value))
+		mod = self.active_mod()
+		if mod:
+			if mod.legacy:
+				x = x + self.x_offset
+				y = y + self.y_offset
+			mod.send('grid', x, y, value)
 	
 
 	@subject_slot('value')
-	def _grid_value(self, value, x, y, *a, **k):
-		#self.log_message('_base_grid_value ' + str(x) + str(y) + str(value))
-		if self._active_mod:
-			if self._active_mod.legacy:
-				if self._shift_value.subject.is_pressed():
-					if value > 0 and x in range(6, 8) and y in range(0, 2):
-						self.set_offset((x - 6) * 8,  (y * 8))
-						self.update()
-				else:
-					self._active_mod.send('grid', x + self.x_offset, y + self.y_offset, value)
-			else:
-				self._active_mod.send('grid', x, y, value)
-	
-
-	def _display_nav_box(self):
-		if self._grid_value.subject:
-			if self._shift_value.subject and self._shift_value.subject.is_pressed():
-				for column in range(2):
-					for row in range(2):
-						if (column == int(self.x_offset/8)) and (row == int(self.y_offset/8)):
-							self._grid_value.subject.get_button(column +6, row).send_value(self.navbox_selected)
-						else:
-							self._grid_value.subject.get_button(column +6, row).send_value(self.navbox_unselected)
+	def _shift_value(self, value, *a, **k):
+		self._is_shifted = not value is 0
+		mod = self.active_mod()
+		if mod:
+			mod.send('shift', value)
+		#if self._is_shifted:
+		#	self.shift_layer.enter_mode()
+		#	if mod and mod.legacy:
+		#		self.legacy_shift_layer.enter_mode()
+		#		self.nav_box.update()
+		#else:
+		#	self.legacy_shift_layer.leave_mode()
+		#	self.shift_layer.leave_mode()
+		self.update()
 	
 
 	def update(self, *a, **k):
-		mod = self.active_mod()
-		#self.log_message('modhandler update: ' + str(mod))
-		if self.is_enabled() and not mod is None:
-			mod.restore()
-			if mod.legacy:
-				self._shift_value.subject and self._shift_value.subject.is_pressed() and self._display_nav_box()
-		else:
-			#self._script.log_message('disabling modhandler')
-			if not self._grid_value.subject is None:
-				self._grid_value.subject.reset()
-			if not self._keys_value.subject is None:
-				self._keys_value.subject.reset()
+		if self.is_enabled():
+			mod = self.active_mod()
+			if mod:
+				mod.restore()
+			else:
+				if not self._grid_value.subject is None:
+					self._grid_value.subject.reset()
+				if not self._keys_value.subject is None:
+					self._keys_value.subject.reset()
+			self.update_buttons()
 	
 
 
@@ -216,10 +253,12 @@ class MainSelectorComponent(LaunchpadMainSelectorComponent):
 			#	else:
 			#		self._modes_buttons[index].turn_off()
 
+
 			for scene_index in range(8):
 				self._side_buttons[scene_index].set_enabled(True)
 				for track_index in range(8):
-					self._matrix.get_button(track_index, scene_index).set_enabled(True)
+					button = self._matrix.get_button(track_index, scene_index)
+					button and button.set_enabled(True)
 
 			for button in self._nav_buttons:
 				button.set_enabled(True)
@@ -232,14 +271,12 @@ class MainSelectorComponent(LaunchpadMainSelectorComponent):
 			self._config_button.send_value(1)
 			release_buttons = self._mode_index == 1
 			if (self._mode_index < 4):
+				self._script.modhandler.legacy_shift_layer.leave_mode()
+				self._script.modhandler.shift_layer.leave_mode()
+				self._script.modhandler.set_grid(None)
+				self._script.modhandler.set_enabled(False)
 				self._script._suppress_session_highlight = False
 				self._session.set_show_highlight(True)
-				self._script.modhandler.set_key_buttons(None)
-				self._script.modhandler.set_enabled(False)
-				self._script.modhandler.set_grid(None)
-				self._script.modhandler.set_alt_button(None)
-				self._script.modhandler.set_shift_button(None)
-				self._script.modhandler.set_nav_buttons(None)
 				for button in self._modes_buttons:
 					button.set_on_off_values(127, 4)
 
@@ -264,13 +301,9 @@ class MainSelectorComponent(LaunchpadMainSelectorComponent):
 				self._setup_session((not as_active), (not as_enabled))
 				self._setup_mixer((not as_active))
 				self._setup_user(release_buttons)
-				self._script.modhandler.set_grid(self._matrix)
-				self._script.modhandler.set_key_buttons(self._script._side_buttons)
-				self._script.modhandler.set_shift_button(self._modes_buttons[0])
-				self._script.modhandler.set_alt_button(self._modes_buttons[2])
 				self._modes_buttons[3].send_value(9)
-				self._script.modhandler.set_nav_buttons(self._nav_buttons)
 				self._script.modhandler.set_enabled(True)
+				self._script.modhandler.set_grid(self._matrix)
 			else:
 				assert False
 			self._session.set_allow_update(True)
@@ -336,8 +369,8 @@ class ConfigurableButtonElement(MonoButtonElement):
 	
 
 	def set_on_off_values(self, on_value, off_value):
-		assert on_value in range(128)
-		assert off_value in range(128)
+		#assert on_value in range(128)
+		#assert off_value in range(128)
 		self.clear_send_cache()
 		self._on_value = on_value
 		self._off_value = off_value
@@ -347,7 +380,7 @@ class ConfigurableButtonElement(MonoButtonElement):
 		self._force_next_value = True
 	
 
-	def turn_on(self):
+	"""def turn_on(self):
 		self.send_value(self._on_value)
 	
 
@@ -358,6 +391,7 @@ class ConfigurableButtonElement(MonoButtonElement):
 	def reset(self):
 		self.send_value(0)
 	
+	"""
 
 	def add_value_listener(self, callback, identify_sender = False):
 		if not self._is_notifying:
