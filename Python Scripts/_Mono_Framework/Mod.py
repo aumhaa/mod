@@ -715,7 +715,6 @@ class ModHandler(CompoundComponent):
 			self.song().view.select_device(self.active_mod().linked_device())
 	
 
-
 	def set_grid(self, grid):
 		#debug('set grid:' + str(grid))
 		self._grid = grid

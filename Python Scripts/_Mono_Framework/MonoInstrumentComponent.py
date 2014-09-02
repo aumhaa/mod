@@ -103,10 +103,10 @@ SCALES = 	{'Mod':[0,1,2,3,4,5,6,7,8,9,10,11],
 			}
 
 SCALEABBREVS = {'Auto':'-A','Keys':'-K','Chromatic':'12','DrumPad':'-D','Major':'M-','Minor':'m-','Dorian':'II','Mixolydian':'V',
-			'Lydian':'IV','Phrygian':'IH','Locrian':'VH','Diminished':'d-','Whole-half':'Wh','Whole Tone':'WT','Minor Blues':'mB',
-			'Minor Pentatonic':'mP','Major Pentatonic':'MP','Harmonic Minor':'mH','Melodic Minor':'mM','Dominant Sus':'D+','Super Locrian':'SL',
-			'Neopolitan Minor':'mN','Neopolitan Major':'MN','Enigmatic Minor':'mE','Enigmatic':'ME','Composite':'Cp','Bebop Locrian':'lB',
-			'Bebop Dominant':'DB','Bebop Major':'MB','Bhairav':'Bv','Hungarian Minor':'mH','Minor Gypsy':'mG','Persian':'Pr',
+			'Lydian':'IV','Phrygian':'IH','Locrian':'VH','Diminished':'d-','Whole-half':'Wh','Whole_Tone':'WT','Minor_Blues':'mB',
+			'Minor_Pentatonic':'mP','Major_Pentatonic':'MP','Harmonic_Minor':'mH','Melodic_Minor':'mM','Dominant_Sus':'D+','Super_Locrian':'SL',
+			'Neopolitan_Minor':'mN','Neopolitan_Major':'MN','Enigmatic_Minor':'mE','Enigmatic':'ME','Composite':'Cp','Bebop_Locrian':'lB',
+			'Bebop_Dominant':'DB','Bebop_Major':'MB','Bhairav':'Bv','Hungarian_Minor':'mH','Minor_Gypsy':'mG','Persian':'Pr',
 			'Hirojoshi':'Hr','In-Sen':'IS','Iwato':'Iw','Kumoi':'Km','Pelog':'Pg','Spanish':'Sp'}
 
 
@@ -139,7 +139,7 @@ if SCALEABBREVS is None:
 	SCALEABBREVS = []
 
 """It is possible to create a custom list of scales to be used by the script.  For instance, the list below would include major, minor, auto, drumpad, and chromatic scales, in that order."""
-SCALENAMES = ['Keys', 'Major', 'Minor', 'Auto', 'DrumPad', 'Chromatic']
+#SCALENAMES = ['Keys', 'Major', 'Minor', 'Auto', 'DrumPad', 'Chromatic']
 
 OFFSET_SHIFT_IS_MOMENTARY = True
 
@@ -238,7 +238,7 @@ class SplitModeSelector(ModeSelectorComponent):
 
 	@subject_slot('value')
 	def _toggle_value(self, value):
-		if self._is_enabled:
+		if self._is_enabled and value:
 			super(SplitModeSelector, self)._toggle_value(value)
 			self._report_mode(self._mode_index)
 	
@@ -279,6 +279,7 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 		self._shift_is_momentary = True
 		self._on_value = 127
 		self._register_timer_callback(self._on_timer)
+		#self._tasks.add(self._on_timer)
 	
 
 	def disconnect(self):
@@ -415,7 +416,8 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 							self._scroll_down_ticks_delay, 
 							self._scroll_octave_up_ticks_delay,
 							self._scroll_octave_down_ticks_delay]
-			if (scroll_delays.count(-1) < 2):
+			if (scroll_delays.count(-1) < 4):
+				debug('count is good')
 				offset_increment = 0
 				if (self._scroll_down_ticks_delay > -1):
 					if self._is_scrolling():
@@ -423,7 +425,9 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 						self._scroll_down_ticks_delay = INTERVAL_SCROLLING_DELAY
 					self._scroll_down_ticks_delay -= 1
 				if (self._scroll_up_ticks_delay > -1):
+					debug('up delay...')
 					if self._is_scrolling():
+						debug('is scrolling....')
 						offset_increment += 1
 						self._scroll_up_ticks_delay = INTERVAL_SCROLLING_DELAY
 					self._scroll_up_ticks_delay -= 1
@@ -483,7 +487,6 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 			else:
 				self._shift_value.subject.turn_off()
 	
-
 
 
 class ScaleSessionComponent(SessionComponent):
@@ -652,7 +655,6 @@ class MonoInstrumentComponent(CompoundComponent):
 		self._scalenames = scalenames
 		self._script = script
 		self._skin = skin
-		self._scalenames = scalenames
 		self._grid_resolution = grid_resolution
 		self.keypad_shift_layer = AddLayerMode(self, Layer(priority = 0))
 		self.drumpad_shift_layer = AddLayerMode(self, Layer(priority = 0))
@@ -716,7 +718,6 @@ class MonoInstrumentComponent(CompoundComponent):
 		self._drumpad = MonoDrumpadComponent(parent = self, control_surface = script, skin = skin, grid_resolution = grid_resolution)
 		self.set_drumpad_mute_button = self._drumpad.set_mute_button
 		self.set_drumpad_solo_button = self._drumpad.set_solo_button
-	
 
 		self._audio_loop = LoopSelectorComponent(follow_detail_clip=True, measure_length=1.0, name='Loop_Selector')
 
@@ -815,6 +816,7 @@ class MonoInstrumentComponent(CompoundComponent):
 	
 
 	def set_octave_enable_button(self, button):
+		debug('octave toggle button:', button)
 		self._on_octave_enable_value.subject = button
 	
 
@@ -887,7 +889,11 @@ class MonoInstrumentComponent(CompoundComponent):
 				self._offsets[cur_chan]['split'] = bool(mode)
 				self._set_device_attribute(self._top_device(), 'split', bool(mode))
 				self._display.set_value_string(str(bool(mode)), 0)
-				self.update()
+				if mode > 0 and self._sequencer_mode_component._mode_index > 0:
+					self._sequencer_mode_component.set_mode(0)
+					self._sequencer_mode_value(0)
+				else:
+					self.update()
 	
 
 	def _sequencer_mode_value(self, mode):
@@ -898,7 +904,11 @@ class MonoInstrumentComponent(CompoundComponent):
 				self._offsets[cur_chan]['sequencer'] = bool(mode)
 				self._set_device_attribute(self._top_device(), 'sequencer', bool(mode))
 				self._display.set_value_string(str(bool(mode)), 0)
-				self.update()
+				if mode > 0 and self._split_mode_component._mode_index > 0:
+					self._split_mode_component.set_mode(0)
+					self._split_mode_value(0)
+				else:
+					self.update()
 	
 
 	def on_selected_track_changed(self):
@@ -943,7 +953,9 @@ class MonoInstrumentComponent(CompoundComponent):
 					scale = detect_instrument_type(cur_track)
 				new_mode = ['keypad', 'drumpad'][int(scale is 'DrumPad')]
 				if split:
-					new_mode += ['_split', '_sequencer'][int(sequencer)]
+					new_mode += '_split'
+				elif sequencer:
+					new_mode +=  '_sequencer'
 				if self.is_shifted():
 					new_mode += '_shifted'
 				self._script.set_feedback_channels(range(14, 15))
@@ -990,6 +1002,17 @@ class MonoInstrumentComponent(CompoundComponent):
 					if vals[0] == attribute:
 						#vals[1] = value
 						name[index] = str('@'+str(attribute)+':'+str(value))
+						device.name = ' '.join(name)
+	
+
+	def _remove_device_attribute(self, device, attribute, force = False):
+		if not device is None and hasattr(device, 'name'):
+			name = device.name.split(' ')
+			for index in range(len(name)):
+				if len(str(name[index])) and str(name[index][0])=='@':
+					vals = name[index][1:].split(':')
+					if vals[0] == attribute:
+						name.remove(vals[0])
 						device.name = ' '.join(name)
 	
 
@@ -1236,7 +1259,6 @@ class MonoDrumpadComponent(CompoundComponent):
 		self.set_quantization_buttons = self._step_sequencer.set_quantization_buttons
 		self.set_follow_button = self._step_sequencer.set_follow_button
 		self.register_component(self._step_sequencer)
-		#self._step_sequencer.set_enabled(True)
 	
 
 	"""Push only supports full rows of 8 buttons for playhead display....this is a hack"""
@@ -1272,7 +1294,7 @@ class MonoDrumpadComponent(CompoundComponent):
 
 	def set_offset(self, offset):
 		self._offset = offset
-		#self.update()
+		self._step_sequencer._drum_group and self._step_sequencer._drum_group._set_position(offset)
 	
 
 	def set_note_matrix(self, matrix):

@@ -495,27 +495,16 @@ class BaseModHandler(ModHandler):
 		self.nav_box = self.register_component(NavigationBox(self, 16, 16, 8, 4, self.set_offset))
 	
 
-	def _receive_base_grid(self, x, y, *a, **k):
-		#self.log_message('_receive_base_grid: %s %s %s %s' % (x, y, value, is_id))
-		if self._active_mod and not self._active_mod.legacy and self._base_grid_value.subject:
-			keys = k.keys()
-			if 'value' in keys:
-				self._base_grid_value.subject.send_value(x, y, k['value'], True)
-			if 'identifier' in keys or 'channel' in keys:
+	def _receive_base_grid(self, x, y, value = -1, identifier = False, channel = False, *a, **k):
+		#debug('_receive_base_grid:', x, y, value, identifier, channel)
+		if self._active_mod and self._base_grid_value.subject:
+			value > -1 and self._base_grid_value.subject.send_value(x, y, value, True)
+			if identifier or channel:
 				button = self._base_grid_value.subject.get_button(x, y)
-				if 'identifier' in keys:
-					identifier = k['identifier']
-					if identifier < 0:
-						button.set_identifier(button._original_identifier)
-					else:
-						button.set_identifier(identifier)
-				if 'channel' in keys:
-					channel = k['channel']
-					if channel < 0:
-						button.set_channel(button._original_channel)
-					else:
-						button.set_channel(channel)
-				button.set_enabled(button._msg_identifier == button._original_identifier and button._msg_channel == button._original_channel)
+				if button:
+					identifier and button.set_identifier(identifier if identifier > -1 else button._original_identifier)
+					channel and button.set_channel(channel if channel > -1 else button._original_channel)
+					button.set_enabled(button._msg_identifier == button._original_identifier and button._msg_channel == button._original_channel)
 	
 
 	def _receive_base_fader(self, num, value):
@@ -529,7 +518,7 @@ class BaseModHandler(ModHandler):
 	
 
 	def _receive_grid(self, x, y, *a, **k):
-		#self.log_message('receive grid')
+		#debug('receive grid', x, y, k.items())
 		mod = self.active_mod()
 		if mod and mod.legacy:
 			x = x - self.x_offset
@@ -571,7 +560,7 @@ class BaseModHandler(ModHandler):
 
 	@subject_slot('value')
 	def _base_grid_value(self, value, x, y, *a, **k):
-		#self.log_message('_base_grid_value ' + str(x) + str(y) + str(value))
+		#debug('_base_grid_value ', x, y, value)
 		mod = self.active_mod()
 		if mod:
 			if mod.legacy:
@@ -583,7 +572,7 @@ class BaseModHandler(ModHandler):
 
 	@subject_slot('value')
 	def _base_grid_CC_value(self, value, x, y, *a, **k):
-		#self.log_message('_base_grid_CC_value ' + str(x) + str(y) + str(value))
+		#debug('_base_grid_CC_value', x, y, value)
 		mod = self.active_mod()
 		if mod:
 			if mod.legacy:
@@ -674,7 +663,7 @@ class BaseMonoInstrumentComponent(MonoInstrumentComponent):
 
 	def _scale_offset_value(self, offset):
 		super(BaseMonoInstrumentComponent, self)._scale_offset_value(offset)
-		self._scale_offset_data.set_display_string(str(SCALEABBREVS[SCALENAMES[offset]]))
+		self._scale_offset_data.set_display_string(str(SCALEABBREVS[self._scalenames[offset]]))
 		self._base_display and self._base_display.set_data_sources([self._scale_offset_data])
 	
 
@@ -963,7 +952,7 @@ class Base(ControlSurface):
 
 		quantgrid = ButtonMatrixElement([self._base_grid._orig_buttons[2][4:8], self._base_grid._orig_buttons[3][4:7]])
 
-		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution,)
+		self._instrument = BaseMonoInstrumentComponent(self, self._skin, grid_resolution = self._grid_resolution, scalenames = SCALENAMES if SCALENAMES else None)
 		self._instrument.name = 'InstrumentModes'
 		self._instrument.layer = Layer(priority = 5, base_display = self._display)
 		self._instrument.audioloop_layer = LayerMode(self._instrument, Layer(priority = 6, loop_selector_matrix = self._base_grid))
@@ -1318,17 +1307,6 @@ class Base(ControlSurface):
 			self._modswitcher.selected_mode = 'instrument'
 	
 
-		"""if self._last_selected_track and self._last_selected_track.can_be_armed and not self._last_selected_track_arm:
-			self.schedule_message(1, self._disarm_track, self._last_selected_track)
-		if track.can_be_armed:
-			self._last_selected_track_arm = track.arm
-		if not self._last_selected_track is None and isinstance(self._last_selected_track, Live.Track.Track) and self._last_selected_track in track_list:
-			if self._last_selected_track.current_input_sub_routing_has_listener(self._on_selected_track_midi_subrouting_changed):
-				self._last_selected_track.remove_current_input_sub_routing_listener(self._on_selected_track_midi_subrouting_changed)
-		self._last_selected_track = track"""
-
-	
-
 	def reset_controlled_track(self, track = None, *a):
 		if not track:
 			track = self.song().view.selected_track
@@ -1361,7 +1339,7 @@ class Base(ControlSurface):
 	
 
 	def handle_sysex(self, midi_bytes):
-		debug('sysex: ', str(midi_bytes))
+		#debug('sysex: ', str(midi_bytes))
 		if len(midi_bytes) > 14:
 			if midi_bytes[:6] == tuple([240, 0, 1, 97, 12, 64]):
 				self._register_pad_pressed(midi_bytes[6:14])
