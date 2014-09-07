@@ -742,6 +742,12 @@ class Base(ControlSurface):
 			self.schedule_message(100, self._check_connection)
 	
 
+	def port_settings_changed(self):
+		debug('port settings changed!')
+		self._connected = False
+		self._check_connection()
+	
+
 	def _setup_monobridge(self):
 		self._monobridge = MonoBridgeElement(self)
 		self._monobridge.name = 'MonoBridge'
