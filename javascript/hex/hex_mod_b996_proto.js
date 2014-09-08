@@ -19,8 +19,8 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
-var NEW_DEBUG = false;
+var FORCELOAD = true;
+var NEW_DEBUG = true;
 var DEBUG = false;
 var DEBUG_LCD = false;
 var DEBUG_PTR = false;
@@ -546,6 +546,7 @@ function _dissolve()
 
 function setup_translations()
 {
+	//Notes
 	/*Here we set up some translation assignments and send them to the Python ModClient.
 	Each translation add_translation assignment has a name, a target, a group, and possibly some arguments.
 	Translations can be enabled individually using their name/target combinations, or an entire group can be enabled en masse.
@@ -561,7 +562,6 @@ function setup_translations()
 	
 	It's important to note that using batch_row/column calls will wrap to the next column/row, whereas column/row commands will
 	only effect their actual physical row on the controller.*/
-
 
 	//Ohm stuff:
 	for(var i = 0;i < 16; i++)
@@ -650,6 +650,7 @@ function setup_translations()
 	}
 	mod.Send( 'add_translation', 'buttons_batch', 'cntrlr_encoder_button_grid', 'cntrlr_buttons');
 	mod.Send( 'add_translation', 'extras_batch', 'cntrlr_encoder_button_grid', 'cntrlr_extras');
+
 }
 
 function setup_colors()
@@ -921,56 +922,6 @@ function refresh_extras()
 	}
 }
 
-function grid_out()
-{
-	var args = arrayfromargs(arguments);
-	//debug('grid_out:', args, '\n');
-	if(grid_mode==0)
-	{
-		switch(args[0])
-		{
-			default:
-				switch(args[1])
-				{
-					case 'key':
-						mod.Send( 'grid', args[2]%8, Math.floor(args[2]/8)+2, args[3]);
-						break;
-					case 'grid':
-						mod.Send( 'grid', args[2]+((args[3]%2)*4), Math.floor(args[3]/2), args[4]);
-						break;
-					case 'button':
-						mod.Send( 'grid', args[2]+(Math.floor(args[3])*4), 6, args[4]);
-						break;
-				}
-				break;
-			case 'mask':
-				switch(args[1])
-				{
-					case 'key':
-						mod.Send( 'mask', 'grid', args[2]%8, Math.floor(args[2]/8)+2, args[3]);
-						break;
-					case 'grid':
-						mod.Send( 'mask', 'grid', args[2]+((args[3]%2)*4), Math.floor(args[3]/2), args[4]);
-						break;
-				}
-				break;
-			case 'batch':
-				switch(args[1])
-				{
-					case 'grid':
-						var x=3;do{
-							var y=3;do{
-								mod.Send( 'grid', x, y, 0);
-							}while(y--);
-						}while(x--);
-						break;
-					case 'key':
-						break;
-				}
-				break;
-		}
-	}
-}
 function grid_out(){}
 function base_grid_out(){}
 
@@ -1471,7 +1422,16 @@ function _c_grid(x, y, val)
 			{
 				sync_wheels(selected, part[x + (y*4)]);
 			}
-			break;			
+			break;
+		case 6:
+			if(val>0)
+			{
+				var p = x+(y*4);
+				play_note(part[p]);
+				
+			}
+			break;
+
 		case 7:
 			//post('pad_play', x, y, val);
 			var num = x + (y*4);
@@ -1512,14 +1472,6 @@ function _c_grid(x, y, val)
 			}
 			//part[num].obj.polyenable.message('int', part[num].polyenable);
 			refresh_pads();
-			break;
-		case 6:
-			if(val>0)
-			{
-				var p = x+(y*4);
-				play_note(part[p]);
-				
-			}
 			break;
 	}
 }
@@ -1676,6 +1628,7 @@ function _grid(x, y, val)
 				}
 				else if(val>0)
 				{
+					y -= 1;
 					var note = (x<<6) + (y<<10) + 32;
 					debug('new note', current_step, x, y, note);
 					debug('decoded:', (note>>6)%16, note>>10);
@@ -1715,6 +1668,7 @@ function _grid(x, y, val)
 				}
 				else
 				{
+					y -= 1;
 					var root = selected.obj.note.getvalueof()[0];
 					//play_sequence(selected, ((x-(root>>6)%16)<<6) + (y-(root>>10)<<10) + 32, val);
 					play_sequence(selected, (x<<6) + (y<<10) + 32, val);
@@ -1821,7 +1775,7 @@ function _grid(x, y, val)
 				refresh_grid();
 			}
 			break;
-				
+
 	}
 }
 
@@ -2341,14 +2295,14 @@ function _grid_play(x, y, voice, val, poly)
 			{
 				if((voice==0)&&((poly-1)==selected.num))
 				{
-					mod.Send( 'grid', 'mask', Math.max(Math.min(x, 15), 0), Math.max(Math.min(y, 15), 0), val);
+					mod.Send( 'grid', 'mask', Math.max(Math.min(x, 15), 0), Math.max(Math.min(y, 15), 0) + 1, val);
 				}
 			}
 			else
 			{
 				if((voice>0)&&((poly-1)==selected.num))
 				{
-					mod.Send( 'grid', 'mask', Math.max(Math.min(x, 15), 0), Math.max(Math.min(y, 15), 0), val*voice);
+					mod.Send( 'grid', 'mask', Math.max(Math.min(x, 15), 0), Math.max(Math.min(y, 15), 0) + 1, val*voice);
 				}
 			}
 			break;
@@ -2880,6 +2834,11 @@ function rotate_wheel(num, pos)
 				mod.Send( 'grid', 'mask', pos, _num+2, 5+(_num==selected.num));
 			}
 			break;
+		case 2:
+			if(altVal>0)
+			{
+			}
+			break;
 		case 3:
 			//cafe mode
 			//var pat = part[num-1].pattern.slice();
@@ -2976,7 +2935,7 @@ function poly_hold_toggle()
 	selected.hold = Math.abs(selected.hold-1);
 	//mod.Send( 'c_button', 3, 2, selected.hold);
 	//grid_out('default', 'button', 3, 2, selected.hold);
-	mod.Send( 'receive_translation', 'buttons_'+6, 'value', selected.hold);
+	if(grid_mode==0){mod.Send( 'receive_translation', 'buttons_'+6, 'value', selected.hold);}
 	if(grid_mode==3)
 	{
 		refresh_grid();
