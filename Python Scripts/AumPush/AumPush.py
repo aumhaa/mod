@@ -1125,32 +1125,20 @@ class PushModHandler(ModHandler):
 		self.log_message('modhandler select mod: ' + str(mod))
 	
 
-	def _receive_grid(self, x, y, *a, **k):
-		#debug('recieve grid', x, y, a, k)
+	def _receive_grid(self, x, y, value = -1, identifier = False, channel = False, *a, **k):
+		debug('_receive_base_grid:', x, y, value, identifier, channel)
 		mod = self.active_mod()
 		if mod and self._grid_value.subject:
 			if mod.legacy:
 				x = x-self.x_offset
 				y = y-self.y_offset
 			if x in range(8) and y in range(8):
-				keys = k.keys()
-				if 'value' in keys:
-					self._grid_value.subject.send_value(x, y, self._push_colors[k['value']], True)
-				if 'identifier' in keys or 'channel' in keys and not mod.legacy:
+				value > -1 and self._grid_value.subject.send_value(x, y, self._push_colors[self._colors[value]], True)
+				if identifier or channel:
 					button = self._grid_value.subject.get_button(x, y)
 					if button:
-						if 'identifier' in keys:
-							identifier = k['identifier']
-							if identifier < 0:
-								button.set_identifier(button._original_identifier)
-							else:
-								button.set_identifier(identifier)
-						if 'channel' in keys:
-							channel = k['channel']
-							if channel < 0:
-								button.set_channel(button._original_channel)
-							else:
-								button.set_channel(channel)
+						identifier and button.set_identifier(identifier if identifier > -1 else button._original_identifier)
+						channel and button.set_channel(channel if channel > -1 else button._original_channel)
 						button.set_enabled(button._msg_identifier == button._original_identifier and button._msg_channel == button._original_channel)
 	
 

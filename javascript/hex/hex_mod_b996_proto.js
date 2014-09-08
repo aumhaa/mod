@@ -19,7 +19,7 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = true;
+var FORCELOAD = false;
 var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
@@ -631,28 +631,6 @@ function setup_translations()
 	mod.Send( 'enable_translation_group', 'code_buttons', 0);
 	mod.Send( 'enable_translation_group', 'code_extras',  0);
 
-	//Push stuff:
-	for(var i = 0;i < 16;i++)
-	{
-		mod.Send( 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', (i%8), Math.floor(i/8));
-		mod.Send( 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', (i%8), Math.floor(i/8)+2);
-		mod.Send( 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', (i%8), Math.floor(i/8)+4);
-	}
-	mod.Send( 'add_translation', 'pads_batch', 'push_grid', 'push_pads', 0);
-	mod.Send( 'add_translation', 'keys_batch', 'push_grid', 'push_keys', 2);
-	mod.Send( 'add_translation', 'keys_batch_fold', 'push_grid', 'push_keys', 2, 8);
-	mod.Send( 'add_translation', 'keys2_batch', 'push_grid', 'push_keys2', 4); 
-	mod.Send( 'add_translation', 'keys2_batch_fold', 'push_grid', 'push_keys2', 4, 8);
-	for(var i=0;i<8;i++)
-	{
-		mod.Send( 'add_translation', 'buttons_'+i, 'push_grid', 'push_buttons', i, 6);
-		mod.Send( 'add_translation', 'extras_'+i, 'push_grid', 'push_extras', i, 7);
-	}
-	mod.Send( 'add_translation', 'buttons_batch', 'push_grid', 'push_buttons', 6);
-	mod.Send( 'add_translation', 'extras_batch', 'push_grid', 'push_extras', 7);
-
-
-
 	//CNTRLR stuff:
 	for(var i = 0;i < 16;i++)
 	{
@@ -688,7 +666,7 @@ function refresh_pads()
 			var i=3;do{
 				var j=3;do{
 					var v = SelectColors[Math.floor(i+(j*4) == selected.num)];
-					mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);
+					if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);}
 					padgui.message(i, j, v);
 				}while(j--);
 			}while(i--);
@@ -697,7 +675,7 @@ function refresh_pads()
 			var i=3;do{
 				var j=3;do{
 					var v = AddColors[Math.floor(i+(j*4) == selected.num)];
-					mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);
+					if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);}
 					padgui.message(i, j, v);
 				}while(j--);
 			}while(i--);
@@ -705,7 +683,7 @@ function refresh_pads()
 		case 2:
 			var i=15;do{
 				var v = part[i].active*2;
-				mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
+				if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+i, 'value', v);}
 				padgui.message(i%4, Math.floor(i/4), v);
 			}while(i--);
 			break;
@@ -713,7 +691,7 @@ function refresh_pads()
 			var p = presets[selected.num]-1;
 			var i=15;do{
 				var v = (i==p)+3;
-				mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
+				if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+i, 'value', v);}
 				//mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
 				padgui.message(i%4, Math.floor(i/4), v);
 			}while(i--);
@@ -722,22 +700,24 @@ function refresh_pads()
 			var p = presets[selected.num]-1;
 			var i=15;do{
 				var v = (i==p)+6;
-				mod.Send( 'receive_translation', 'pads_'+i, 'value', -1);
-				mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
+				if(grid_mode == 0){
+					mod.Send( 'receive_translation', 'pads_'+i, 'value', -1);
+					mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
+				}
 				padgui.message(i%4, Math.floor(i/4), v);
 			}while(i--);
 			break;
 		case 6:
 			var i=15;do{
 				var v=(selected.triggered.indexOf(i)>-1) + 7;
-				mod.Send( 'receive_translation', 'pads_'+i, 'value', v);
+				if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+i, 'value', v);}
 				padgui.message(i%4, Math.floor(i/4), v);
 			}while(i--);
 			break;
 		case 7:
 			var i=15;do{
 				var v=(selected.triggered.indexOf(i)>-1) + 7;
-				mod.Send( 'receive_tranlsation', 'pads_'+i, 'value', v);
+				if(grid_mode == 0){ mod.Send( 'receive_tranlsation', 'pads_'+i, 'value', v);}
 				padgui.message(i%4, Math.floor(i/4), v);
 			}while(i--);
 			break;
@@ -747,7 +727,7 @@ function refresh_pads()
 				var i=3;do{
 					var j=3;do{
 						var v = SelectColors[Math.floor(i+(j*4) == selected.num)+((j<2)*2)];
-						mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);
+						if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);}
 						padgui.message(i, j, v);
 					}while(j--);
 				}while(i--);
@@ -757,7 +737,7 @@ function refresh_pads()
 				var i=3;do{
 					var j=3;do{
 						var v = SelectColors[Math.floor(i+(j*4) == selected.num)+((j>1)*2)];
-						mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);
+						if(grid_mode == 0){ mod.Send( 'receive_translation', 'pads_'+(i+(j*4)), 'value', v);}
 						padgui.message(i, j, v);
 					}while(j--);
 				}while(i--);
@@ -767,12 +747,12 @@ function refresh_pads()
 }
 
 function refresh_c_keys()
-{ 
+{
 	var pattern = [];
 	var i = 15;do{
 		pattern.unshift(selected.pattern[i] * StepColors[i]);
 	}while(i--);
-	mod.Send( 'receive_translation', 'keys2_batch_fold', 'batch_row_fold', pattern);
+	if(grid_mode == 0){ mod.Send( 'receive_translation', 'keys2_batch_fold', 'batch_row_fold', pattern);}
 	var batch = [];
 	switch(key_mode)
 	{
@@ -782,16 +762,20 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 				batch.unshift(v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ 
+				mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
+				mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			}
 			break;
 		case 2:
 			var i=15;do{
 				batch.unshift(Colors[part[selected.num].behavior[i]]);
 				keygui.message(i, 0, selected.behavior[i]+8);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);
+			if(grid_mode == 0){ 
+				mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
+				mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);
+			}
 			break;
 		case 3:
 			var p = presets[selected.num]-1;
@@ -800,8 +784,10 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ 
+				mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
+				mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			}
 			break;
 		case 4:
 			var p = presets[selected.num]-1;
@@ -810,17 +796,21 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ 
+				mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
+				mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			}
 			break;
 		case 5:
 			var i=15;do{
 				batch.unshift(4);
 				keygui.message(i, 0, 4);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
-			mod.Send( 'receive_translation', 'keys_'+i, 'mask', selected.note[current_step], 5);
+			if(grid_mode == 0){ 
+				mod.Send( 'receive_translation', 'keys_batch', 'batch_mask_row', -1);
+				mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+				mod.Send( 'receive_translation', 'keys_'+i, 'mask', selected.note[current_step], 5);
+			}
 			break;
 		case 6:
 			var i=15;do{
@@ -828,7 +818,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);}
 			break;
 		case 7:
 			var i=15;do{
@@ -836,7 +826,7 @@ function refresh_c_keys()
 				batch.unshift(v);
 				keygui.message(i, 0, v);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);}
 			break;
 		default:
 			var i=15;do{
@@ -845,9 +835,9 @@ function refresh_c_keys()
 				keygui.message(i, 0, v);
 				pattern.push(selected.pattern[i] * StepColors[i]);
 			}while(i--);
-			mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch); 
+			if(grid_mode == 0){ mod.Send( 'receive_translation', 'keys_batch_fold', 'batch_row_fold', batch);}
 			break;
-	}		 
+	}
 }
 
 function refresh_grid()
@@ -878,7 +868,7 @@ function refresh_grid()
 			//mod.Send( 'grid', 'value',15, 0, selected.hold*7); 
 			//mod.Send( 'grid', 'value',15, 15, selected.hold*7); 
 			var i=7;do{
-				mod.Send( 'grid', 'value', i+1, 0, presets[selected.num] == i+1);
+				mod.Send( 'grid', 'value', i+1, 0, presets[selected.num] == i+1 ? 1 : 0);
 			}while(i--);
 			break;
 		case 3:
@@ -924,9 +914,11 @@ function refresh_keys()
 
 function refresh_extras()
 {
-	var i=7;do{
-		mod.Send( 'receive_translation', 'extras_'+i, 'value', MODE_COLORS[i]+(7*(i==key_mode)));
-	}while(i--);
+	if(grid_mode == 0){
+		var i=7;do{
+			mod.Send( 'receive_translation', 'extras_'+i, 'value', MODE_COLORS[i]+(7*(i==key_mode)));
+		}while(i--);
+	}
 }
 
 function grid_out()
@@ -2164,24 +2156,30 @@ function _keygui_in(val)
 function _blink(val)
 {
 	//if(DEBUG_BLINK){post('blink', val, '\n');}
-	mod.Send( 'receive_translation', 'keys2_'+last_mask, 'mask', -1);
-	mod.Send( 'receive_translation', 'keys2_'+val, 'mask', 5);
+	if(grid_mode == 0)
+	{
+		mod.Send( 'receive_translation', 'keys2_'+last_mask, 'mask', -1);
+		mod.Send( 'receive_translation', 'keys2_'+val, 'mask', 5);
+	}
 	last_mask = val;
 }
 
 //displays played notes on keys
 function _vblink(num, val)
 {
-	if(DEBUG_BLINK){post('vblink', val, '\n');}
-	if(key_mode==0)
+	debugblink('vblink', val, '\n');
+	if(grid_mode == 0)
 	{
-		//mod.Send( 'mask', 'c_key', num, val);
-		//grid_out('mask', 'key', num, val);
-		mod.Send( 'receive_translation', 'keys_'+num, val);
+		if(key_mode==0)
+		{
+			//mod.Send( 'mask', 'c_key', num, val);
+			//grid_out('mask', 'key', num, val);
+			mod.Send( 'receive_translation', 'keys_'+num, val);
+		}
+		//mod.Send( 'mask', 'c_grid', num%4, Math.floor(num/4), Blinks[Math.floor(val>0)]);
+		//grid_out('mask', 'grid', num, val);
+		mod.Send( 'receive_translation', 'pads_'+num, Blinks[Math.floor(val>0)]);
 	}
-	//mod.Send( 'mask', 'c_grid', num%4, Math.floor(num/4), Blinks[Math.floor(val>0)]);
-	//grid_out('mask', 'grid', num, val);
-	mod.Send( 'receive_translation', 'pads_'+num, Blinks[Math.floor(val>0)]);
 }
 
 //evaluate and distribute data recieved from the settings menu
@@ -2848,29 +2846,30 @@ function rotate_pattern(part, len, dir)
 //change the display on the CNTRLR encoder rings to reflect the current play position when in freewheel mode
 function rotate_wheel(num, pos)
 {
-	//debug('rotate_wheel', num, pos, '\n');
-	if((key_mode==5)&&(num==selected.num+1))
-	{
-		//post('current_step', num, pos, '\n');
-		mod.Send( 'receive_translation', 'keys2_'+(selected.note[current_step]), 'mask', -1);
-		mod.Send( 'receive_translation', 'keys2_'+(selected.note[pos]), 'mask', 5);
-	}
+
 	if(pad_mode==5)
 	{
 		if((selected.num<8)&&(num<9))
 		{
 			var _num = num-1;
-			mod.Send( 'cntrlr_encoder_grid', 'value', _num%4, Math.floor(_num/4), pos);
+			if(grid_mode == 0){mod.Send( 'cntrlr_encoder_grid', 'value', _num%4, Math.floor(_num/4), pos);}
 		}
 		else if((selected.num>7)&&(num>8))
 		{
 			var _num = num-9;
-			mod.Send( 'cntrlr_encoder_grid', 'value', _num%4, Math.floor(_num/4), pos);
+			if(grid_mode == 0){mod.Send( 'cntrlr_encoder_grid', 'value', _num%4, Math.floor(_num/4), pos);}
 		}
 	}
 	switch(grid_mode)
 	{
-		default:
+		case 0:
+			//debug('rotate_wheel', num, pos, '\n');
+			if((key_mode==5)&&(num==selected.num+1))
+			{
+				//post('current_step', num, pos, '\n');
+				mod.Send( 'receive_translation', 'keys2_'+(selected.note[current_step]), 'mask', -1);
+				mod.Send( 'receive_translation', 'keys2_'+(selected.note[pos]), 'mask', 5);
+			}
 			break;
 		case 1:
 			//tr256 mode
@@ -2901,6 +2900,8 @@ function rotate_wheel(num, pos)
 				mod.Send( 'grid', 'mask', _num, curSteps[_num], -1);
 				mod.Send( 'grid', 'mask', _num, pos, 1);
 			}
+			break;
+		default:
 			break;
 	}
 	current_step = pos;
@@ -3399,7 +3400,7 @@ function update_bank()
 			}while(i--);
 			break;
 	}
-	rotgate.message('int', ((pad_mode==5)||(key_mode==5)||(grid_mode==1))); 
+	rotgate.message('int', ((pad_mode==5)||(key_mode==5)||(grid_mode==1)||(grid_mode==2)||(grid_mode==3)||(grid_mode==4))); 
 }
 
 //open the floating editor, called from MonomodComponent
@@ -3542,7 +3543,7 @@ function check_device_id(id, channel)
 	debug('device_id', id, '\n');
 	if(id>0)
 	{
-		if(selected.channel == 0)
+		if(channel == 0)
 		{
 			finder.id = id;
 			if(finder.get('class_name')=='DrumGroupDevice')
@@ -3551,17 +3552,23 @@ function check_device_id(id, channel)
 				found = parseInt(finder.id);
 				debug('found at:', finder.get('name'));
 			}
+			else
+			{
+				finder.goto('canonical_parent');
+				finder.goto('canonical_parent');
+				if(finder.get('class_name')=='DrumGroupDevice')
+				{
+					drumgroup_is_present = true;
+					found = parseInt(finder.id);
+					debug('found at 2nd pass: ', finder.get('name'));
+				}
+			}
 		}
 		else
 		{
-			finder.goto('canonical_parent');
-			finder.goto('canonical_parent');
-			if(finder.get('class_name')=='DrumGroupDevice')
-			{
-				drumgroup_is_present = true;
-				found = parseInt(finder.id);
-				debug('found at 2nd pass: ', finder.get('name'));
-			}
+			finder.id = id;
+			found = parseInt(finder.id);
+			debug('non-drumrack found at:', finder.get('name'));
 		}
 	}
 	devices[channel] = found;
