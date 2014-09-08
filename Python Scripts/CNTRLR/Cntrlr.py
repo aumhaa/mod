@@ -782,31 +782,27 @@ class CntrlrModHandler(ModHandler):
 
 	
 
-	def _receive_cntrlr_grid(self, x, y, value, *a, **k):
-		#self.log_message('_receive_cntrlr_grid: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+	def _receive_cntrlr_grid(self, x, y, value = -1, *a, **k):
+		#debug('_receive_cntrlr_grid:', x, y, value)
 		if self.is_enabled() and self._active_mod and not self._active_mod.legacy and not self._cntrlr_grid is None and x < 4 and y < 4:
-			self._cntrlr_grid.send_value(x, y, self._colors[value], True)
+			value > -1 and self._cntrlr_grid.send_value(x, y, self._colors[value], True)
 	
 
-	def _receive_cntrlr_encoder_grid(self, x, y, *a, **k):
-		#self.log_message('_receive_cntrlr_encoder_grid: %(x)s %(y)s %(k)s' % {'x':x, 'y':y, 'k':k})
-		if self.is_enabled() and self._active_mod and not self._cntrlr_encoder_grid is None and x < 4 and y < 3:
-			keys = k.keys()
-			if 'value' in keys:
+	def _receive_cntrlr_encoder_grid(self, x, y, value = -1, mode = None, green = None, custom = None, local = None, relative = None, *a, **K):
+		#debug('_receive_cntrlr_encoder_grid:', x, y, value, mode, green, custom, local, relative)
+		if self.is_enabled() and self._active_mod and self._cntrlr_encoder_grid and x < 4 and y < 3:
+			if value > -1:
 				if self._local:
-					self._cntrlr_encoder_grid.send_value(x, y, k['value'], True)
+					self._cntrlr_encoder_grid.send_value(x, y, value, True)
 				else:
-					self._cntrlr_encoder_grid.get_button(x, y)._ring_value = k['value']
-			if 'mode' in keys:
-				self._cntrlr_encoder_grid.get_button(x, y).set_mode(k['mode'])
-			if 'green' in keys:
-				self._cntrlr_encoder_grid.get_button(x, y).set_green(k['green'])
-			if 'custom' in keys:
-				self._cntrlr_encoder_grid.get_button(x, y).set_custom(k['custom'])
-			if 'local' in keys:
-				self._receive_cntrlr_encoder_grid_local(k['local'])
-			if 'relative' in keys:
-				self._receive_cntrlr_encoder_grid_relative(k['relative'])
+					self._cntrlr_encoder_grid.get_button(x, y)._ring_value = value
+			button = self._cntrlr_encoder_grid.get_button(x, y)
+			if button:
+				mode and button.set_mode(mode)
+				green and button.set_green(green)
+				custom and button.set_custom(custom)
+			local and self._receive_cntrlr_encoder_grid_local(local)
+			relative and self._receive_cntrlr_encoder_grid_relative(relative)
 	
 
 	def _receive_cntrlr_encoder_button_grid(self, x, y, value, *a, **k):
@@ -816,13 +812,13 @@ class CntrlrModHandler(ModHandler):
 	
 
 	def _receive_cntrlr_encoder_grid_relative(self, value, *a):
-		#self.log_message('_receive_cntrlr_encoder_grid_relative: %(v)s' % {'v':value})
+		#debug('_receive_cntrlr_encoder_grid_relative:', value)
 		if self.is_enabled() and self._active_mod:
 			value and self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 127, 127, 127, 127, 247])) or self._script._send_midi(tuple([240, 0, 1, 97, 8, 17, 0, 0, 0, 0, 247]))
 	
 
 	def _receive_cntrlr_encoder_grid_local(self, value, *a):
-		#self.log_message('_receive_cntrlr_encoder_grid_local: %(v)s' % {'v':value})
+		#debug('_receive_cntrlr_encoder_grid_local:', value)
 		if self.is_enabled() and self._active_mod:
 			self.clear_rings()
 			self._local = value
@@ -830,13 +826,13 @@ class CntrlrModHandler(ModHandler):
 	
 
 	def _receive_cntrlr_key(self, x, y=0, value=0, *a):
-		#self.log_message('_receive_cntrlr_key: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+		#debug('_receive_cntrlr_key:', x, y, value)
 		if self.is_enabled() and self._active_mod and not self._active_mod.legacy:
 			if not self._cntrlr_keys is None:
 				self._cntrlr_keys.send_value(x, y, self._colors[value], True)
 	
 
-	def _receive_grid(self, x, y, value, *a, **k):
+	def _receive_grid(self, x, y, value = -1, *a, **k):
 		if self.is_enabled() and self._active_mod and self._active_mod.legacy:
 			if not self._cntrlr_grid is None:
 				if (x - self.x_offset) in range(4) and (y - self.y_offset) in range(4):
@@ -872,14 +868,14 @@ class CntrlrModHandler(ModHandler):
 
 	@subject_slot('value')
 	def _cntrlr_keys_value(self, value, x, y, *a, **k):
-		#self.log_message('_cntrlr_keys_value: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+		#debug('_cntrlr_keys_value:', x, y, value)
 		if self._active_mod:
 			self._active_mod.send('cntrlr_key', x, y, value)
 	
 
 	@subject_slot('value')
 	def _cntrlr_grid_value(self, value, x, y, *a, **k):
-		#self.log_message('_cntrlr_grid_value: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+		#debug('_cntrlr_grid_value:', x, y, value)
 		if self._active_mod:
 			if self._active_mod.legacy:
 				self._active_mod.send('grid', x + self.x_offset, y + self.y_offset, value)
@@ -889,14 +885,14 @@ class CntrlrModHandler(ModHandler):
 
 	@subject_slot('value')
 	def _cntrlr_encoder_grid_value(self, value, x, y, *a, **k):
-		#self.log_message('_cntrlr_encoder_grid_value: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+		#debug('_cntrlr_encoder_grid_value:', x, y, value)
 		if self._active_mod:
 			self._active_mod.send('cntrlr_encoder_grid', x, y, value)
 	
 
 	@subject_slot('value')
 	def _cntrlr_encoder_button_grid_value(self, value, x, y, *a, **k):
-		#self.log_message('_cntrlr_encoder_button_grid_value: %(x)s %(y)s %(value)s ' % {'x':x, 'y':y, 'value':value})
+		#debug('_cntrlr_encoder_button_grid_value:', x, y, value)
 		if self._active_mod:
 			self._active_mod.send('cntrlr_encoder_button_grid', x, y, value)
 	
@@ -915,7 +911,7 @@ class CntrlrModHandler(ModHandler):
 
 	def update(self, *a, **k):
 		mod = self.active_mod()
-		#self.log_message('modhandler update: ' + str(mod))
+		#debug('modhandler update:', mod)
 		if self.is_enabled() and not mod is None:
 			mod.restore()
 		else:
