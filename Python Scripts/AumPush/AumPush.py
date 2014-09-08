@@ -1125,7 +1125,7 @@ class PushModHandler(ModHandler):
 		self.log_message('modhandler select mod: ' + str(mod))
 	
 
-	def _receive_grid(self, x, y, value = -1, identifier = False, channel = False, *a, **k):
+	def _receive_grid(self, x, y, value = -1, identifier = -1, channel = -1, *a, **k):
 		debug('_receive_base_grid:', x, y, value, identifier, channel)
 		mod = self.active_mod()
 		if mod and self._grid_value.subject:
@@ -1134,12 +1134,13 @@ class PushModHandler(ModHandler):
 				y = y-self.y_offset
 			if x in range(8) and y in range(8):
 				value > -1 and self._grid_value.subject.send_value(x, y, self._push_colors[self._colors[value]], True)
-				if identifier or channel:
-					button = self._grid_value.subject.get_button(x, y)
-					if button:
-						identifier and button.set_identifier(identifier if identifier > -1 else button._original_identifier)
-						channel and button.set_channel(channel if channel > -1 else button._original_channel)
-						button.set_enabled(button._msg_identifier == button._original_identifier and button._msg_channel == button._original_channel)
+				button = self._grid_value.subject.get_button(x, y)
+				if button:
+					new_identifier = identifier if identifier > -1 else button._original_identifier
+					new_channel = channel if channel > -1 else button._original_channel
+					button._msg_identifier != new_identifier and button.set_identifier(new_identifier)
+					button._msg_channel != new_channel and button.set_channel(new_channel)
+					button.set_enabled((channel, identifier) == (-1, -1))
 	
 
 	def _receive_key(self, x, value):

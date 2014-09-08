@@ -4,9 +4,21 @@ inlets = 1;
 outlets = 2;
 
 var script = this;
-var DEBUG = false;
+
 var FORCELOAD = false;
+var DEBUG = false;
+
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
+
+var finder;
+var mod;
+var mod_finder;
+var Mod = ModComponent.bind(script);
+
+var unique = jsarguments[1];
 var shifted = false;
+var alted = false;
 var assignment_gui;
 var assignment_coll;
 var keys_gui;
@@ -23,31 +35,44 @@ var groups={0:{'val':0, 'fsr':undefined},
 			6:{'val':0, 'fsr':undefined}, 
 			7:{'val':0, 'fsr':undefined}};
 
-
-function anything()
-{
-	//post('anything', arrayfromargs(messagename, arguments));
-}
-
-
-
-function fsr(x, y)
-{
-	var self = this;
-	this._x = x;
-	this._y = y;
-	this._group = 0;
-}
-
 function init()
 {
-	if(DEBUG){post('skin init.');}
+	mod = new Mod(script, 'hex', unique, false);
+	//mod.debug = debug;
+	mod_finder = new LiveAPI(mod_callback, 'this_device');
+	mod.assign_api(mod_finder);
+}
+
+function mod_callback(args)
+{
+	if((args[0]=='value')&&(args[1]!='bang'))
+	{
+		debug('mod callback:', args);
+		if(args[1] in script)
+		{
+			script[args[1]].apply(script, args.slice(2));
+		}
+		if(args[1]=='disconnect')
+		{
+			mod.restart.schedule(3000);
+		}
+	}
+}
+
+function alive(val)
+{
+	initialize(val);
+}
+
+function initialize()
+{
+	debug('skin init.');
 	assignment_gui = this.patcher.getnamed('assignments');
 	assignment_coll = this.patcher.getnamed('matrix');
 	keys_gui = this.patcher.getnamed('keys');
 	for(var i=0;i<8;i++)
 	{
-		outlet(0, 'base_fader', 'value', i, 1);
+		mod.Send('base_fader', 'value', i, 1);
 		assignments[i]=[];
 		for(var j=0;j<8;j++)
 		{
@@ -58,88 +83,114 @@ function init()
 	update_assignment_grid();
 }
 
+function anything()
+{
+	//post('anything', arrayfromargs(messagename, arguments));
+}
+
+function fsr(x, y)
+{
+	var self = this;
+	this._x = x;
+	this._y = y;
+	this._group = 0;
+}
+
 function key(num, val)
 {
-	//post('key',num, val, '\n');
+	debug('key', num, val, '\n');
 	if(val > 0)
 	{
 		current_edit = num;
 		//post('current_edit', current_edit, '\n');
 		for(var i=0;i<8;i++)
 		{
-			outlet(0, 'key', 'value', i, parseInt((current_edit == i)*KEYS[i]));
+			mod.Send('key', 'value', i, parseInt((current_edit == i)*KEYS[i]));
 		}
 	}
 }
 
 function shift(val)
 {
-	if(DEBUG){post('shift', val, '\n');}
+	debug('shift', val);
 	shifted = val>0;
+	update_assignment_grid();
+}
+
+function alt(val)
+{
+	debug('alt', val);
+	alted = val>0;
 	update_assignment_grid();
 }
 
 function push_grid(x, y, val)
 {
-	if(DEBUG){post('push_grid', x, y, val, '\n');}
+	debug('push_grid', x, y, val);
 	base_grid(x, y, val);
 }
 
 function base_grid(x, y, val)
 {
-	if(shifted)
+	debug('base_grid', x, y, val);
+	grid(x, y, val);
+}
+
+function grid(x, y, val)
+{
+	debug('grid', x, y, val);
+	if(shifted||alted)
 	{
-		if(DEBUG){post('base_grid', x, y, val, '\n');}
 		if((val>0))
 		{
 			if(assignments[x][y].val!=current_edit)
 			{
 				assignments[x][y].val = current_edit;
-				outlet(0, 'base_grid', 'value', x, y, KEYS[current_edit]);
-				outlet(0, 'push_grid', 'value', x, y, KEYS[current_edit]);
+				debug('assignment for:', x, y, 'is', current_edit);
+				mod.Send( 'base_grid', 'value', x, y, KEYS[current_edit]);
+				mod.Send( 'grid', 'value', x, y, KEYS[current_edit]);
 			}
 		}
 		else
 		{
 			
 			/*var group = assignments[x][y].val;
-			post('calculating for group', group, '\n');
+			debug('calculating for group', group, '\n');
 			if(groups[group].val < val)
 			{
-				post('group.val < val');
+				debug('group.val < val');
 				groups[group].fsr = assignments[x][y].fsr;
 				groups[group].val = val;
 				//outlet(1, group, groups[group].val);
-				outlet(0, 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]+(val>0));
+				mod.Send( 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]+(val>0));
 			}
 			else if(groups[group].fsr == assignments[x][y].fsr)
 			{
-				post('group.fsr == fsr');
+				debug('group.fsr == fsr');
 				groups[group].val = val;
 				//outlet(1, group, groups[group].val);
-				outlet(0, 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]+(val>0));
+				mod.Send( 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]+(val>0));
 			}*/
 		}
 	}
 }
 
-
 function get_assignment_grid()
 {
 	var assgn = assignment_gui.getvalueof()
-	//post('assgn:', assgn, '\n');
+	//debug('assgn:', assgn, '\n');
 	while(assgn.length)
 	{
 		assignments[assgn.shift()][assgn.shift()].val = assgn.shift();
 	}
-	//post_assignments();
+	post_assignments();
 }
 
 function update_assignment_grid()
 {
-	if(!shifted)
+	if((!shifted)&&(!alted))
 	{
-		//post('update assignment grid\n');
+		//debug('update assignment grid\n');
 		groups={0:{'val':0, 'fsr':undefined}, 
 		1:{'val':0, 'fsr':undefined}, 
 		2:{'val':0, 'fsr':undefined}, 
@@ -152,39 +203,33 @@ function update_assignment_grid()
 		{
 			for(var j=0;j<8;j++)
 			{
-			//	groups[assignments[i][j].value].push(assignments[i][j]);
+				//groups[assignments[i][j].value].push(assignments[i][j]);
 				this.patcher.getnamed('assignments').message(i, j, assignments[i][j].val);
-				outlet(0, 'push_grid', 'value', i, j, KEYS[assignments[i][j].val]);
-				outlet(0, 'push_grid', 'identifier', i, j, NOTES[assignments[i][j].val]);
-				outlet(0, 'push_grid', 'channel', i, j, 2);
+				mod.Send('grid', 'value', i, j, KEYS[assignments[i][j].val]);
+				mod.Send('grid', 'identifier', i, j, NOTES[assignments[i][j].val]);
+				mod.Send('grid', 'channel', i, j, 2);
 				if(j<4)
 				{
-					outlet(0, 'base_grid', 'value', i, j, KEYS[assignments[i][j].val]);
-					outlet(0, 'base_grid', 'identifier', i, j, NOTES[assignments[i][j].val]);
-					outlet(0, 'base_grid', 'channel', i, j, 2);
+					mod.Send( 'base_grid', 'value', i, j, KEYS[assignments[i][j].val]);
+					mod.Send( 'base_grid', 'identifier', i, j, NOTES[assignments[i][j].val]);
+					mod.Send( 'base_grid', 'channel', i, j, 2);
 				}
 			}
 		}
 	}
 	else
 	{
-		//post('reassigning default grids');
+		debug('reassigning default grids');
 		var x=7;do{
-			//post('basegrid...');
 			var y=3;do{
-				//post('x:', x, 'y:', y, '\n');
-				outlet(0, 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]);
-				//post('a', assignments[x][y], '\n');
-				//post('b', assignments[x][y].val, '\n');
-				outlet(0, 'base_grid', 'channel', x, y, -1);
-				outlet(0, 'base_grid', 'identifier', x, y, -1);
-				//post('returning');
+				mod.Send( 'base_grid', 'value', x, y, KEYS[assignments[x][y].val]);
+				mod.Send( 'base_grid', 'channel', x, y, -1);
+				mod.Send( 'base_grid', 'identifier', x, y, -1);
 			}while(y--);
-			post('pushgrid...');
 			var y=7;do{
-				outlet(0, 'push_grid', 'value', x, y, KEYS[assignments[x][y].val]);
-				outlet(0, 'push_grid', 'channel', x, y, -1);
-				outlet(0, 'push_grid', 'identifier', x, y, -1);
+				mod.Send( 'grid', 'value', x, y, KEYS[assignments[x][y].val]);
+				mod.Send( 'grid', 'channel', x, y, -1);
+				mod.Send( 'grid', 'identifier', x, y, -1);
 			}while(y--);
 		}while(x--);
 	}
@@ -192,20 +237,21 @@ function update_assignment_grid()
 
 function post_assignments()
 {
-	/*post('assigns:')
+	if(DEBUG)
 	{
-		for(var i=0;i<8;i++)
+		debug('assigns:')
 		{
-			for(var j=0;j<4;j++)
+			for(var i=0;i<8;i++)
 			{
-				post(i, j, assignments[i][j].value, '\n');
+				for(var j=0;j<4;j++)
+				{
+					debug(i, j, assignments[i][j].value, '\n');
+				}
 			}
 		}
-	}*/
+	}
 }
 
-//post('new patch');
-
-if(FORCELOAD){post('FORCELOAD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');init();}
+forceload(this);
 
 

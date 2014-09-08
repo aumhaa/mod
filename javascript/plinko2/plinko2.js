@@ -10,6 +10,14 @@ var DEBUG = false;
 var SHOW_STORAGE = false;
 var FORCELOAD = false;
 
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
+
+var finder;
+var mod;
+var mod_finder;
+var Mod = ModComponent.bind(script);
+
 var bgcolors = {'OFF': [0, 0, 0, 1], 'WHITE':[1, 1, 1, 1], 'YELLOW':[1, 1, 0, 1], 'CYAN':[0, 1, 1, 1], 
 				'MAGENTA':[1, 0, 1, 1], 'RED':[1, 0, 0, 1], 'GREEN':[0, 1, 0, 1], 'BLUE':[0, 0, 1, 1],
 				'INVISIBLE':[1, 1, 1, 0]};
@@ -172,7 +180,7 @@ function Grid(name, call, width, height)
 	}
 	this.send = function(val)
 	{
-		outlet(0, call, 'all', val);
+		mod.Send( call, 'all', val);
 		viewer_matrix.message('clear');
 		for(var i in self.controls)
 		{
@@ -183,7 +191,7 @@ function Grid(name, call, width, height)
 	}
 	this.mask = function(val)
 	{
-		outlet(0, call, 'mask', 'all', val);
+		mod.Send( call, 'mask', 'all', val);
 		viewer_matrix.message('clear');
 		for(var i in self.button)
 		{
@@ -208,7 +216,7 @@ function Button(name, call, x, y, parent)
 	{
 		if(force||(val!=self._val)||(val!=self._mask))
 		{
-			outlet(0, call, 'value', self._x, self._y, val);
+			mod.Send( call, 'value', self._x, self._y, val);
 			viewer_matrix.message(self._x, self._y, val);
 			self._mask = val;
 			self._value = val;
@@ -218,7 +226,7 @@ function Button(name, call, x, y, parent)
 	{
 		if(force||(val != self._mask))
 		{
-			outlet(0, call, 'mask', self._x, self._y, val);
+			mod.Send( call, 'mask', self._x, self._y, val);
 			var v = val==-1 ? self._value : val;
 			viewer_matrix.message(self._x, self._y, v);
 			self._mask = val;
@@ -239,7 +247,7 @@ function Keys(name, call, width)
 	}
 	this.send = function(val)
 	{
-		outlet(0, call, 'all', val);
+		mod.Send( call, 'all', val);
 		for(var i in self.button)
 		{
 			self.button[i]._value = val;
@@ -248,7 +256,7 @@ function Keys(name, call, width)
 	}
 	this.mask = function(val)
 	{
-		outlet(0, call, 'mask', 'all', val);
+		mod.Send( call, 'mask', 'all', val);
 		for(var i in self.button)
 		{
 			self.button[i]._mask = val;
@@ -271,7 +279,7 @@ function Key(name, call, x, parent)
 	{
 		if(force||(val!=self._val)||(val!=self._mask))
 		{
-			outlet(0, call, 'value', self._x, val);
+			mod.Send( call, 'value', self._x, val);
 			self._mask = val;
 			self._value = val;
 		}
@@ -280,7 +288,7 @@ function Key(name, call, x, parent)
 	{
 		if(force||(val != self._mask))
 		{
-			outlet(0, 'key', 'mask', self._x, val);
+			mod.Send( 'key', 'mask', self._x, val);
 			self._mask = val;
 		}
 	}	
@@ -416,22 +424,6 @@ var Objs = {'voice':{'Name':'voice', 'Type':'list', 'pattr':'voice'},
 
 
 
-function debug()
-{
-	if(DEBUG)
-	{
-		var args = arrayfromargs(arguments);
-		for(var i in args)
-		{
-			if(args[i] instanceof Array)
-			{
-				args[i] = args[i].join(' ');
-			}
-		}
-		post('debug->', args, '\n');
-	}
-}
-
 function anything()
 {
 	switch(inlet)
@@ -443,14 +435,33 @@ function anything()
 	}
 }
 
+function init()
+{
+	mod = new Mod(script, 'hex', unique, false);
+	//mod.debug = debug;
+	mod_finder = new LiveAPI(mod_callback, 'this_device');
+	mod.assign_api(mod_finder);
+}
+
+function mod_callback(args)
+{
+	if((args[0]=='value')&&(args[1]!='bang'))
+	{
+		debug('mod callback:', args);
+		if(args[1] in script)
+		{
+			script[args[1]].apply(script, args.slice(2));
+		}
+		if(args[1]=='disconnect')
+		{
+			mod.restart.schedule(3000);
+		}
+	}
+}
+
 function alive(val)
 {
 	initialize(val);
-}
-
-function init(val)
-{
-	initialize(1);
 }
 
 //called when mod.js is finished loading for the first time
@@ -483,9 +494,9 @@ function initialize(val)
 		clear_surface();
 		plinko2.message('recall', 1);
 		plinko2.message('getslotlist');
-		//outlet(0, 'set_mod_color', modColor);
-		//outlet(0, 'set_color_map', 'Monochrome', 127, 127, 127, 15, 22, 29, 36, 43);
-		outlet(0, 'set_report_offset', 1);
+		//mod.Send( 'set_mod_color', modColor);
+		//mod.Send( 'set_color_map', 'Monochrome', 127, 127, 127, 15, 22, 29, 36, 43);
+		mod.Send( 'set_report_offset', 1);
 		if(SHOW_STORAGE)
 		{
 			this.patcher.getnamed('plinko2').message('clientwindow');
@@ -495,7 +506,7 @@ function initialize(val)
 		lock();
 		shift(0);
 		alt(0);
-		outlet(0, 'set_legacy', 1);
+		mod.Send( 'set_legacy', 1);
 	}
 	else
 	{
@@ -512,7 +523,7 @@ function callback()
 //called by init to initialize state of gui objects
 function _clear_surface()
 {
-	//outlet(0, 'push_grid', 'all', 0);
+	//mod.Send( 'push_grid', 'all', 0);
 	matrix.send(0);
 }
 
@@ -539,7 +550,7 @@ function _grid(x, y, val)
 {
 	//var args = arrayfromargs(arguments);
 	matrix.button[x][y].pressed = val>0;
-	debug('push_grid', x, y, val);
+	debug('_grid', x, y, val);
 	if((pressed<0)&&(val))								//new press, nothing held
 	{
 		if(trigger_mode)								//fire a particle
@@ -688,7 +699,7 @@ function _key(num, val)
 function _channel(num)
 {
 	debug('channel', num);
-	outlet(0, 'channel', 'value', num);
+	mod.Send( 'channel', 'value', num);
 }
 
 function display_node(num)
@@ -716,10 +727,10 @@ function display_node(num)
 		matrix.button[x_offset+2][i].mask(plane[i], true);
 		
 	}while(i--);
-	/*outlet(0, 'push_grid', 'mask_batch_column', x_offset, packFader(node[num].get_single('voice'), colors.VOICE_FADER));
+	/*mod.Send( 'push_grid', 'mask_batch_column', x_offset, packFader(node[num].get_single('voice'), colors.VOICE_FADER));
 	debug(0, 'push_grid', 'mask_batch_column', x_offset, packFader(node[num].get_single('voice'), colors.VOICE_FADER))
-	outlet(0, 'push_grid', 'mask_batch_column', x_offset+1, packFader(node[num].get_single('note'), colors.NOTE_FADER));
-	outlet(0, 'push_grid', 'mask_batch_column', x_offset+2, packFader(node[num]._edit_plane, colors.PLANE_FADER));
+	mod.Send( 'push_grid', 'mask_batch_column', x_offset+1, packFader(node[num].get_single('note'), colors.NOTE_FADER));
+	mod.Send( 'push_grid', 'mask_batch_column', x_offset+2, packFader(node[num]._edit_plane, colors.PLANE_FADER));
 	*/
 }
 
@@ -960,49 +971,40 @@ function setup_translations()
 	//Base stuff:
 	for(var i = 0;i < 16;i++)
 	{
-		outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', i%8, Math.floor(i/8)+2);
+		mod.Send( 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%8, Math.floor(i/8));
+		mod.Send( 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%8, Math.floor(i/8));
+		mod.Send( 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', i%8, Math.floor(i/8)+2);
 	}
-	outlet(0, 'add_translation', 'pads_batch', 'base_grid', 'base_pads', 0);
-	outlet(0, 'add_translation', 'keys_batch', 'base_grid', 'base_keys', 0);
-	outlet(0, 'add_translation', 'keys2_batch', 'base_grid', 'base_keys2', 2); 
-	outlet(0, 'enable_translation_group', 'base_keys', 0);
+	mod.Send( 'add_translation', 'pads_batch', 'base_grid', 'base_pads', 0);
+	mod.Send( 'add_translation', 'keys_batch', 'base_grid', 'base_keys', 0);
+	mod.Send( 'add_translation', 'keys2_batch', 'base_grid', 'base_keys2', 2); 
+	mod.Send( 'enable_translation_group', 'base_keys', 0);
 
 	for(var i=0;i<8;i++)
 	{
-		outlet(0, 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', i, 2);
-		outlet(0, 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', i, 3);
+		mod.Send( 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', i, 2);
+		mod.Send( 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', i, 3);
 	}
-	outlet(0, 'add_translation', 'buttons_batch', 'base_grid', 'base_buttons', 2);
-	outlet(0, 'add_translation', 'extras_batch', 'base_grid', 'base_extras', 3);
-	outlet(0, 'enable_translation_group', 'base_buttons', 0);
-	outlet(0, 'enable_translation_group', 'base_extras',  0);
+	mod.Send( 'add_translation', 'buttons_batch', 'base_grid', 'base_buttons', 2);
+	mod.Send( 'add_translation', 'extras_batch', 'base_grid', 'base_extras', 3);
+	mod.Send( 'enable_translation_group', 'base_buttons', 0);
+	mod.Send( 'enable_translation_group', 'base_extras',  0);
 
 	//Push stuff:
 	for(var i = 0;i < 16;i++)
 	{
-		outlet(0, 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', i%8, Math.floor(i/8)+2);
-		outlet(0, 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', i%8, Math.floor(i/8)+4);
+		mod.Send( 'add_translation', 'pads_'+i, 'push_grid', 'push_pads', i%8, Math.floor(i/8));
+		mod.Send( 'add_translation', 'keys_'+i, 'push_grid', 'push_keys', i%8, Math.floor(i/8)+2);
+		mod.Send( 'add_translation', 'keys2_'+i, 'push_grid', 'push_keys2', i%8, Math.floor(i/8)+4);
 	}
 	for(var i=0;i<8;i++)
 	{
-		outlet(0, 'add_translation', 'buttons_'+i, 'push_grid', 'push_buttons', i, 6);
-		outlet(0, 'add_translation', 'extras_'+i, 'push_grid', 'push_extras', i, 7);
+		mod.Send( 'add_translation', 'buttons_'+i, 'push_grid', 'push_buttons', i, 6);
+		mod.Send( 'add_translation', 'extras_'+i, 'push_grid', 'push_extras', i, 7);
 	}
 }
 
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-
-function forceload()
-{
-	if(FORCELOAD){init(1);}
-}
-
-forceload();
+forceload(this);
 
 
 
