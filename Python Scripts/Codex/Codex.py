@@ -181,7 +181,7 @@ class Codex(Codec):
 		for track in tracks:
 			if track.name == 'Inputs':
 				for device in track.devices:
-					if bool(device.can_have_chains) and device.name == 'Inputs':
+					if bool(device.can_have_chains) and device.name.endswith('Inputs'):
 						found_device = device
 		return found_device
 	

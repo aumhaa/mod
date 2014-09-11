@@ -127,19 +127,6 @@ class AumPushResetSendsComponent(ResetSendsComponent):
 		self._buttons = []
 	
 
-	def set_buttons(self, buttons):
-
-		for button in self._buttons:
-			if button != None:
-				button.remove_value_listener(self.reset_send)
-
-		self._buttons = []
-		for button in buttons:
-			if button != None:
-				button.add_value_listener(self.reset_send, identify_sender=True)
-			self._buttons.append(button)
-	
-
 
 class AumPushTrollComponent(CompoundComponent):
 
@@ -151,6 +138,7 @@ class AumPushTrollComponent(CompoundComponent):
 		self._device_selector = AumPushDeviceSelectorComponent(self._script)
 		self._send_reset = AumPushResetSendsComponent(self._script)
 		self._encoder_mode = TrollModeSelectorComponent()
+		self._top_button_matrix = None
 		self._top_buttons = [None for index in range(8)]
 		self._bottom_buttons = [None for index in range(8)]
 		self._display_line1 = None
@@ -170,6 +158,7 @@ class AumPushTrollComponent(CompoundComponent):
 	
 
 	def set_top_buttons(self, buttons):
+		self._top_button_matrix = buttons
 		new_buttons = [None for index in range(8)]
 		if not buttons is None:
 			new_buttons = [button for button in buttons]
@@ -207,7 +196,7 @@ class AumPushTrollComponent(CompoundComponent):
 			if not buttons[index] is None:
 				buttons[index].set_on_off_values('Scales.Diatonic', BUTTON_COLORS[int(index/4)])
 			self._mixer.channel_strip(index).set_select_button(buttons[index])
-		self._device_selector.set_buttons(buttons[16:32])
+		self._device_selector.set_buttons(buttons[16:64])
 	
 
 	def set_display_line1(self, display):
@@ -271,7 +260,8 @@ class AumPushTrollComponent(CompoundComponent):
 				line2.append(self._mixer.return_strip(index).track_parameter_graphic_sources(0))
 				line3.append(self._mixer.return_strip(index).track_parameter_data_sources(0))
 
-			self._send_reset.set_buttons(tuple(self._top_buttons[4:]))
+			self._top_button_matrix and self._send_reset.set_buttons(self._top_button_matrix.submatrix[:4, :])
+			
 			#if not self._shift_button is None and not self._encoder_buttons[0] is None:
 			#	self._script.log_message('making zeros!')
 			#	self._send_reset.set_buttons(tuple( [ComboElement(self._encoder_buttons[0], [self._shift_button]), ComboElement(self._encoder_buttons[1], [self._shift_button]), ComboElement(self._encoder_buttons[2], [self._shift_button]), ComboElement(self._encoder_buttons[3], [self._shift_button]) ]) )
@@ -300,7 +290,7 @@ class AumPushTrollComponent(CompoundComponent):
 				line1.append(self._mixer.channel_strip(index+8).track_name_data_source())
 				line2.append(self._mixer.channel_strip(index+8).track_parameter_graphic_sources(0))
 				line3.append(self._mixer.channel_strip(index+8).track_parameter_data_sources(0))
-			self._send_reset.set_buttons(tuple([None, None, None, None]))
+			self._send_reset.set_buttons(None)
 
 		elif mode == 3:
 			for index in range(4):
@@ -323,7 +313,8 @@ class AumPushTrollComponent(CompoundComponent):
 			line3.append(self._mixer.return_strip(1).track_parameter_data_sources(2))
 			line3.append(self._mixer.return_strip(2).track_parameter_data_sources(2))
 			line3.append(self._mixer.return_strip(2).track_parameter_data_sources(3))
-			self._send_reset.set_buttons(tuple(self._top_buttons[4:]))
+			
+			self._top_button_matrix and self._send_reset.set_buttons(self._top_button_matrix.submatrix[4:, :])
 
 		if self._display_line1:
 			self._display_line1.set_data_sources(line1)
@@ -402,8 +393,8 @@ class AumPushTrollComponent(CompoundComponent):
 			self._mixer.return_strip(index).set_volume_control(encoders[index+4])
 	
 
-	def set_send_reset_buttons(self, buttons):
-		self._send_reset.set_buttons(tuple(buttons[0:4]))
+	#def set_send_reset_buttons(self, buttons):
+	#	self._send_reset.set_buttons(tuple(buttons[0:4]))
 	
 
 	def on_selected_track_changed(self):
@@ -881,7 +872,7 @@ class AumPush(Push):
 		self._step_sequencer._drum_group._update_control_from_script = self._make_update_control_from_script(self._step_sequencer._drum_group)
 		self._troll = AumPushTrollComponent(self)
 		self._troll.set_enabled(False)
-		self._troll.layer = Layer(priority = 6, top_buttons = self._select_buttons, bottom_buttons = self._track_state_buttons, matrix = self._matrix.submatrix[:, :4], display_line1=self._display_line1, display_line2=self._display_line2, display_line3=self._display_line3, display_line4=self._display_line4, encoder_buttons = self._global_param_touch_buttons, encoders = self._global_param_controls)  #shift_button = self._shift_button, 
+		self._troll.layer = Layer(priority = 6, top_buttons = self._select_buttons, bottom_buttons = self._track_state_buttons, matrix = self._matrix.submatrix[:, :], display_line1=self._display_line1, display_line2=self._display_line2, display_line3=self._display_line3, display_line4=self._display_line4, encoder_buttons = self._global_param_touch_buttons, encoders = self._global_param_controls)  #shift_button = self._shift_button, 
 		self._main_modes.add_mode('troll', self._troll, behaviour=CancellableBehaviourWithRelease())
 		#self._main_modes.layer = Layer(volumes_button=self._vol_mix_mode_button, pan_sends_button=self._pan_send_mix_mode_button, track_button=self._single_track_mix_mode_button, clip_button=self._clip_mode_button, device_button=self._device_mode_button, browse_button=self._browse_mode_button, add_effect_right_button=self._create_device_button, add_effect_left_button=ComboElement(self._create_device_button, [self._shift_button]), add_instrument_track_button=self._create_track_button, troll_button=self._master_select_button)
 		self._main_modes.layer = Layer(volumes_button=self._vol_mix_mode_button, pan_sends_button=self._pan_send_mix_mode_button, track_button=self._single_track_mix_mode_button, clip_button=self._clip_mode_button, device_button=self._device_mode_button, browse_button=self._browse_mode_button, add_effect_right_button=self._create_device_button, add_effect_left_button=self._with_shift(self._create_device_button), add_instrument_track_button=self._create_track_button, troll_button=self._master_select_button)
@@ -1021,7 +1012,7 @@ class AumPush(Push):
 		def _arm_value(value):
 			assert(not channelstrip._arm_button != None)
 			assert(value in range(128))
-			self.log_message('channelstrip arm value')
+			#self.log_message('channelstrip arm value')
 			if channelstrip.is_enabled():
 				if channelstrip._track != None and channelstrip._track.can_be_armed:
 					arm_exclusive = channelstrip.song().exclusive_arm != channelstrip._shift_pressed
@@ -1031,7 +1022,7 @@ class AumPush(Push):
 						if track.can_be_armed:
 							if track == channelstrip._track or respect_multi_selection and track.is_part_of_selection:
 								track.arm = new_value
-								self.log_message('armed track')
+								#self.log_message('armed track')
 							#elif arm_exclusive and track.arm:
 							#	track.arm = False
 		return _arm_value
@@ -1122,11 +1113,11 @@ class PushModHandler(ModHandler):
 		super(PushModHandler, self).select_mod(mod)
 		self._script._select_note_mode()
 		self.update()
-		self.log_message('modhandler select mod: ' + str(mod))
+		debug('modhandler select mod: ' + str(mod))
 	
 
 	def _receive_grid(self, x, y, value = -1, identifier = -1, channel = -1, *a, **k):
-		debug('_receive_base_grid:', x, y, value, identifier, channel)
+		#debug('_receive_base_grid:', x, y, value, identifier, channel)
 		mod = self.active_mod()
 		if mod and self._grid_value.subject:
 			if mod.legacy:
@@ -1144,7 +1135,7 @@ class PushModHandler(ModHandler):
 	
 
 	def _receive_key(self, x, value):
-		#self.log_message('_receive_key: %s %s' % (x, value))
+		#debug('_receive_key:', x, value)
 		if not self._keys_value.subject is None:
 			self._keys_value.subject.send_value(x, 0, self._push_colors[self._colors[value]], True)
 	

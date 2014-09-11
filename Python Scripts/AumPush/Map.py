@@ -1,9 +1,6 @@
+# by amounra 0914 : http://www.aumhaa.com
 
-"""
-Base_Map.py
 
-Created by amounra on 2013-07-18.
-"""
 from _Mono_Framework.LividColors import *
 
 DEVICE_COLORS = {'midi_effect':2,
