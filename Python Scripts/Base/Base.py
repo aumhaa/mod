@@ -499,7 +499,7 @@ class BaseModHandler(ModHandler):
 		#debug('_receive_base_grid:', x, y, value, identifier, channel)
 		if self._active_mod and self._base_grid_value.subject:
 			value > -1 and self._base_grid_value.subject.send_value(x, y, value, True)
-			button = self._grid_value.subject.get_button(x, y)
+			button = self._base_grid_value.subject.get_button(x, y)
 			if button:
 				new_identifier = identifier if identifier > -1 else button._original_identifier
 				new_channel = channel if channel > -1 else button._original_channel

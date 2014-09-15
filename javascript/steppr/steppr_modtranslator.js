@@ -13,7 +13,7 @@ var DEBUG = true;
 var DEBUG_UPDT = false;
 var DEBUG_LCD = false;
 var DEBUG_NEW = false;
-var FORCELOAD = true;
+var FORCELOAD = false;
 
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
@@ -34,6 +34,8 @@ var keys_to_mutes = false;
 var mgate = 0;
 var live = 0;
 var shifted = false;
+
+var BUTTON_COLORS = [1, 1, 2, 2, 3, 4, 5, 5];
 
 var ctlr = new Object;
 ctlr.ctls = new Object; //the control names, like "key 0" or "ring 2 2 0"
@@ -72,16 +74,16 @@ function setup_translations()
 	//Base stuff:
 	for(var i = 0;i < 16;i++)
 	{
-		outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%8, Math.floor(i/8));
-		outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', i%8, Math.floor(i/8)+2);
+		outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%4, Math.floor(i/4));
+		outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%4, Math.floor(i/4));
+		outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', (i%4)+4, Math.floor(i/4));
 	}
 	outlet(0, 'enable_translation_group', 'base_keys', 0);
 	//outlet(0, 'enable_translation_group', 'base_pads', !SYNTH);
 	for(var i=0;i<8;i++)
 	{
-		outlet(0, 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', i, 2);
-		outlet(0, 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', i, 3);
+		outlet(0, 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', (i%4)+4, i/4);
+		outlet(0, 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', (i%4)+4, (i/4)+2);
 	}
 	outlet(0, 'enable_translation_group', 'base_buttons', 0);
 	outlet(0, 'enable_translation_group', 'base_extras',  0);
@@ -172,24 +174,24 @@ function base_grid(x, y, val)
 	{
 		if(!shifted)
 		{
-			if(y < 2)
+			if(x < 4)
 			{
-				ctl('pads_'+(x + (y*8)), val);
+				ctl('pads_'+(x + (y*4)), val ? 127 : 0);
 			}
 			else
 			{
-				ctl('keys2_'+(x + ((y-2)*8)), val);
+				ctl('keys2_'+((x-4) + (y*4)), val ? 127 : 0);
 			}
 		}
 		else
 		{
-			if(y < 2)
+			if(x < 4)
 			{
-				ctl('keys_'+(x + (y*8)), val);
+				ctl('keys_'+(x + (y*4)), val ? 127 : 0);
 			}
-			else if(y==2)
+			else if(y<2)
 			{
-				ctl('buttons_'+(x + ((y-2)*8)), val);
+				ctl('buttons_'+((x-4) + (y*4)), val ? 127 : 0);
 			}
 		}
 	}	
@@ -270,10 +272,13 @@ function update_all()
 			outlet(1, 'getchainmute['+i+']');
 		}while(i--);
 	}
+	for(var i=0;i<8;i++)
+	{
+		outlet(0, 'receive_translation', 'buttons_'+i, 'value', BUTTON_COLORS[i]);
+		//outlet(0, 'receive_translation', 'extras_'+i, 'value', 0);
+	}
 	for(var i=0;i<16;i++)
 	{
-		outlet(0, 'receive_translation', 'buttons_'+i, 'value', 0);
-		outlet(0, 'receive_translation', 'extras_'+i, 'value', 0);
 		outlet(1, 'getbehav['+i+']');
 		outlet(1, 'getenable['+i+']');
 	}
