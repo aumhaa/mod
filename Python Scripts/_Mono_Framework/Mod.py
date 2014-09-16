@@ -338,6 +338,11 @@ class Grid(object):
 			self.value(index%width, row + int(index/width), values[index])
 	
 
+	def batch_column_fold(self, column, end, *values):
+		height = min(len(self._cell[0] if hasattr(self._cell, len) else 0, end))
+		for index in range(len(values)):
+			self.value(column + int(index/height), index%height, values[index])
+	
 
 class ButtonGrid(Grid):
 

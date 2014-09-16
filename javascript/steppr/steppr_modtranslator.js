@@ -9,7 +9,7 @@ setoutletassist(0,"latch messages, msgs from pattrstorage, etc.");
 setoutletassist(1,"to mods");
 setinletassist(0,"to pattrstorage");
 
-var DEBUG = true;
+var DEBUG = false;
 var DEBUG_UPDT = false;
 var DEBUG_LCD = false;
 var DEBUG_NEW = false;
@@ -78,6 +78,9 @@ function setup_translations()
 		outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%4, Math.floor(i/4));
 		outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', (i%4)+4, Math.floor(i/4));
 	}
+	outlet(0, 'add_translation', 'pads_batch_fold', 'base_grid', 'base_pads', 0, 4);
+	outlet(0, 'add_translation', 'keys_batch_fold', 'base_grid', 'base_keys', 0, 4);
+	outlet(0, 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys2', 0, 8, 4);
 	outlet(0, 'enable_translation_group', 'base_keys', 0);
 	//outlet(0, 'enable_translation_group', 'base_pads', !SYNTH);
 	for(var i=0;i<8;i++)

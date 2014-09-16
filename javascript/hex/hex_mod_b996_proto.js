@@ -19,8 +19,8 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = true;
-var NEW_DEBUG = true;
+var FORCELOAD = false;
+var NEW_DEBUG = false;
 var DEBUG = false;
 var DEBUG_LCD = false;
 var DEBUG_PTR = false;
@@ -1824,22 +1824,18 @@ function _shift(val)
 	if(val!=shifted)
 	{
 		shifted = val;
-		//for(var i=0;i<16;i++)
-		//{
-			mod.Send( 'enable_translation_group', 'base_keys', Math.floor(shifted));
-			mod.Send( 'enable_translation_group', 'base_pads', Math.floor(!shifted));
-			mod.Send( 'enable_translation_group', 'base_keys2', Math.floor(!shifted));
-			mod.Send( 'enable_translation_group', 'code_keys', Math.floor(shifted));
-			mod.Send( 'enable_translation_group', 'code_pads', Math.floor(!shifted));
-			mod.Send( 'enable_translation_group', 'code_keys2', Math.floor(!shifted));
-		//}/
-		//for(var i=0;i<8;i++)
-		//{
-			mod.Send( 'enable_translation_group', 'base_buttons',  Math.floor(shifted));
-			mod.Send( 'enable_translation_group', 'base_extras',  Math.floor(shifted));
-			mod.Send( 'enable_translation_group', 'code_buttons',  Math.floor(shifted));
-			mod.Send( 'enable_translation_group', 'code_extras',  Math.floor(shifted));
-		//}
+		mod.Send( 'enable_translation_group', 'base_keys', Math.floor(shifted));
+		mod.Send( 'enable_translation_group', 'base_pads', Math.floor(!shifted));
+		mod.Send( 'enable_translation_group', 'base_keys2', Math.floor(!shifted));
+		mod.Send( 'enable_translation_group', 'base_buttons',  Math.floor(shifted));
+		mod.Send( 'enable_translation_group', 'base_extras',  Math.floor(shifted));
+
+		mod.Send( 'enable_translation_group', 'code_keys', Math.floor(shifted));
+		mod.Send( 'enable_translation_group', 'code_pads', Math.floor(!shifted));
+		mod.Send( 'enable_translation_group', 'code_keys2', Math.floor(!shifted));
+		mod.Send( 'enable_translation_group', 'code_buttons',  Math.floor(shifted));
+		mod.Send( 'enable_translation_group', 'code_extras',  Math.floor(shifted));
+
 		refresh_grid();
 		refresh_keys();
 	}
