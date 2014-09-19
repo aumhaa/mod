@@ -319,3 +319,138 @@ ModComponent.prototype.wiki = function()
 	this.max.launchbrowser(this.wiki_addy);
 }
 
+
+
+function Grid(name, call, width, height)
+{
+	var self = this;
+	this._name = name;
+	this.width = function(){return width;}
+	this.height = function(){return height;}
+	this.button = [];
+	this.controls = [];
+	for(var x=0;x<width;x++)
+	{
+		this.button[x] = [];
+		for(var y=0;y<height;y++)
+		{
+			this.button[x][y] = new Button(name + '_Cell_'+x+'_'+y, call, x, y, this);
+			this.controls.unshift(this.button[x][y]);
+		}
+	}
+	this.send = function(val)
+	{
+		mod.Send( call, 'all', val);
+		//viewer_matrix.message('clear');
+		for(var i in self.controls)
+		{
+			self.controls[i]._value = val;
+			self.controls[i]._mask = val;
+		}
+		
+	}
+	this.mask = function(val)
+	{
+		mod.Send( call, 'mask', 'all', val);
+		//viewer_matrix.message('clear');
+		for(var i in self.button)
+		{
+			self.button[i]._mask = val;
+		}
+	}
+
+}
+
+function Button(name, call, x, y, parent)
+{
+	var self = this;
+	this._name = name;
+	this._parent = parent;
+	this._value = 0;
+	this._mask = 0;
+	this._x = x;
+	this._y = y;
+	this._num = x + (y*16) + 1;
+	this.pressed = false;
+	this.send = function(val, force)
+	{
+		if(force||(val!=self._val)||(val!=self._mask))
+		{
+			mod.Send( call, 'value', self._x, self._y, val);
+			//viewer_matrix.message(self._x, self._y, val);
+			self._mask = val;
+			self._value = val;
+		}
+	}
+	this.mask = function(val, force)
+	{
+		if(force||(val != self._mask))
+		{
+			mod.Send( call, 'mask', self._x, self._y, val);
+			var v = val==-1 ? self._value : val;
+			//viewer_matrix.message(self._x, self._y, v);
+			self._mask = val;
+		}
+	}	
+
+}
+
+function Keys(name, call, width)
+{
+	var self = this;
+	this._name = name;
+	this.width = function(){return width;}
+	this.button = [];
+	for(var x=0;x<width;x++)
+	{
+		this.button[x] = new Key(name + '_Cell_'+x, call,  x, this);
+	}
+	this.send = function(val)
+	{
+		mod.Send( call, 'all', val);
+		for(var i in self.button)
+		{
+			self.button[i]._value = val;
+			self.button[i]._mask = val;
+		}
+	}
+	this.mask = function(val)
+	{
+		mod.Send( call, 'mask', 'all', val);
+		for(var i in self.button)
+		{
+			self.button[i]._mask = val;
+		}
+	}
+
+}
+
+function Key(name, call, x, parent)
+{
+	var self = this;
+	this._name = name;
+	this._parent = parent;
+	this._value = 0;
+	this._mask = 0;
+	this._x = x;
+	this._num = x;
+	this.pressed = false;
+	this.send = function(val, force)
+	{
+		if(force||(val!=self._val)||(val!=self._mask))
+		{
+			mod.Send( call, 'value', self._x, val);
+			self._mask = val;
+			self._value = val;
+		}
+	}
+	this.mask = function(val)
+	{
+		if(force||(val != self._mask))
+		{
+			mod.Send( 'key', 'mask', self._x, val);
+			self._mask = val;
+		}
+	}	
+
+}

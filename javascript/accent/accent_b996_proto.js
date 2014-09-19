@@ -21,8 +21,8 @@ autowatch = 1;
 outlets = 4;
 inlets = 5;
 
-var FORCELOAD = false;
-var NEW_DEBUG = false;
+var FORCELOAD = true;
+var NEW_DEBUG = true;
 var DEBUG = false;
 var DEBUG_NEW = false;
 var DEBUG_LCD = 0;
@@ -216,6 +216,7 @@ var GRIDMAP =[	[undefined, undefined, undefined, undefined, 'pads_0', 'pads_1', 
 				['keys_8', 'keys_9', 'keys_10', 'keys_11', 'keys_12', 'keys_13', 'keys_14', 'keys_15'],
 				['keys2_8', 'keys2_9', 'keys2_10', 'keys2_11', 'keys2_12', 'keys2_13', 'keys2_14', 'keys2_15']]
 
+var BUTTON_COLORS = [0, 0, 3, 3, 5, 0, 4, 4];
 
 function setup_colors()
 {
@@ -230,9 +231,9 @@ function setup_translations()
 		mod.Send( 'add_translation', 'keys_'+i, 'cntrlr_key', 'cntrlr_keys', i, 0);
 		mod.Send( 'add_translation', 'keys2_'+i, 'cntrlr_key', 'cntrlr_keys2', i, 1);
 
-		mod.Send( 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%8, Math.floor(i/8));
-		mod.Send( 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%8, Math.floor(i/8));
-		mod.Send( 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', i%8, Math.floor(i/8)+2);
+		mod.Send( 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%4, Math.floor(i/4));
+		mod.Send( 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', (i%4)+4, Math.floor(i/4));
+		mod.Send( 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', (i%4)+4, Math.floor(i/4));
 
 
 		mod.Send( 'add_translation', 'pads_'+i, 'code_grid', 'code_pads', i%8, Math.floor(i/8));
@@ -253,8 +254,10 @@ function setup_translations()
 
 	for(var i=0;i<8;i++)
 	{
-		mod.Send( 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', i, 2);
-		mod.Send( 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', i, 3);
+		//mod.Send( 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', (i%4), i/4);
+		mod.Send( 'add_translation', 'buttons_'+i, 'key', 'keys', i);
+		
+		//mod.Send( 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', (i%4), (i/4)+2);
 
 		mod.Send( 'add_translation', 'buttons_'+i, 'cntrlr_encoder_button_grid', 'cntrlr_buttons', i%4, Math.floor(i/4));
 		//mod.Send( 'add_translation', 'extras_'+i, 'base_grid', i, 3);
@@ -276,8 +279,8 @@ var Mod = ModComponent.bind(script);
 
 function init()
 {
-	mod = new Mod(script, 'hex', unique, false);
-	mod.debug = debug;
+	mod = new Mod(script, 'accent', unique, false);
+	//mod.debug = debug;
 	mod.wiki_addy = WIKI;
 	mod_finder = new LiveAPI(mod_callback, 'this_device');
 	mod.assign_api(mod_finder);
@@ -287,10 +290,10 @@ function mod_callback(args)
 {
 	if((args[0]=='value')&&(args[1]!='bang'))
 	{
-		debug('mod callback:', args);
+		//debug('mod callback:', args);
 		if(args[1] in script)
 		{
-			debug('in script:', args[1]);
+			//debug('in script:', args[1]);
 			script[args[1]].apply(script, args.slice(2));
 		}
 		if(args[1]=='disconnect')
@@ -313,9 +316,10 @@ function initialize(val)
 	{
 		//live_set = new LiveAPI(this.patcher, cb_tempo, 'live_set');
 		//live_set.property = 'tempo';
-		debug('simple init\n');
+		debug('accent init\n');
 		setup_translations();
 		setup_colors();
+		mod.Send('set_legacy', 0);
 		for(var i in Vars)
 		{
 			script[Vars[i]] = this.patcher.getnamed(Vars[i]);
@@ -374,8 +378,12 @@ function initialize(val)
 		select_pattern(0);
 		mod.Send('receive_device', 'set_mod_device_type', 'Simple');
 		mod.Send('receive_device', 'set_number_params', 16);
-		var i=3;do{
-			mod.Send('to_wheel', i, 2, 'mode', 0);
+		//needs changed---
+		//var i=3;do{
+		//	mod.Send('to_wheel', i, 2, 'mode', 0);
+		//}while(i--);
+		var i=8;do{
+			mod.Send('key', 'value', i, BUTTON_COLORS[i]);
 		}while(i--);
 		change_transpose(36);
 		post("Accent initialized.\n");
@@ -588,6 +596,7 @@ function anything()
 //this sorts grid presses
 function _grid(x, y, val)
 {
+	debug('grid', x, y, val)
 	if(y<4)
 	{
 		if(x>3)
@@ -624,26 +633,26 @@ function _base_grid(x, y, val)
 	debug('_base_grid', x, y, val);
 	if(shifted)
 	{
-		if(y<2)
+		if(x>3)
 		{
-			key_in(x + 8*(y), val);
+			key_in(x%4 + (4*(y)), val);
 		}
-		else if(y<3)
+		else if(y>1)
 		{
-			button_in(x%4, Math.floor(x/4), val);
+			button_in(x, Math.floor(x/4)-2, val);
 		}
-		else if((y==3)&&(val>0))
+		else if(val>0)
 		{
-			keymodegui.message('int', x);
+			keymodegui.message('int', x + (y*4));
 		}
 	}
-	else if (y<2)
+	else if (x<4)
 	{
-		grid_in(x%4, Math.floor(x/4)+(y*2), val);
+		grid_in(x, y, val);
 	}
-	else if (y<4)
+	else
 	{
-		key_in(x + 8*(y), val);
+		key_in((x%4) + (4*y) + 16, val);
 	}
 }
 
@@ -665,7 +674,10 @@ function _cntrlr_encoder_button_grid(x, y, val)
 
 function _shift(val)
 {
-	if(DEBUG){post('shift:', val, '\n');}
+	debug('shift:', val);
+	var i=8;do{
+		mod.Send('key', i, BUTTON_COLORS[i]);
+	}while(i--);
 	if(val!=shifted)
 	{
 		shifted = val;
@@ -684,6 +696,12 @@ function _shift(val)
 		refresh_keys();
 		update_time_bg();
 	}
+}
+
+function _key(x, val)
+{
+	debug('key', x, val);
+	button_in(x%4, Math.floor(x/4), val);
 }
 
 //distribute presses received from mod.js
@@ -2439,5 +2457,4 @@ function hideerror()
 	}
 }
 
-forceload('godamn it');
 forceload(this);

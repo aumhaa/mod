@@ -551,7 +551,7 @@ function _c_button(x, y, val)
 function _grid(x, y, val)
 {
 	var num = x+(y*8);
-	if(DEBUG){post('grid', x, y, val, '\n');}
+	debug('grid', x, y, val);
 	if((num>7)&&(num<11))
 	{
 		grid_rows[num-8].pressed = val>0;
