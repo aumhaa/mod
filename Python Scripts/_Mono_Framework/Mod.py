@@ -770,7 +770,7 @@ class ModHandler(CompoundComponent):
 	
 
 	def _receive_channel(self, x, value):
-		#debug('_receive_channel: %s %s' % (x, value))
+		#debug('_receive_channel:', x, value)
 		if not self._channel_value.subject is None and x < self._channel_value.subject.width():
 			self._channel_value.subject.send_value(x, 0, self._colors[value], True)
 	
@@ -1184,6 +1184,9 @@ class ModClient(NotifyingControlElement):
 		#self._device_listener.subject = self.device.canonical_parent
 		#self._device_parent.add_devices_listener(self._device_listener)
 		#self._parent._host.schedule_message(5, update_handlers())
+		if self._device_parent.devices_has_listener(self._device_listener):
+			self._device_parent.remove_devices_listener(self._device_listener)
+		self._device_parent.add_devices_listener(self._device_listener)
 		self._parent._task_group.add(sequence(delay(5), self._parent.update_handlers))
 	
 

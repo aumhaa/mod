@@ -902,13 +902,13 @@ function refresh_keys()
 	if(!alt)
 	{
 		var x=7;do{
-			mod.Send( 'key', x, (x==grid_mode)*8);
+			mod.Send( 'key', 'value', x, (x==grid_mode)*8);
 		}while(x--);
 	}
 	else
 	{
 		var i=3;do{
-			mod.Send( 'key', i, (i==(Tvel))*(TVEL_COLORS[i]));
+			mod.Send( 'key', 'value', i, (i==(Tvel))*(TVEL_COLORS[i]));
 		}while(i--);
 	}
 }

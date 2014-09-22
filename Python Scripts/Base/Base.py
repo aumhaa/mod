@@ -11,7 +11,6 @@ from itertools import imap, chain, starmap
 from _Framework.Dependency import inject
 from _Framework.ButtonElement import ButtonElement
 from _Framework.ButtonMatrixElement import ButtonMatrixElement
-#from _Framework.ChannelStripComponent import ChannelStripComponent
 from _Framework.ClipSlotComponent import ClipSlotComponent
 from _Framework.CompoundComponent import CompoundComponent
 from _Framework.ControlElement import ControlElement, ControlElementClient
@@ -21,7 +20,6 @@ from _Framework.DisplayDataSource import DisplayDataSource
 from _Framework.DeviceComponent import DeviceComponent
 from _Framework.EncoderElement import EncoderElement
 from _Framework.InputControlElement import *
-#from _Framework.MixerComponent import MixerComponent
 from _Framework.ModeSelectorComponent import ModeSelectorComponent
 from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.SceneComponent import SceneComponent
@@ -546,7 +544,7 @@ class BaseModHandler(ModHandler):
 	
 
 	def set_base_grid(self, grid):
-		debug('set base grid:', grid)
+		#debug('set base grid:', grid,)
 		old_grid = self._base_grid_value.subject
 		if old_grid:
 			for button, _ in old_grid.iterbuttons():
@@ -954,12 +952,12 @@ class Base(ControlSurface):
 													alt_button = self._button[6],
 													lock_button = self._button[7],
 													key_buttons = self._runner_matrix,)
-		self.modhandler.alt_layer = AddLayerMode(self.modhandler, Layer(priority = 8,
+		self.modhandler.alt_layer = AddLayerMode(self.modhandler, Layer(priority = 6,
 													device_selector_matrix = self._touchpad_matrix,))
-		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
+		self.modhandler.legacy_shift_layer = AddLayerMode(self.modhandler, Layer(priority = 6,
 													channel_buttons = self._base_grid.submatrix[:6, :1],
 													nav_matrix = self._base_grid.submatrix[6:8, :],))
-		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(priority = 7,
+		self.modhandler.shift_layer = AddLayerMode(self.modhandler, Layer(priority = 6,
 													key_buttons = self._touchpad_matrix,
 													background_buttons = self._runner_matrix))
 		self.modhandler._device_selector._selection_layer = AddLayerMode(self.modhandler._device_selector, Layer(priority = 6,
