@@ -8,7 +8,7 @@ var script = this;
 
 var DEBUG = false;
 var SHOW_STORAGE = false;
-var FORCELOAD = false;
+var FORCELOAD = true;
 
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
@@ -541,10 +541,8 @@ function _dissolve()
 	post('Plinko dissolved.\n');	   
 }
 
-function _push_grid(x, y, val)
-{
-	_grid(x, y, val);
-}
+_push_grid = _grid;
+_base_grid = _grid;
 
 function _grid(x, y, val)
 {

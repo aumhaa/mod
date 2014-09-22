@@ -1,44 +1,71 @@
-autowatch=1;
+autowatch = 1;
 
-outlets=2;
-
-var DEBUG = false;
-var FORCELOAD = false;
-
+var script = this;
 var unique = jsarguments[1];
 var protocol = 1;
 var prefix="256";
-var in_port = 8000;
-var out_port = 8080;
+var in_port = parseInt(unique) + 10000;
+var out_port = 8000;
 var slash=new RegExp(/^\//);
 var space=new RegExp(/^\S/);
 
 var xquads = [{'X':0, 'Y':0}, {'X':8, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':8}];
 var yquads = [{'X':0, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':0}, {'X':8, 'Y':8}];
 
-debug('newmodjs');
+var FORCELOAD = false;
+var DEBUG = false;
 
-function debug()
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
+
+var colors = {'Aumpad': ['fill',  127],
+				'Launchpad': ['fill', 127],
+				'Monochrome': ['fill', 127],
+				'OhmRGB': ['fill', 127]};
+
+
+var Mod = ModComponent.bind(script);
+
+function init()
 {
-	if(DEBUG)
+	debug('init modlink_proto.js');
+	mod = new Mod(script, 'modlink', unique, false);
+	//mod.debug = debug;
+	//mod.wiki_addy = WIKI;
+	mod_finder = new LiveAPI(mod_callback, 'this_device');
+	mod.assign_api(mod_finder);
+}
+
+function mod_callback(args)
+{
+	if((args[0]=='value')&&(args[1]!='bang'))
 	{
-		var args = arrayfromargs(arguments);
-		for(var i in args)
+		//debug('mod callback:', args);
+		if(args[1] in script)
 		{
-			if(args[i] instanceof Array)
-			{
-				args[i] = args[i].join(' ');
-			}
+			//debug('in script:', args[1]);
+			script[args[1]].apply(script, args.slice(2));
 		}
-		post('debug->', args, '\n');
+		if(args[1]=='disconnect')
+		{
+			mod.restart.schedule(3000);
+		}
 	}
 }
 
-function init(val)
+function alive(val)
 {
+	debug('alive', val);
+	mod.Send('set_legacy', 1);
+	initialize(val);
+}
+
+function initialize(val)
+{
+	debug('init');
 	if(val)
 	{
-		loadbang();
+		this.patcher.getnamed('service').message('name', 'modlink_'+unique);
 		set_prefix(this.patcher.getnamed('prefixbox').getvalueof().toString());
 		set_inport(this.patcher.getnamed('inportbox').getvalueof());
 		set_outport(this.patcher.getnamed('outportbox').getvalueof());
@@ -46,14 +73,9 @@ function init(val)
 	}
 }
 
-function loadbang()
-{
-	this.patcher.getnamed('service').message('name', 'modlink_'+unique);
-	this.patcher.getnamed('service').message('bang');
-}
-
 function set_prefix(str)
 {
+	debug('set_prefix', str);
 	prefix=str.replace(slash, "");
 	debug("prefix:", prefix);
 	change_protocol(protocol);
@@ -61,7 +83,8 @@ function set_prefix(str)
 
 function set_inport(val)
 {
-	if(val == 'init')
+	debug('set_inport', val);
+	if(!val)
 	{
 		val = 10000 + parseInt(unique);
 		this.patcher.getnamed('inportbox').message('set', val);
@@ -74,6 +97,7 @@ function set_inport(val)
 
 function set_outport(val)
 {
+	debug('set_outport', val);
 	out_port = val;
 	this.patcher.getnamed('udpout').message('port', out_port);
 }
@@ -85,10 +109,12 @@ function change_protocol(val)
 	switch(protocol)
 	{
 		case 0:
-			this.patcher.getnamed('prependout').message('set', '/'+prefix+'/press');
+			//this.patcher.getnamed('prependout').message('set', '/'+prefix+'/press');
+			outprefix = '/'+prefix+'/press';
 			break;
 		case 1:
-			this.patcher.getnamed('prependout').message('set', '/'+prefix+'/grid/key');
+			//this.patcher.getnamed('prependout').message('set', '/'+prefix+'/grid/key');
+			outprefix = '/'+prefix+'/grid/key';
 			break;
 	}
 }
@@ -97,7 +123,7 @@ function anything()
 {
 	var args=arrayfromargs(arguments);
 	var str=messagename.split("/");
-	debug('str:', str);
+	debug('anything:', str);
 	for (i in str)
 	{
 		str[i].replace(space, "");
@@ -108,28 +134,28 @@ function anything()
 		switch (str[2])
 		{
 			case "led":	   
-				outlet(0, args[0], args[1], args[2]);
+				mod.Send('grid', 'value', args[0], args[1], args[2]);
 				break;
 			case "clear":
 				for(var x=0;x<15;x++)
 				{
 					for(var y=0;y<15;y++)
 					{
-						outlet(0, x, y, 0);
+						mod.Send('grid', 'value', x, y, 0);
 					}
 				}
 			case "led_col":
 				var dec1=dectobin(args[1]);
 				for(var i=0;i<dec1.length;i++)
 				{
-					outlet(0, parseInt(args[0]), i, dec1[i]);
+					mod.Send('grid', 'value', parseInt(args[0]), i, dec1[i]);
 				}
 				break;
 			case "led_row":
 				var dec1=dectobin(args[1]);
 				for(var i=0;i<dec1.length;i++)
 				{
-					outlet(0,  i, parseInt(args[0]), dec1[i]);
+					mod.Send('grid', 'value',  i, parseInt(args[0]), dec1[i]);
 				}
 				break;
 			case "prefix":
@@ -157,14 +183,14 @@ function anything()
 							switch(str[4])
 							{
 								case 'set':
-									outlet(0, args[0], args[1], args[2]);
+									mod.Send('grid', 'value', args[0], args[1], args[2]);
 									break;
 								case 'all':
 									for(var x=0;x<15;x++)
 									{
 										for(var y=0;y<15;y++)
 										{
-											outlet(0, x, y, args[0]);
+											mod.Send('grid', 'value', x, y, args[0]);
 										}
 									}
 									break;
@@ -180,7 +206,7 @@ function anything()
 											{
 												X = xOff+index;
 												Y = yOff+i;
-												outlet(0, X%16, Y%16, dec1[i]);
+												mod.Send('grid', 'value', X%16, Y%16, dec1[i]);
 											}
 										}
 									}
@@ -197,7 +223,7 @@ function anything()
 											{
 												X = xOff+i+xquads[index].X;
 												Y = yOff+xquads[index].Y;
-												outlet(0, X%16, Y%16, dec1[i]);
+												mod.Send('grid', 'value', X%16, Y%16, dec1[i]);
 											}
 										}
 									}
@@ -215,7 +241,7 @@ function anything()
 											{
 												X = xOff+yquads[index].X;
 												Y = yOff+i+yquads[index].Y;
-												outlet(0, X%16, Y%16, dec1[i]);
+												mod.Send('grid', 'value', X%16, Y%16, dec1[i]);
 											}
 										}
 									}
@@ -276,15 +302,12 @@ function dectobin(arg)
 	return dec;
 }
 
-
-//used to reinitialize the script immediately on saving; 
-//can be turned on by changing FORCELOAD to 1;
-//should only be turned on while editing
-function forceload()
+function grid(x, y, val)
 {
-	if(FORCELOAD){init(1);}
+	debug('grid', x, y, val);
+	outlet(0, outprefix, x, y, val ? 1 : 0);
 }
 
-forceload();
+forceload(this);
 
 
