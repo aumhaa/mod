@@ -79,7 +79,7 @@ function NodeComponent(name, num, poly)
 		if(parameter in self.obj)
 		{
 			num = num||self._edit_plane;
-			self[parameter][i] = val;
+			self[parameter][num] = val;
 			self.obj[parameter].setvalueof(self[parameter]);
 			plinko2.setstoredvalue('poly.'+(self._num)+'::'+parameter, preset, self[parameter]);
 		}
