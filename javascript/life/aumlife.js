@@ -6,8 +6,17 @@ outlets = 4;
 var script = this;
 
 var DEBUG = false;
+var FORCELOAD = false;
 
-var alive = false;
+var debug = (DEBUG&&Debug) ? Debug : function(){};
+var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
+
+var finder;
+var mod;
+var mod_finder;
+var Mod = ModComponent.bind(script);
+
+var Alive = false;
 var slots_init = false;
 var unique = jsarguments[1];
 var alt_val = 0;
@@ -42,8 +51,37 @@ var storage;
 
 function init()
 {
-	storage = this.patcher.getnamed('life_preset');
-	alive = true;
+	mod = new Mod(script, 'life', unique, false);
+	//mod.debug = debug;
+	mod_finder = new LiveAPI(mod_callback, 'this_device');
+	mod.assign_api(mod_finder);
+}
+
+function mod_callback(args)
+{
+	if((args[0]=='value')&&(args[1]!='bang'))
+	{
+		//debug('mod callback:', args);
+		if(args[1] in script)
+		{
+			script[args[1]].apply(script, args.slice(2));
+		}
+		if(args[1]=='disconnect')
+		{
+			mod.restart.schedule(3000);
+		}
+	}
+}
+
+function alive(val)
+{
+	Alive = true;
+	initialize(val);
+}
+
+function initialize()
+{
+	storage = this.patcher.getnamed('life');
 	for(var i=0;i<16;i++)
 	{
 		outlet(0, i, 14, 6 - steps[i]);
@@ -53,23 +91,30 @@ function init()
 	{
 		outlet(0, i+12, 15, mute[i] * colors[i]);
 	}
-	outlet(2, 'key', 1, 1);
+	mod.Send('set_legacy', 1);
+	mod.Send('key', 'value', 1, 1);
 	display_gameboard();
-	if(DEBUG){post('here...\n');}
 	storage.message('getslotlist');
 }
 
 function anything()
 {
 	args = arrayfromargs(messagename, arguments);
-	if(DEBUG){post('anything args', args, '\n');}
+	debug('anything args', args);
 	switch(inlet)
 	{
 		case 0:
 			grid(args[0], args[1], args[2]);
 			break;
 		case 1:
-			key(args[0]);
+			if(args[0]<5)
+			{
+				plane = args[0]-1;
+				var i=4;do{
+					mod.Send('key', 'value', i, i==plane ? i+1 : 0);
+				}while(i--);
+				display_gameboard();
+			}
 			break;
 		case 2:
 			step(args[0]);
@@ -81,9 +126,9 @@ function step(num)
 {
 	if(alt_val == 0)
 	{
-		outlet(2, 'mask', 'grid', last_mask, 14, -1);
+		mod.Send('grid', 'mask', last_mask, 14, -1);
 		last_mask = num;
-		outlet(2, 'mask', 'grid', num, 14, 0);
+		mod.Send('grid', 'mask', num, 14, 0);
 		if(num==0)
 		{
 			if(imprint > 0)
@@ -105,7 +150,7 @@ function step(num)
 			outlet(1, 'bang');
 			if(gravity > 0)
 			{
-				if(DEBUG){post('falling....\n');}
+				debug('falling....');
 				repos.matrixcalc([lifeset,falling],temp);
 				lifeset.frommatrix(temp);
 			}	 
@@ -149,14 +194,16 @@ function display_gameboard()
 		}
 	}
 }
-			
-function key(num)
+
+function key(num, val)
 {
-	if(num<5)
-	{
-		plane = num - 1;
-		display_gameboard();
-	}
+	messnamed(unique+'key', num, val);
+}
+
+function key_out(keyword, num, val)
+{
+	debug('key_out', num, val);
+	mod.Send('key', 'value', num, val);
 }
 
 function grid(x, y, val)
@@ -215,12 +262,17 @@ function grid(x, y, val)
 		{
 			if(alt_val > 0)
 			{
-				if(DEBUG){post('from grid store\n');}
+				debug('from grid store');
 				store_preset(preset);
 			}
 			recall_preset(x);
 		}
 	}
+}
+
+function grid_out(x, y, val)
+{
+	mod.Send('grid', 'value', x, y, val);
 }
 
 function alt(val)
@@ -231,13 +283,13 @@ function alt(val)
 		//display_presets();
 		for(var i=0;i<14;i++)
 		{
-			outlet(2, 'batch', 'row', i, 0);
+			mod.Send('grid', 'row', i, 0);
 		}
 		recall_preset(preset);
 	}
 	else
 	{
-		if(DEBUG){post('from alt store\n');}
+		debug('from alt store');
 		store_preset(preset);
 		messnamed(unique+'refresh', 'bang');
 	}
@@ -246,13 +298,13 @@ function alt(val)
 function store_preset(num)
 {
 	storage.message('store', num);
-	if(DEBUG){post('store_preset', num, '\n');}
+	debug('store_preset', num);
 }
 
 function recall_preset(num)
 {
 	preset = num;
-	if(DEBUG){post('recall_preset', num, '\n');}
+	debug('recall_preset', num);
 	for(var j=1;j<11;j++)
 	{
 		outlet(0, j, 15, Math.floor(j==preset) + 4);
@@ -263,12 +315,12 @@ function recall_preset(num)
 
 function slotlist()
 {
-	if(alive)
+	if(Alive)
 	{
 		var args = arrayfromargs(arguments);
 		if(slots_init == false)
 		{
-			if(DEBUG){post('initializing presets\n');}
+			debug('initializing presets');
 			for(var i=1;i<11;i++)
 			{
 				var exists = false;
@@ -281,21 +333,21 @@ function slotlist()
 				}
 				if(exists == false)
 				{
-					if(DEBUG){post('resetting preset', i, '\n');}
+					debug('resetting preset', i);
 					outlet(3, 'clear');
 					store_preset(i);
 				}
 			}
 			slots_init = true;
 		}		 
-		if(DEBUG){post('slotlist', args, '\n');}
+		debug('slotlist', args);
 		recall_preset(1);
 	}
 }
 
 function recall(num)
 {
-	if(DEBUG){post('recalled', num, '\n');}
+	debug('recalled', num);
 	if(alt_val == 0)
 	{
 		//display_presets();
@@ -305,11 +357,11 @@ function recall(num)
 
 function preset_data(x, y, val)
 {
-	if(DEBUG){post('preset_data', x, y, val, '\n');}
+	debug('preset_data', x, y, val);
 	if(alt_val>0)
 	{
-		if(DEBUG){post('outlet 0', x, y, val, '\n');}
-		outlet(2, 'grid', x, y, Math.floor(val>0)*6);
+		debug('grid value', x, y, val);
+		mod.Send('grid', 'value', x, y, Math.floor(val>0)*6);
 	}
 	else if(alt_val==0)
 	{
@@ -318,7 +370,7 @@ function preset_data(x, y, val)
 			cell = lifeset.getcell(x, y);
 			cell[plane] = 255;
 			lifeset.setcell2d(x, y, cell[0], cell[1], cell[2], cell[3]);
-			if(DEBUG){post('setcell', x, y, val);}
+			debug('setcell', x, y, val);
 		}
 		if((x==15)&&(y==13))
 		{
@@ -354,7 +406,7 @@ function set_imprint(val)
 function pattrstorage()
 {
 	args=arrayfromargs(arguments);
-	if(DEBUG){post('pattrstorage', args, '\n');}
+	debug('pattrstorage', args);
 }
 
 /*function display_presets()
@@ -362,6 +414,5 @@ function pattrstorage()
 	storage.message('getslotlist');
 }*/
 
-
-
+forceload(this);
 	

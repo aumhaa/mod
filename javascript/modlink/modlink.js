@@ -133,7 +133,7 @@ function anything()
 				}
 				break;
 			case "prefix":
-				this.patcher.getnamed('prefixbox').message('set', args[0]);
+				this.patcher.getnamed('prefixbox').message('set', '/'+args[0]);
 				this.patcher.getnamed('prefixbox').message('bang');
 				//outlet(0, "/sys/"+prefix);  //causes feedback loop
 				break;
@@ -255,9 +255,12 @@ function anything()
 								this.patcher.getnamed('outportbox').message('bang');
 								break;
 						}
+						this.patcher.getnamed('udpout').message('/sys/id', unique);
+						this.patcher.getnamed('udpout').message('/sys/size', 16, 16);
+						this.patcher.getnamed('udpout').message('/sys/host', 'localhost');
 						this.patcher.getnamed('udpout').message('/sys/port', out_port);
 						this.patcher.getnamed('udpout').message('/sys/prefix', '/'+prefix);
-						this.patcher.getnamed('udpout').message('/sys/id', unique);
+						this.patcher.getnamed('udpout').message('/sys/rotation', 0);
 						break;
 				}
 				break;

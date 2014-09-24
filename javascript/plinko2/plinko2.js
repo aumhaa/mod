@@ -6,9 +6,9 @@ inlets = 1;
 var script = this;
 
 
-var DEBUG = false;
+var DEBUG = true;
 var SHOW_STORAGE = false;
-var FORCELOAD = true;
+var FORCELOAD = false;
 
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
@@ -541,14 +541,15 @@ function _dissolve()
 	post('Plinko dissolved.\n');	   
 }
 
-_push_grid = _grid;
-_base_grid = _grid;
+push_grid = _grid;
+base_grid = _grid;
 
 function _grid(x, y, val)
 {
 	//var args = arrayfromargs(arguments);
 	matrix.button[x][y].pressed = val>0;
 	debug('_grid', x, y, val);
+	val = val ? 1 : 0;
 	if((pressed<0)&&(val))								//new press, nothing held
 	{
 		if(trigger_mode)								//fire a particle
@@ -590,6 +591,7 @@ function _grid(x, y, val)
 		{
 			var num = (x + (y*16));
 			var dir = coordMath.indexOf(num - pressed);
+			debug('dir is:', dir);
 			var x_offset = (x<4)*4;
 			if(dir > -1)									//press is surrounding node
 			{

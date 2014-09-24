@@ -3,11 +3,12 @@
 		"fileversion" : 1,
 		"appversion" : 		{
 			"major" : 6,
-			"minor" : 0,
-			"revision" : 5
+			"minor" : 1,
+			"revision" : 8,
+			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 119.0, 64.0, 1220.0, 806.0 ],
+		"rect" : [ 0.0, 44.0, 868.0, 496.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
 		"default_fontsize" : 12.0,
@@ -30,6 +31,7 @@
 				"box" : 				{
 					"fontname" : "Andale Mono",
 					"fontsize" : 12.0,
+					"frgb" : 0.0,
 					"id" : "obj-2",
 					"linecount" : 2,
 					"maxclass" : "comment",
@@ -38,7 +40,7 @@
 					"patching_rect" : [ 372.0, 146.0, 150.0, 33.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 331.0, 145.0, 187.0, 20.0 ],
-					"text" : "mod_b994 port by amounra"
+					"text" : "mod_b996 port by amounra"
 				}
 
 			}
@@ -96,6 +98,7 @@
 				"box" : 				{
 					"fontname" : "Andale Mono",
 					"fontsize" : 12.0,
+					"frgb" : 0.0,
 					"id" : "obj-29",
 					"maxclass" : "comment",
 					"numinlets" : 1,
@@ -111,6 +114,7 @@
 				"box" : 				{
 					"fontname" : "Andale Mono",
 					"fontsize" : 12.0,
+					"frgb" : 0.0,
 					"id" : "obj-27",
 					"maxclass" : "comment",
 					"numinlets" : 1,
@@ -126,6 +130,7 @@
 				"box" : 				{
 					"fontname" : "Andale Mono",
 					"fontsize" : 30.0,
+					"frgb" : 0.0,
 					"id" : "obj-24",
 					"maxclass" : "comment",
 					"numinlets" : 1,
@@ -287,8 +292,9 @@
 						"fileversion" : 1,
 						"appversion" : 						{
 							"major" : 6,
-							"minor" : 0,
-							"revision" : 5
+							"minor" : 1,
+							"revision" : 8,
+							"architecture" : "x86"
 						}
 ,
 						"rect" : [ 172.0, 98.0, 1018.0, 665.0 ],
@@ -662,6 +668,7 @@
 									"outlettype" : [ "", "" ],
 									"patching_rect" : [ 367.0, 511.0, 111.0, 20.0 ],
 									"saved_object_attributes" : 									{
+										"filename" : "monolink.js",
 										"parameter_enable" : 0
 									}
 ,
@@ -963,28 +970,21 @@
 								}
 
 							}
- ],
-						"dependency_cache" : [ 							{
-								"name" : "monolink.js",
-								"bootpath" : "/Applications/Max5.19/Cycling '74/aumhaa_blocks_orig/js",
-								"type" : "TEXT",
-								"implicit" : 1
-							}
  ]
 					}
 ,
 					"patching_rect" : [ 15.0, 34.0, 75.0, 20.0 ],
 					"saved_object_attributes" : 					{
-						"digest" : "",
+						"default_fontface" : 0,
 						"default_fontname" : "Andale Mono",
-						"fontname" : "Andale Mono",
-						"tags" : "",
 						"default_fontsize" : 12.0,
 						"description" : "",
-						"globalpatchername" : "",
+						"digest" : "",
 						"fontface" : 0,
+						"fontname" : "Andale Mono",
 						"fontsize" : 12.0,
-						"default_fontface" : 0
+						"globalpatchername" : "",
+						"tags" : ""
 					}
 ,
 					"text" : "p routing"
@@ -1030,74 +1030,106 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-19::obj-68" : [ "num", "num", 0 ],
-			"obj-16::obj-37::obj-12" : [ "velocity[3]", "velocity", 0 ],
-			"obj-14::obj-67" : [ "type[4]", "type", 0 ],
-			"obj-13::obj-68" : [ "num[5]", "num", 0 ],
-			"obj-18::obj-68" : [ "num[1]", "num", 0 ],
-			"obj-19::obj-37::obj-21" : [ "c_mute", "c_mute", 0 ],
-			"obj-17::obj-68" : [ "num[2]", "num", 0 ],
-			"obj-19::obj-37::obj-7" : [ "duration", "duration", 0 ],
-			"obj-12::obj-68" : [ "num[6]", "num", 0 ],
-			"obj-10::obj-68" : [ "num[7]", "num", 0 ],
-			"obj-16::obj-37::obj-5" : [ "note[3]", "note", 0 ],
-			"obj-16::obj-67" : [ "type[3]", "type", 0 ],
-			"obj-14::obj-68" : [ "num[4]", "num", 0 ],
-			"obj-19::obj-67" : [ "type", "type", 0 ],
+			"obj-10::obj-122" : [ "matrixctrl", "matrixctrl", 0 ],
+			"obj-13::obj-37::obj-7" : [ "duration[5]", "duration", 0 ],
 			"obj-13::obj-67" : [ "type[5]", "type", 0 ],
-			"obj-18::obj-37::obj-5" : [ "note[1]", "note", 0 ],
-			"obj-17::obj-67" : [ "type[2]", "type", 0 ],
-			"obj-12::obj-37::obj-21" : [ "c_mute[6]", "c_mute", 0 ],
+			"obj-19::obj-37::obj-21" : [ "c_mute", "c_mute", 0 ],
+			"obj-14::obj-33" : [ "number[7]", "number[1]", 0 ],
+			"obj-16::obj-37::obj-21" : [ "c_mute[3]", "c_mute", 0 ],
+			"obj-19::obj-33" : [ "number[14]", "number[1]", 0 ],
+			"obj-16::obj-122" : [ "matrixctrl[9]", "matrixctrl", 0 ],
+			"obj-17::obj-37::obj-5" : [ "note[2]", "note", 0 ],
+			"obj-13::obj-112" : [ "matrixctrl[4]", "matrixctrl[1]", 0 ],
+			"obj-18::obj-37::obj-12" : [ "velocity[1]", "velocity", 0 ],
+			"obj-10::obj-67" : [ "type[7]", "type", 0 ],
+			"obj-18::obj-68" : [ "num[1]", "num", 0 ],
+			"obj-18::obj-59" : [ "number[12]", "number", 0 ],
+			"obj-12::obj-33" : [ "number[2]", "number[1]", 0 ],
+			"obj-17::obj-33" : [ "number[11]", "number[1]", 0 ],
+			"obj-13::obj-37::obj-5" : [ "note[5]", "note", 0 ],
+			"obj-17::obj-112" : [ "matrixctrl[10]", "matrixctrl[1]", 0 ],
+			"obj-10::obj-59" : [ "number", "number", 0 ],
+			"obj-13::obj-59" : [ "number[4]", "number", 0 ],
+			"obj-16::obj-37::obj-5" : [ "note[3]", "note", 0 ],
+			"obj-19::obj-37::obj-5" : [ "note", "note", 0 ],
+			"obj-14::obj-37::obj-21" : [ "c_mute[4]", "c_mute", 0 ],
+			"obj-16::obj-33" : [ "number[9]", "number[1]", 0 ],
+			"obj-14::obj-122" : [ "matrixctrl[6]", "matrixctrl", 0 ],
+			"obj-19::obj-37::obj-7" : [ "duration", "duration", 0 ],
+			"obj-14::obj-68" : [ "num[4]", "num", 0 ],
+			"obj-17::obj-37::obj-7" : [ "duration[2]", "duration", 0 ],
 			"obj-10::obj-37::obj-21" : [ "c_mute[7]", "c_mute", 0 ],
+			"obj-17::obj-67" : [ "type[2]", "type", 0 ],
+			"obj-19::obj-67" : [ "type", "type", 0 ],
+			"obj-18::obj-37::obj-7" : [ "duration[1]", "duration", 0 ],
+			"obj-19::obj-112" : [ "matrixctrl[15]", "matrixctrl[1]", 0 ],
+			"obj-12::obj-37::obj-12" : [ "velocity[6]", "velocity", 0 ],
+			"obj-12::obj-112" : [ "matrixctrl[3]", "matrixctrl[1]", 0 ],
+			"obj-12::obj-122" : [ "matrixctrl[2]", "matrixctrl", 0 ],
+			"obj-18::obj-122" : [ "matrixctrl[13]", "matrixctrl", 0 ],
+			"obj-14::obj-59" : [ "number[6]", "number", 0 ],
+			"obj-13::obj-37::obj-21" : [ "c_mute[5]", "c_mute", 0 ],
+			"obj-13::obj-68" : [ "num[5]", "num", 0 ],
 			"obj-16::obj-37::obj-7" : [ "duration[3]", "duration", 0 ],
 			"obj-14::obj-37::obj-12" : [ "velocity[4]", "velocity", 0 ],
-			"obj-14::obj-37::obj-5" : [ "note[4]", "note", 0 ],
-			"obj-13::obj-37::obj-21" : [ "c_mute[5]", "c_mute", 0 ],
-			"obj-19::obj-37::obj-5" : [ "note", "note", 0 ],
+			"obj-14::obj-112" : [ "matrixctrl[7]", "matrixctrl[1]", 0 ],
+			"obj-16::obj-67" : [ "type[3]", "type", 0 ],
+			"obj-19::obj-59" : [ "number[15]", "number", 0 ],
+			"obj-14::obj-67" : [ "type[4]", "type", 0 ],
+			"obj-10::obj-37::obj-5" : [ "note[7]", "note", 0 ],
+			"obj-17::obj-68" : [ "num[2]", "num", 0 ],
+			"obj-10::obj-68" : [ "num[7]", "num", 0 ],
 			"obj-18::obj-37::obj-21" : [ "c_mute[1]", "c_mute", 0 ],
-			"obj-17::obj-37::obj-7" : [ "duration[2]", "duration", 0 ],
-			"obj-12::obj-37::obj-7" : [ "duration[6]", "duration", 0 ],
-			"obj-19::obj-37::obj-12" : [ "velocity", "velocity", 0 ],
-			"obj-12::obj-37::obj-12" : [ "velocity[6]", "velocity", 0 ],
-			"obj-10::obj-37::obj-7" : [ "duration[7]", "duration", 0 ],
-			"obj-10::obj-37::obj-12" : [ "velocity[7]", "velocity", 0 ],
-			"obj-16::obj-68" : [ "num[3]", "num", 0 ],
-			"obj-14::obj-37::obj-7" : [ "duration[4]", "duration", 0 ],
-			"obj-13::obj-37::obj-12" : [ "velocity[5]", "velocity", 0 ],
-			"obj-18::obj-37::obj-12" : [ "velocity[1]", "velocity", 0 ],
-			"obj-13::obj-37::obj-5" : [ "note[5]", "note", 0 ],
-			"obj-18::obj-67" : [ "type[1]", "type", 0 ],
-			"obj-17::obj-37::obj-21" : [ "c_mute[2]", "c_mute", 0 ],
-			"obj-17::obj-37::obj-5" : [ "note[2]", "note", 0 ],
+			"obj-19::obj-68" : [ "num", "num", 0 ],
 			"obj-12::obj-37::obj-5" : [ "note[6]", "note", 0 ],
-			"obj-10::obj-67" : [ "type[7]", "type", 0 ],
-			"obj-16::obj-37::obj-21" : [ "c_mute[3]", "c_mute", 0 ],
-			"obj-14::obj-37::obj-21" : [ "c_mute[4]", "c_mute", 0 ],
-			"obj-13::obj-37::obj-7" : [ "duration[5]", "duration", 0 ],
-			"obj-18::obj-37::obj-7" : [ "duration[1]", "duration", 0 ],
-			"obj-17::obj-37::obj-12" : [ "velocity[2]", "velocity", 0 ],
+			"obj-17::obj-59" : [ "number[10]", "number", 0 ],
+			"obj-12::obj-68" : [ "num[6]", "num", 0 ],
+			"obj-18::obj-112" : [ "matrixctrl[12]", "matrixctrl[1]", 0 ],
+			"obj-13::obj-37::obj-12" : [ "velocity[5]", "velocity", 0 ],
+			"obj-14::obj-37::obj-5" : [ "note[4]", "note", 0 ],
+			"obj-16::obj-68" : [ "num[3]", "num", 0 ],
+			"obj-16::obj-59" : [ "number[8]", "number", 0 ],
+			"obj-17::obj-37::obj-21" : [ "c_mute[2]", "c_mute", 0 ],
+			"obj-19::obj-37::obj-12" : [ "velocity", "velocity", 0 ],
+			"obj-10::obj-37::obj-7" : [ "duration[7]", "duration", 0 ],
+			"obj-18::obj-37::obj-5" : [ "note[1]", "note", 0 ],
+			"obj-12::obj-37::obj-7" : [ "duration[6]", "duration", 0 ],
+			"obj-13::obj-33" : [ "number[5]", "number[1]", 0 ],
 			"obj-12::obj-67" : [ "type[6]", "type", 0 ],
-			"obj-10::obj-37::obj-5" : [ "note[7]", "note", 0 ]
+			"obj-17::obj-122" : [ "matrixctrl[11]", "matrixctrl", 0 ],
+			"obj-16::obj-37::obj-12" : [ "velocity[3]", "velocity", 0 ],
+			"obj-18::obj-33" : [ "number[13]", "number[1]", 0 ],
+			"obj-14::obj-37::obj-7" : [ "duration[4]", "duration", 0 ],
+			"obj-10::obj-112" : [ "matrixctrl[1]", "matrixctrl[1]", 0 ],
+			"obj-16::obj-112" : [ "matrixctrl[8]", "matrixctrl[1]", 0 ],
+			"obj-17::obj-37::obj-12" : [ "velocity[2]", "velocity", 0 ],
+			"obj-10::obj-37::obj-12" : [ "velocity[7]", "velocity", 0 ],
+			"obj-13::obj-122" : [ "matrixctrl[5]", "matrixctrl", 0 ],
+			"obj-19::obj-122" : [ "matrixctrl[14]", "matrixctrl", 0 ],
+			"obj-18::obj-67" : [ "type[1]", "type", 0 ],
+			"obj-12::obj-37::obj-21" : [ "c_mute[6]", "c_mute", 0 ],
+			"obj-10::obj-33" : [ "number[1]", "number[1]", 0 ],
+			"obj-12::obj-59" : [ "number[3]", "number", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
 				"name" : "monolink.js",
-				"bootpath" : "/Applications/Max5.19/Cycling '74/aumhaa_blocks_orig/js",
-				"patcherrelativepath" : "../js",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/xor",
+				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "_xor_part.maxpat",
-				"bootpath" : "/Applications/Max5.19/Cycling '74/aumhaa_blocks_orig/_xor",
-				"patcherrelativepath" : "",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/xor",
+				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "_xor_midi.maxpat",
-				"bootpath" : "/Applications/Max5.19/Cycling '74/aumhaa_blocks_orig/_xor",
-				"patcherrelativepath" : "",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/xor",
+				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}

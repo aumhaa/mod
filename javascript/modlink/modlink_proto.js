@@ -12,8 +12,8 @@ var space=new RegExp(/^\S/);
 var xquads = [{'X':0, 'Y':0}, {'X':8, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':8}];
 var yquads = [{'X':0, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':0}, {'X':8, 'Y':8}];
 
-var FORCELOAD = false;
-var DEBUG = false;
+var FORCELOAD = true;
+var DEBUG = true;
 
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
@@ -25,6 +25,12 @@ var colors = {'Aumpad': ['fill',  127],
 
 
 var Mod = ModComponent.bind(script);
+
+function loadbang()
+{
+	this.patcher.getnamed('service').message('name', 'modlink_'+unique);
+	this.patcher.getnamed('service').message('bang');
+}
 
 function init()
 {
@@ -65,7 +71,6 @@ function initialize(val)
 	debug('init');
 	if(val)
 	{
-		this.patcher.getnamed('service').message('name', 'modlink_'+unique);
 		set_prefix(this.patcher.getnamed('prefixbox').getvalueof().toString());
 		set_inport(this.patcher.getnamed('inportbox').getvalueof());
 		set_outport(this.patcher.getnamed('outportbox').getvalueof());
@@ -159,7 +164,7 @@ function anything()
 				}
 				break;
 			case "prefix":
-				this.patcher.getnamed('prefixbox').message('set', args[0]);
+				this.patcher.getnamed('prefixbox').message('set', '/'+args[0]);
 				this.patcher.getnamed('prefixbox').message('bang');
 				//outlet(0, "/sys/"+prefix);  //causes feedback loop
 				break;
@@ -281,9 +286,12 @@ function anything()
 								this.patcher.getnamed('outportbox').message('bang');
 								break;
 						}
+						this.patcher.getnamed('udpout').message('/sys/id', unique);
+						this.patcher.getnamed('udpout').message('/sys/size', 16, 16);
+						this.patcher.getnamed('udpout').message('/sys/host', 'localhost');
 						this.patcher.getnamed('udpout').message('/sys/port', out_port);
 						this.patcher.getnamed('udpout').message('/sys/prefix', '/'+prefix);
-						this.patcher.getnamed('udpout').message('/sys/id', unique);
+						this.patcher.getnamed('udpout').message('/sys/rotation', 0);
 						break;
 				}
 				break;

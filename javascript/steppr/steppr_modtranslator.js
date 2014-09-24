@@ -9,7 +9,7 @@ setoutletassist(0,"latch messages, msgs from pattrstorage, etc.");
 setoutletassist(1,"to mods");
 setinletassist(0,"to pattrstorage");
 
-var DEBUG = false;
+var DEBUG = true;
 var DEBUG_UPDT = false;
 var DEBUG_LCD = false;
 var DEBUG_NEW = false;
@@ -72,24 +72,36 @@ function setup_translations()
 	There are not currently provisions to dynamically change translations or group assignments once they are made.*/
 
 	//Base stuff:
-	for(var i = 0;i < 16;i++)
+	if(SYNTH)
 	{
-		outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%4, Math.floor(i/4));
-		outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', i%4, Math.floor(i/4));
-		outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', (i%4)+4, Math.floor(i/4));
+		for(var i = 0;i < 16;i++)
+		{
+			outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%8, Math.floor(i/8));
+			outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys', i%8, Math.floor(i/8));
+			outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys2', i%8, Math.floor(i/8)+2);
+		}
+		for(var i=0;i<8;i++)
+		{
+			outlet(0, 'add_translation', 'buttons_'+i, 'key', 'base_buttons', i);
+		}
 	}
-	outlet(0, 'add_translation', 'pads_batch_fold', 'base_grid', 'base_pads', 0, 4);
-	outlet(0, 'add_translation', 'keys_batch_fold', 'base_grid', 'base_keys', 0, 4);
-	outlet(0, 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys2', 0, 8, 4);
-	outlet(0, 'enable_translation_group', 'base_keys', 0);
-	//outlet(0, 'enable_translation_group', 'base_pads', !SYNTH);
-	for(var i=0;i<8;i++)
+	else
 	{
-		outlet(0, 'add_translation', 'buttons_'+i, 'base_grid', 'base_buttons', (i%4)+4, i/4);
-		outlet(0, 'add_translation', 'extras_'+i, 'base_grid', 'base_extras', (i%4)+4, (i/4)+2);
+		for(var i = 0;i < 16;i++)
+		{
+			outlet(0, 'add_translation', 'pads_'+i, 'base_grid', 'base_pads', i%4, Math.floor(i/4));
+			outlet(0, 'add_translation', 'keys_'+i, 'base_grid', 'base_keys', (i%4)+(4*(!SYNTH)), Math.floor(i/4));
+			outlet(0, 'add_translation', 'keys2_'+i, 'base_grid', 'base_keys2', (i%4)+4, Math.floor(i/4));
+		}
+		outlet(0, 'add_translation', 'pads_batch_fold', 'base_grid', 'base_pads', 0, 4);
+		outlet(0, 'add_translation', 'keys_batch_fold', 'base_grid', 'base_keys', 0, 4);
+		outlet(0, 'add_translation', 'keys2_batch_fold', 'base_grid', 'base_keys2', 0, 8, 4);
+		for(var i=0;i<8;i++)
+		{
+			outlet(0, 'add_translation', 'buttons_'+i, 'key', 'base_buttons', i);
+		}
 	}
-	outlet(0, 'enable_translation_group', 'base_buttons', 0);
-	outlet(0, 'enable_translation_group', 'base_extras',  0);
+	outlet(0, 'enable_translation_group', SYNTH ? 'base_pads' : 'base_keys', 0);
 
 	//CNTRLR stuff:
 	for(var i = 0;i < 16;i++)
@@ -126,6 +138,7 @@ function setup_translations()
 	}
 	//outlet(0, 'add_translation', 'buttons_batch', 'grid', 'ohm_buttons', 6);
 	//outlet(0, 'add_translation', 'extras_batch', 'grid', 'ohm_extras', 7);
+
 }
 
 function setup_modtranslations()
@@ -171,30 +184,63 @@ function setup_modtranslations()
 	}		
 }
 
+function key(x, val)
+{
+	ctl('buttons_'+x, val ? 127 : 0);
+}
+
 function base_grid(x, y, val)
 {
-	debug('base_grid', x, y, val);
+	//debug('base_grid', x, y, val);
 	{
-		if(!shifted)
+		if(SYNTH)
 		{
-			if(x < 4)
+			if(!shifted)
 			{
-				ctl('pads_'+(x + (y*4)), val ? 127 : 0);
+				if(y<2)
+				{
+					ctl('keys2_'+(x + (y*8)), val ? 127 : 0);
+				}
+				else
+				{
+					ctl('keys_'+(x + ((y-2)*8)), val ? 127 : 0);
+				}
 			}
 			else
 			{
-				ctl('keys2_'+((x-4) + (y*4)), val ? 127 : 0);
+				if(y<2)
+				{
+					ctl('pads_'+(x + (y*8)), val ? 127 : 0);
+				}
+				else
+				{
+					ctl('buttons_'+(x + ((y-2)*8)), val ? 127 : 0);
+				}
 			}
 		}
 		else
 		{
-			if(x < 4)
+			if(!shifted)
 			{
-				ctl('keys_'+(x + (y*4)), val ? 127 : 0);
+				if(x < 4)
+				{
+					ctl('pads_'+(x + (y*4)), val ? 127 : 0);
+				}
+				else
+				{
+					ctl('keys2_'+((x-4) + (y*4)), val ? 127 : 0);
+				}
 			}
-			else if(y<2)
+			else
 			{
-				ctl('buttons_'+((x-4) + (y*4)), val ? 127 : 0);
+				if(x < 4)
+				{
+					ctl('keys_'+(x + (y*4)), val ? 127 : 0);
+				}
+				else if(y<2)
+				{
+					ctl('buttons_'+((x-4) + (y*4)), val ? 127 : 0);
+				}
 			}
 		}
 	}	
@@ -237,23 +283,24 @@ function grid(x, y, val)
 
 function shift(val)
 {
-	if(DEBUG){post('shift:', val, '\n');}
+	debug('shift:', val);
 	if(val!=shifted)
 	{
 		shifted = val;
-		/*if(SYNTH)
+		if(SYNTH)
 		{
+			outlet(0, 'enable_translation_group', 'base_keys', Math.floor(!shifted));
 			outlet(0, 'enable_translation_group', 'base_pads', Math.floor(shifted));
-			outlet(0, 'enable_translation_group', 'base_keys', Math.floor(!shifted));	
+			outlet(0, 'enable_translation_group', 'base_keys2', Math.floor(!shifted));
 		}
 		else
-		{*/
+		{
 			outlet(0, 'enable_translation_group', 'base_pads', Math.floor(!shifted));
 			outlet(0, 'enable_translation_group', 'base_keys', Math.floor(shifted));
-		//}
-		outlet(0, 'enable_translation_group', 'base_keys2', Math.floor(!shifted));
-		outlet(0, 'enable_translation_group', 'base_buttons',  Math.floor(shifted));
-		outlet(0, 'enable_translation_group', 'base_extras',  Math.floor(shifted));
+			outlet(0, 'enable_translation_group', 'base_keys2', Math.floor(!shifted));
+		}
+		//outlet(0, 'enable_translation_group', 'base_buttons',  Math.floor(shifted));
+		//outlet(0, 'enable_translation_group', 'base_extras',  Math.floor(shifted));
 		update_all();
 	}
 }
@@ -353,7 +400,7 @@ function ctl(){
 	var bval = val>0; //"bit" value - convert to 0/1
 	//var key = a.join(" "); //e.g., "key 1"
 	var key = a[0];
-	if(DEBUG) post("\nCT->>key",key,val); 
+	debug("\nCT->>key",key,val); 
 	if(ctlr.ctls[key]){	   
 		var msgout = ctlr.ctls[key].message;
 		var min = parseInt(ctlr.ctls[key].rangelo);
@@ -362,7 +409,7 @@ function ctl(){
 		var on = ctlr.ctls[key].vel_on;
 		var off = ctlr.ctls[key].vel_off;
 		var sval = parseInt(ctlr.ctls[key].value); //storedvalue
-		if(DEBUG) post("\nCT->>msgout",msgout,ctlr.ctls[key].type,"v",sval);
+		debug("\nCT->>msgout",msgout,ctlr.ctls[key].type,"v",sval);
 		switch(ctlr.ctls[key].type){
 			case 'toggle':
 			//don't care about button release:
@@ -385,7 +432,7 @@ function ctl(){
 				var x = ctlr.ctls[key].matrix_x;
 				var y = ctlr.ctls[key].matrix_y;
 				outlet(1,msgout,x,y,bval);
-				if(DEBUG) post("\nCT-matrix--",x,y,bval);
+				debug("\nCT-matrix--",x,y,bval);
 			}
 			break;
 			
@@ -397,9 +444,9 @@ function ctl(){
 			case 'cycle':
 			//don't want button release:
 			if(bval){
-				if(DEBUG) post("\ncycle",sval,min,max);
+				debug("cycle",sval,min,max);
 				sval = ((1+sval)+min)%max;
-				if(DEBUG) post("\n...after",sval);
+				debug("...after",sval);
 				ctlr.ctls[key].value=sval;
 				outlet(1,msgout,sval);
 			}
@@ -412,7 +459,7 @@ function ctl(){
 			break;
 		}
 	}else{
-		if(DEBUG) post("\nCT-unassigned ctl");		  
+		debug("CT-unassigned ctl");
 	}
 }
 
@@ -422,12 +469,12 @@ function update(){
 	var a = arrayfromargs(arguments);
 	var themess = a[0];
 	var theval = a.slice(1);
-	if(DEBUG) post("\nCT-<<update",themess,"-",theval);
+	debug("CT-<<update",themess,"-",theval);
 	//if there's something latched to this message, let's update the controller's LEDs:
 	if(ctlr.msgs[themess]){
 		//is this a matrix type? key is stored a bit differently with a matrix type:
 		if(ctlr.msgs[themess].matrix){
-			if(DEBUG) post("\nCT-isMATRIX",themess,theval.length);
+			debug("CT-isMATRIX",themess,theval.length);
 			if(theval.length==1){
 				theval = Math.max(theval, 0);
 				theval = [theval,0,1];
@@ -443,7 +490,7 @@ function update(){
 			key=ctlr.msgs[themess][theval[0]][theval[1]];
 			//store the value from the update:
 			ctlr.ctls[key].value = theval;
-			if(DEBUG) post("\nCT-mtx key",key);
+			debug("CT-mtx key",key);
 			if(theval[2]>0){
 				mval = ctlr.ctls[key].vel_on;
 			}else{
@@ -455,7 +502,7 @@ function update(){
 		}else{ //pots, buttons, toggles, encoders, cycle
 		
 			key = ctlr.msgs[themess].control;
-			if(DEBUG) post("\nCT-<<key",key,themess);
+			debug("CT-<<key",key,themess);
 			//store the value from the update:
 			ctlr.ctls[key].value = theval;
 			min = ctlr.ctls[key].rangelo;
@@ -467,7 +514,7 @@ function update(){
 				case 'encoder':
 				//encoder just gets sent the value for an update:
 				mval = Math.floor(127*(theval-min)/range);
-				if(DEBUG) post("\nCT-mval",mval,theval,min,"....",theval-min,range);
+				debug("CT-mval",mval,theval,min,"....",theval-min,range);
 				break;
 				
 				case 'button':
@@ -477,7 +524,7 @@ function update(){
 				}else{
 					mval = ctlr.ctls[key].vel_off;
 				}
-				if(DEBUG) post("\nCT-btns",themess,theval,"--",mval);
+				debug("CT-btns",themess,theval,"--",mval);
 				break;
 				
 				case 'toggle':
@@ -487,7 +534,7 @@ function update(){
 				}else{
 					mval = ctlr.ctls[key].vel_off;
 				}
-				if(DEBUG) post("\nCT-togs",themess,theval,"--",mval);
+				debug("CT-togs",themess,theval,"--",mval);
 				break;
 				
 				//with cycle we make a concession that it could cycle a range of, say, 2-9, so we want to  
@@ -496,7 +543,7 @@ function update(){
 				var min = ctlr.ctls[key].rangelo;
 				//for use with mods.js in Live, non-blinking colors
 				mval = colorsout[theval-min];
-				if(DEBUG) post("\nCT-cycle",themess,theval,"--",mval);
+				debug("CT-cycle",themess,theval,"--",mval);
 				break;
 				
 				}
@@ -547,7 +594,7 @@ function latch(){
 	//then overwrite them with the arguments that are actually provided. (this way we don't have to code different cases for different lengths):
 	for(var i=0;i<a.length;i++){
 		args[pnames[i]]=a[i];
-		//if(DEBUG) post("\nCT-define",i,args[pnames[i]])
+		//debug("CT-define",i,args[pnames[i]])
 	}
 	
 	//setup the ctlr.ctls object which is used to extract a pattr message from a given mod message
@@ -560,14 +607,14 @@ function latch(){
 		//if this key is already assigned to a message, lets remove it:
 		if(args.type!='matrix'){
 			var remove = ctlr.ctls[key].message;
-			if(DEBUG) post("\nCT-removing",remove,"from ctrlr.msgs",key);
+			debug("CT-removing",remove,"from ctrlr.msgs",key);
 			ctlr.msgs[remove]=new Object;
 		}
 	}
 	//now make all the assignments:
 	for(p in args){
 		ctlr.ctls[key][p] = args[p];
-		if(DEBUG) post("\nCT-latched",p,"-",ctlr.ctls[key][p]);
+		debug("CT-latched",p,"-",ctlr.ctls[key][p]);
 	}
 	//now we set up the companion ctntrl.msgs object which is used to extract a mod message from a pattr message
 	if(!ctlr.msgs[mess]){
@@ -742,7 +789,7 @@ var padsToChain = [12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3]; //we need to map the 
 //path live_set tracks 0 devices 1 chains <pad#>
 
 function setup_mutes(){
-	//post("\nlinking to chain mutes");
+	//debug("linking to chain mutes");
 	if(!SYNTH)
 	{
 		for(var i=0;i<mutes.length;i++)
@@ -773,7 +820,7 @@ function update_mute(p,v){
 }
 
 function mutes_callback(args){
-	//post("\ncallback arrived from", this, ":", args);
+	//debug("callback arrived from", this, ":", args);
 	if (this.name && args[0]=="mute"){
 		var sendto = this.patcher.getnamed(this.name);
 		sendto.message(args[1]);
@@ -903,7 +950,7 @@ function detect_devices()
 		finder.goto('devices', i);
 		if(finder.get('class_name')=='DrumGroupDevice')
 		{
-			debug("\nDrumRack found", finder.get('name'));
+			debug("DrumRack found", finder.get('name'));
 			found_device = parseInt(finder.id);
 			break;
 		}
@@ -955,7 +1002,7 @@ function _detect_devices()
 			}
 			if(found>0)
 			{
-				if(DEBUG){post("\nSynth found");}
+				debug("Synth found");
 				found_device = parseInt(finder.id);
 			}
 		}
@@ -976,7 +1023,7 @@ function lcd(obj, type, val)
 {
 	if(live > 0)
 	{
-		//if(DEBUG_LCD){post('lcd', obj, type, val, '\n');}
+		//debuglcd('lcd', obj, type, val, '\n');}
 		if(val==undefined)
 		{
 			val = '_';
@@ -1005,7 +1052,7 @@ function lcd(obj, type, val)
 //distribute gui knobs to their destinations
 function encoder(num, val)
 {
-	if(DEBUG){post('encoder in', num, val, '\n');}
+	debug('encoder in', num, val, '\n');
 	if(live>0)
 	{
 		if(num<8)
@@ -1123,7 +1170,7 @@ function api_links(num)
 function update_lcd()
 {
 	var args = arrayfromargs(arguments);
-	if(DEBUG){post('update', args, '\n');}
+	debug('update', args);
 	api_links(chain);
 }
 
@@ -1132,7 +1179,7 @@ if(SYNTH){script.detect_devices = script._detect_devices;}
 function mask()
 {
 	var args = arrayfromargs(arguments);
-	post('mask', args, '\n');
+	debug('mask', args);
 	switch(args[0])
 	{
 		case 'key':
