@@ -12,8 +12,8 @@ var space=new RegExp(/^\S/);
 var xquads = [{'X':0, 'Y':0}, {'X':8, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':8}];
 var yquads = [{'X':0, 'Y':0}, {'X':0, 'Y':8}, {'X':8, 'Y':0}, {'X':8, 'Y':8}];
 
-var FORCELOAD = true;
-var DEBUG = true;
+var FORCELOAD = false;
+var DEBUG = false;
 
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 var forceload = (FORCELOAD&&Forceload) ? Forceload : function(){};
@@ -128,12 +128,12 @@ function anything()
 {
 	var args=arrayfromargs(arguments);
 	var str=messagename.split("/");
-	debug('anything:', str);
+	debug('anything:', str, args);
 	for (i in str)
 	{
 		str[i].replace(space, "");
 	}
-	debug('de-spaced:', str);
+	//debug('de-spaced:', str);
 	if(protocol==0)
 	{
 		switch (str[2])
@@ -199,19 +199,26 @@ function anything()
 										}
 									}
 									break;
+								case 'map2':
+									debug('map:', args);
+									break;
 								case 'map':
 									if(args.length == 10)
 									{
 										var xOff = args.shift();
 										var yOff = args.shift();
-										for(var index=0;index<8;index++)
+										if((xOff%8==0)&&(yOff%8==0))
 										{
-											var dec1=dectobin(args.shift());
-											for(var i=0;i<dec1.length;i++)
+											for(var index=0;index<8;index++)
 											{
-												X = xOff+index;
-												Y = yOff+i;
-												mod.Send('grid', 'value', X%16, Y%16, dec1[i]);
+												var dec1=revdectobin(args.shift());
+												//debug('dectobin', index, ':', dec1);
+												for(var i=0;i<dec1.length;i++)
+												{
+													X = xOff+i;
+													Y = yOff+index;
+													mod.Send('grid', 'value', X, Y, dec1[i]);
+												}
 											}
 										}
 									}
@@ -305,6 +312,17 @@ function dectobin(arg)
 	for(var i=0;i<8;i++)
 	{
 		dec.unshift(arg&1);
+		arg = arg>>>1;
+	}
+	return dec;
+}
+
+function revdectobin(arg)
+{
+	var dec = [];
+	for(var i=0;i<8;i++)
+	{
+		dec.push(arg&1);
 		arg = arg>>>1;
 	}
 	return dec;
