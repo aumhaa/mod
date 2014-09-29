@@ -193,8 +193,6 @@ function init()
 	mod.assign_api(mod_finder);
 }
 
-function init(){}
-
 function alive(val)
 {
 	Alive = val>0;

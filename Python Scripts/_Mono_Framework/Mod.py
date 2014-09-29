@@ -344,6 +344,27 @@ class Grid(object):
 			self.value(column + int(index/height), index%height, values[index])
 	
 
+	def map(self, x_offset, y_offset, *values):
+		if len(values) is 8:
+			if x_offset % 8 is 0 and y_offset % 8 is 0:
+				for row in range(8):
+					for column in range(8):
+						self.value(x_offset+column, y_offset+row, (values[row]>>column)&1)
+	
+
+	def monome_row(self, x_offset, y, value = 0, *a):
+		if x_offset % 8 is 0:
+			for column in range(8):
+				self.value(x_offset+column, y, (value>>column)&1)
+	
+
+	def monome_col(self, y_offset, x, value = 0, *a):
+		if y_offset % 8 is 0:
+			for row in range(8):
+				self.value(x, y_offset+row, (value>>row)&1)
+	
+
+
 class ButtonGrid(Grid):
 
 

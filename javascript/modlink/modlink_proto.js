@@ -146,7 +146,7 @@ function anything()
 				{
 					for(var y=0;y<15;y++)
 					{
-						mod.Send('grid', 'value', x, y, 0);
+						mod.Send('grid', 'all', 0);
 					}
 				}
 			case "led_col":
@@ -191,36 +191,12 @@ function anything()
 									mod.Send('grid', 'value', args[0], args[1], args[2]);
 									break;
 								case 'all':
-									for(var x=0;x<15;x++)
-									{
-										for(var y=0;y<15;y++)
-										{
-											mod.Send('grid', 'value', x, y, args[0]);
-										}
-									}
-									break;
-								case 'map2':
-									debug('map:', args);
+									mod.Send('grid', 'all', args[0]);
 									break;
 								case 'map':
 									if(args.length == 10)
 									{
-										var xOff = args.shift();
-										var yOff = args.shift();
-										if((xOff%8==0)&&(yOff%8==0))
-										{
-											for(var index=0;index<8;index++)
-											{
-												var dec1=revdectobin(args.shift());
-												//debug('dectobin', index, ':', dec1);
-												for(var i=0;i<dec1.length;i++)
-												{
-													X = xOff+i;
-													Y = yOff+index;
-													mod.Send('grid', 'value', X, Y, dec1[i]);
-												}
-											}
-										}
+										mod.Send('grid', 'map', args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
 									}
 									break;
 								case 'row':
@@ -241,7 +217,6 @@ function anything()
 									}
 									break;
 								case 'col':
-									debug('col---------------', args);
 									if((args.length > 2)&&(args[1]%8==0))
 									{
 										var xOff = args.shift();
