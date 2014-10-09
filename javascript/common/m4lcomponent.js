@@ -10,6 +10,7 @@ var control_names = [];
 var controls = {};
 var excluded = ['control', 'control_names', 'done'];
 var control_surface_type = jsarguments[1]||'None';
+
 var DEBUG = false;
 var debug = (DEBUG&&Debug) ? Debug : function(){};
 
@@ -21,12 +22,12 @@ if(typeof(String.prototype.trim) === "undefined")
 	String.prototype.trim = function()
 	{
 		return String(this).replace(/^\s+|\s+$/g, '');
-	};
+	}
 }
 
 function init()
 {
-	debug
+	debug('m4lcomponent init');
 	finder = new LiveAPI(callback, 'control_surfaces');
 	var number_children = parseInt(finder.children[0]);
 	debug('control_surfaces length:', number_children);
@@ -34,14 +35,14 @@ function init()
 	{
 		debug('Checking control surface #:', i);
 		finder.goto('control_surfaces', i);
-		debug('type is:', finder.type)
+		debug('type is:', finder.type);
 		if(finder.type == control_surface_type)
 		{
 			var components = finder.get('components');
 			for (var i in components)
 			{
 				debug('component is:', finder.type);
-				finder.id = components[i]
+				finder.id = components[i];
 				if(M4LCOMPONENT.test(finder.type)>0)
 				{
 					m4lcomp = finder.id;
@@ -137,8 +138,8 @@ function send_value()
 	var obj = controls[args[0]]
 	if((obj)&&(obj.property!=''))
 	{
-		debug('args', args.slice(1))
-		obj.call('send_value', args[1], args[2], args[3])
+		debug('args', args.slice(1));
+		obj.call('send_value', args[1], args[2], args[3]);
 	}
 }
 

@@ -213,6 +213,7 @@ class ChannelStripComponent(ChannelStripComponentBase):
 	def set_arming_select_button(self, button):
 		self._arming_select_button = button
 		self._arming_select_value.subject = button
+		button and button.set_on_off_values('DefaultButton.On', 'DefaultButton.Off')
 		self._update_track_button()
 	
 
@@ -239,7 +240,8 @@ class ChannelStripComponent(ChannelStripComponentBase):
 		if value and self.song().view.selected_track == self._track:
 			self._do_toggle_arm(exclusive=self.song().exclusive_arm)
 		else:
-			self.song().view.selected_track =  self.song().view.selected_track != self._track and self._track
+			if self.song().view.selected_track != self._track:
+				self.song().view.selected_track = self._track
 		if value and self._track.is_foldable and self._select_button.is_momentary():
 			self._fold_task.restart()
 		else:

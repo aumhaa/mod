@@ -79,6 +79,10 @@ class DeviceNavigator(ControlSurfaceComponent):
 		self._on_device_changed()
 	
 
+	def set_device_select_dial(self, dial):
+		self._on_device_select_dial_value.subject = dial
+	
+
 	def _find_track(self, obj):
 		if(type(obj.canonical_parent) == type(self.song().tracks[0])):
 			return obj.canonical_parent
@@ -113,6 +117,15 @@ class DeviceNavigator(ControlSurfaceComponent):
 				device = track.devices[min(len(track.devices)-1, max(0, [item for item in track.devices].index(self._device._device)+1))]
 				self._script.set_appointed_device(device)
 				self.song().view.select_device(device)
+	
+
+	@subject_slot('value')
+	def _on_device_select_dial_value(self, value):
+		debug('_on_scene_bank_dial_value', value)
+		if value > 64:
+			self._on_prev_value(1)
+		else:
+			self._on_next_value(1)
 	
 
 	@subject_slot('value')
