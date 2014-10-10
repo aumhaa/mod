@@ -451,6 +451,7 @@ class Cntrlr(ControlSurface):
 	def port_settings_changed(self):
 		debug('port settings changed!')
 		self._connected = False
+		self._main_modes.selected_mode = 'disabled'
 		self._check_connection()
 	
 
@@ -572,7 +573,7 @@ class Cntrlr(ControlSurface):
 	def _setup_device_control(self):
 		self._device_selection_follows_track_selection = FOLLOW
 		self._device = DeviceComponent(name = 'Device_Component')
-		self._device._is_banking_enabled = self.device_is_banking_enabled(self._device)
+		#self._device._is_banking_enabled = self.device_is_banking_enabled(self._device)
 		self.set_device_component(self._device)
 		self._device.main_layer = AddLayerMode(self._device, Layer(priority = 4, 
 											parameter_controls = self._dial_matrix.submatrix[:, 1:3], 
@@ -736,6 +737,7 @@ class Cntrlr(ControlSurface):
 		self._instrument.set_enabled(False)
 
 		self._main_modes = ModesComponent(name = 'MainModes')
+		self._main_modes.add_mode('disabled', None)
 		self._main_modes.add_mode('MixMode', [self._instrument, self._instrument.shift_button_layer, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on])  # self._session.dial_nav_layer, self._mixer.dial_nav_layer, ])
 		self._main_modes.add_mode('ModSwitcher', [main_faders, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
@@ -891,13 +893,9 @@ class Cntrlr(ControlSurface):
 	
 
 	def handle_sysex(self, midi_bytes):
-		#debug('sysex: ', str(midi_bytes))
+		debug('sysex: ', str(midi_bytes))
 		if len(midi_bytes) > 14:
-			if midi_bytes[:6] == tuple([240, 0, 1, 97, 12, 64]):
-				self._register_pad_pressed(midi_bytes[6:14])
-			elif midi_bytes[:6] == tuple([240, 0, 1, 97, 17, 64]):
-				self._register_pad_pressed(midi_bytes[6:14])
-			elif midi_bytes[3:10] == tuple([6, 2, 0, 1, 97, 1, 0]):
+			if midi_bytes[3:10] == tuple([6, 2, 0, 1, 97, 1, 0]):
 				if not self._connected:
 					self._connected = True
 					#self._livid_settings.set_model(midi_bytes[11])
