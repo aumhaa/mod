@@ -418,7 +418,6 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 							self._scroll_octave_up_ticks_delay,
 							self._scroll_octave_down_ticks_delay]
 			if (scroll_delays.count(-1) < 4):
-				debug('count is good')
 				offset_increment = 0
 				if (self._scroll_down_ticks_delay > -1):
 					if self._is_scrolling():
@@ -426,9 +425,7 @@ class ScrollingOffsetComponent(ControlSurfaceComponent):
 						self._scroll_down_ticks_delay = INTERVAL_SCROLLING_DELAY
 					self._scroll_down_ticks_delay -= 1
 				if (self._scroll_up_ticks_delay > -1):
-					debug('up delay...')
 					if self._is_scrolling():
-						debug('is scrolling....')
 						offset_increment += 1
 						self._scroll_up_ticks_delay = INTERVAL_SCROLLING_DELAY
 					self._scroll_up_ticks_delay -= 1
@@ -817,7 +814,7 @@ class MonoInstrumentComponent(CompoundComponent):
 	
 
 	def set_octave_enable_button(self, button):
-		debug('octave toggle button:', button)
+		#debug('octave toggle button:', button)
 		self._on_octave_enable_value.subject = button
 	
 
@@ -1092,7 +1089,7 @@ class MonoScaleComponent(CompoundComponent):
 	
 
 	def set_playhead(self, playhead):
-		debug('keys set playhead: ' + str(playhead))
+		#debug('keys set playhead: ' + str(playhead))
 		self._note_sequencer.set_playhead(playhead)
 	
 

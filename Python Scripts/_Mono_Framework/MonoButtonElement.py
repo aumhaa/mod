@@ -100,7 +100,7 @@ class MonoButtonElement(ButtonElement):
 
 	def turn_off(self, force = False):
 		self.force_next_send()
-		debug('turn off:', self._off_value)
+		#debug('turn off:', self._off_value)
 		if self._off_value in range(0, 128):
 			self.send_value(self._off_value)
 		else:
