@@ -709,7 +709,7 @@ class Cntrlr(ControlSurface):
 		self._modswitcher.set_enabled(False)
 
 		self._instrument._main_modes = ModesComponent(name = 'InstrumentModes')
-		self._instrument._main_modes.add_mode('disabled', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session, self._session.clip_launch_layer])
+		self._instrument._main_modes.add_mode('disabled', [main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._session, self._session.clip_launch_layer, main_dials])
 		self._instrument._main_modes.add_mode('drumpad', [self._instrument._drumpad.sequencer_layer,  main_buttons, main_dials])
 		self._instrument._main_modes.add_mode('drumpad_split', [self._instrument._drumpad.split_layer,  main_buttons, main_dials])
 		self._instrument._main_modes.add_mode('drumpad_sequencer', [self._instrument._drumpad.sequencer_layer, main_buttons, main_dials])
