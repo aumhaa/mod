@@ -670,7 +670,7 @@ class MonOhm(ControlSurface):
 				self._grid[column][row].set_enabled(True)
 				self._grid[column][row].set_on_off_values(127, 0)
 				self._grid[column][row].send_value(0, True)
-		self._send_reset.set_buttons(tuple(None for index in range(4)))
+		#self._send_reset.set_buttons(tuple(None for index in range(4)))
 	
 
 	def zoom_off(self):
@@ -706,7 +706,7 @@ class MonOhm(ControlSurface):
 		if(self._r_function_mode._mode_index is 0):
 			for index in range(4):
 				self._grid[index + 4][7].send_value(self._color_defs['SEND_RESET'], True)
-			self._send_reset.set_buttons(tuple(self._grid[index + 4][7] for index in range(4)))
+			#self._send_reset.set_buttons(tuple(self._grid[index + 4][7] for index in range(4)))
 	
 
 	def zoom_off_m(self):
@@ -750,10 +750,10 @@ class MonOhm(ControlSurface):
 		self._session.set_stop_all_clips_button(self._grid[3][5])
 		for index in range(4):
 			self._grid[index + 4][5].send_value(self._color_defs['SEND_RESET'], True)
-		self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
+		#self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
 		for index in range(4):
 			self._button[index + 4].set_off_value(self._color_defs['DEVICE_SELECT'])
-		self._device_selector.set_buttons(self._button[4:8])
+		#self._device_selector.set_buttons(self._button[4:8])
 		self._device_selector.set_offset(4)
 	
 	
@@ -791,10 +791,10 @@ class MonOhm(ControlSurface):
 		self._session.set_stop_all_clips_button(self._grid[3][5])
 		for index in range(4):
 			self._grid[index + 4][5].send_value(self._color_defs['SEND_RESET'], True)
-		self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
+		#self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
 		for index in range(4):
 			self._button[index]._off_value = self._color_defs['DEVICE_SELECT']
-		self._device_selector.set_buttons(self._button[:4])
+		#self._device_selector.set_buttons(self._button[:4])
 		self._device_selector.set_offset(0)
 
 	
@@ -821,10 +821,10 @@ class MonOhm(ControlSurface):
 		self._session.set_stop_all_clips_button(self._grid[3][5])
 		for index in range(4):
 			self._grid[index + 4][5].send_value(self._color_defs['SEND_RESET'], True)
-		self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
+		#self._send_reset.set_buttons(tuple(self._grid[index + 4][5] for index in range(4)))
 		for index in range(4):
 			self._button[index + 4].set_off_value(self._color_defs['DEVICE_SELECT'])
-		self._device_selector.set_buttons(self._button[4:8])
+		#self._device_selector.set_buttons(self._button[4:8])
 		self._device_selector.set_offset(4)
 
 	
@@ -1045,7 +1045,7 @@ class MonOhm(ControlSurface):
 					self._shift_mode._mode_toggle2.turn_on()
 					for index in range(4):
 						self._button[index]._off_value = self._color_defs['DEVICE_SELECT']
-					self._device_selector.set_buttons(self._button[:4])
+					#self._device_selector.set_buttons(self._button[:4])
 					self._device_selector.set_offset(0)
 					self._r_function_mode.set_enabled(True)
 					self.assign_shift_controls()
@@ -1057,7 +1057,7 @@ class MonOhm(ControlSurface):
 					self._shift_mode._mode_toggle2.turn_on()
 					for index in range(4):
 						self._button[index + 4]._off_value = self._color_defs['DEVICE_SELECT']
-					self._device_selector.set_buttons(self._button[4:8])
+					#self._device_selector.set_buttons(self._button[4:8])
 					self._device_selector.set_offset(4)
 					self._m_function_mode.set_enabled(True)
 					self.assign_shift_controls()

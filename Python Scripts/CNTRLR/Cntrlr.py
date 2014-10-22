@@ -536,8 +536,7 @@ class Cntrlr(ControlSurface):
 		self._mixer.stop_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											stop_clip_buttons = self._key_matrix.submatrix[8:12, 1:],))
 		self._mixer.main_knobs_layer = AddLayerMode(self._mixer, Layer(priority = 4,
-											send_controls = self._knob_left_matrix.submatrix[:, :2],
-											pan_controls = self._knob_left_matrix.submatrix[:, 2:],
+											send_controls = self._knob_left_matrix.submatrix[:, :3],
 											eq_gain_controls = self._knob_right_matrix))
 		self._mixer.master_fader_layer = AddLayerMode(self._mixer.master_strip(), Layer(priority = 4,
 											volume_control = self._fader[7]))
@@ -574,7 +573,7 @@ class Cntrlr(ControlSurface):
 	def _setup_device_control(self):
 		self._device_selection_follows_track_selection = FOLLOW
 		self._device = DeviceComponent(name = 'Device_Component')
-		#self._device._is_banking_enabled = self.device_is_banking_enabled(self._device)
+		self._device._is_banking_enabled = self.device_is_banking_enabled(self._device)
 		self.set_device_component(self._device)
 		self._device.main_layer = AddLayerMode(self._device, Layer(priority = 4, 
 											parameter_controls = self._dial_matrix.submatrix[:, 1:3], 
@@ -582,6 +581,7 @@ class Cntrlr(ControlSurface):
 											lock_button = self._encoder_button[5],
 											bank_prev_button = self._encoder_button[6],
 											bank_next_button = self._encoder_button[7],))
+		self._device.set_enabled(True)
 
 		self._device_navigator = DeviceNavigator(self._device, self._mixer, self)
 		self._device_navigator.name = 'Device_Navigator'
