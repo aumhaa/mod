@@ -87,6 +87,7 @@ NORMALENCODER = (240, 0, 1, 97, 8, 30, 00, 00, 247)
 FASTENCODER = (240, 0, 1, 97, 8, 30, 04, 00, 247)
 
 
+
 class CntrlrSessionRecordingComponent(SessionRecordingComponent):
 
 
@@ -365,6 +366,10 @@ class CntrlrMonoInstrumentComponent(MonoInstrumentComponent):
 			cur_track = self.song().view.selected_track
 			if cur_track.has_audio_input and cur_track in self.song().visible_tracks:
 				new_mode = 'audioloop'
+				if self.is_shifted():
+					new_mode += '_shifted'
+				if self._matrix_modes.selected_mode is 'enabled':
+					new_mode += '_session'
 			elif cur_track.has_midi_input:
 				cur_chan = self._get_current_channel(cur_track)
 				offsets = self._current_device_offsets(self._offsets[cur_chan])
@@ -736,6 +741,8 @@ class Cntrlr(ControlSurface):
 		self._instrument._main_modes.add_mode('keypad_sequencer_shifted_session', [self._instrument._keypad.sequencer_session_shift_layer, self._instrument.keypad_shift_layer, shifted_main_buttons,   self._session_zoom.buttons_layer, shifted_dials])
 
 		self._instrument._main_modes.add_mode('audioloop', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer])
+		self._instrument._main_modes.add_mode('audioloop_shifted', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer])
+		self._instrument._main_modes.add_mode('audioloop_shifted_session', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer, shifted_dials])
 		self._instrument.register_component(self._instrument._main_modes)
 		self._instrument.set_enabled(False)
 
