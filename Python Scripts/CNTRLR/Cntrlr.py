@@ -621,7 +621,8 @@ class Cntrlr(ControlSurface):
 		self.monomodular.name = 'monomodular_switcher'
 		self.modhandler = CntrlrModHandler(self) # is_enabled = False)
 		self.modhandler.name = 'ModHandler' 
-		self.modhandler.set_lock_button(self._encoder_button[1])
+		#self.modhandler.set_lock_button(self._encoder_button[1])
+		#self.modhandler.set_alt_button(self._encoder_button[1])
 		self.modhandler.layer = Layer(priority = 8, cntrlr_encoder_grid = self._dial_matrix.submatrix[:, 1:3],
 										cntrlr_encoder_button_grid = self._dial_button_matrix,
 										cntrlr_grid = self._matrix,
@@ -708,6 +709,13 @@ class Cntrlr(ControlSurface):
 		main_dials=CompoundMode(self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
 		shifted_dials=CompoundMode(self._session.bank_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
 
+		self._modaltmode = ModesComponent(name = 'ModAltMode')
+		self._modaltmode.add_mode('disabled', None)
+		self._modaltmode.add_mode('enabled', [tuple([self._enable_mod_alt, self._disable_mod_alt])], behaviour = CancellableBehaviourWithRelease)
+		self._modaltmode.selected_mode = 'disabled'
+		self._modaltmode.layer = Layer(priority = 4, toggle_button = self._encoder_button[1])
+		self._modaltmode.set_enabled(True)
+
 		self._modswitcher = ModesComponent(name = 'ModSwitcher')  # is_enabled = False)
 		self._modswitcher.add_mode('mod', [self.modhandler, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer,  main_dials])
 		self._modswitcher.add_mode('instrument', [self._instrument, self._instrument.shift_button_layer, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer]) #self._instrument.shift_button_layer, self._optional_translations])
@@ -786,6 +794,21 @@ class Cntrlr(ControlSurface):
 			self._modswitcher.selected_mode = 'mod'
 		else:
 			self._modswitcher.selected_mode = 'instrument'
+	
+
+	def _enable_mod_alt(self):
+		debug('mod alt enabled!')
+		self.modhandler._alt_value(1)
+		self._encoder_button[1].set_light('Mod.AltOn')
+		self.modhandler.set_lock_button(self._encoder_button[0])
+	
+
+	def _disable_mod_alt(self):
+		debug('mod alt disabled!')
+		self.modhandler._alt_value(0)
+		self._encoder_button[1].set_light('Mod.AltOff')
+		self.modhandler.set_lock_button(None)
+		self._main_modes._update_buttons(self._main_modes.selected_mode)
 	
 
 	def reset_controlled_track(self, track = None, *a):

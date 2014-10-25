@@ -197,6 +197,8 @@ class CntrlrColors:
 
 	class Mod:
 		
+		AltOn = LividRGB.BlinkFast.BLUE
+		AltOff = LividRGB.BLUE
 		class Nav:
 			OnValue = LividRGB.RED
 			OffValue = LividRGB.WHITE
