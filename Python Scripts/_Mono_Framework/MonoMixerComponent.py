@@ -129,6 +129,17 @@ class MixerComponent(MixerComponentBase):
 				strip.set_eq_gain_controls(None)
 	
 
+	def set_parameter_controls(self, controls):
+		self._parameter_controls = controls
+		if controls:
+			for index in range(len(self._channel_strips)):
+				parameter_controls = [controls.get_button(index, row) for row in range(controls.height())]
+				self._channel_strips[index].set_parameter_controls(parameter_controls)
+		else:
+			for strip in self._channel_strips:
+				strip.set_parameter_controls(None)
+	
+
 	def tracks_to_use(self):
 		return tuple(self.song().visible_tracks) + tuple(self.song().return_tracks)
 	

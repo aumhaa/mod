@@ -1275,7 +1275,7 @@ class MonoDrumpadComponent(CompoundComponent):
 	def _drum_group_update_pad_led(self, pad, button, soloed_pads):
 		if self._on_drumpad_matrix_value.subject:
 			DrumGroupComponent._update_pad_led(self._step_sequencer._drum_group, pad, button, soloed_pads)
-			debug('updating leds:' + str(button.name))
+			#debug('updating leds:' + str(button.name))
 			button.turn_off()
 	
 

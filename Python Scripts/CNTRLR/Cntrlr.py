@@ -541,8 +541,8 @@ class Cntrlr(ControlSurface):
 		self._mixer.stop_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											stop_clip_buttons = self._key_matrix.submatrix[8:12, 1:],))
 		self._mixer.main_knobs_layer = AddLayerMode(self._mixer, Layer(priority = 4,
-											send_controls = self._knob_left_matrix.submatrix[:, :3],
-											eq_gain_controls = self._knob_right_matrix))
+											send_controls = self._knob_left_matrix,
+											parameter_controls = self._knob_right_matrix))
 		self._mixer.master_fader_layer = AddLayerMode(self._mixer.master_strip(), Layer(priority = 4,
 											volume_control = self._fader[7]))
 		self._mixer.instrument_buttons_layer = AddLayerMode(self._mixer, Layer(priority = 4,
@@ -601,7 +601,7 @@ class Cntrlr(ControlSurface):
 	def _setup_device_selector(self):
 		self._device_selector = DeviceSelectorComponent(self)  # is_enabled = False)
 		self._device_selector.name = 'Device_Selector'
-		self._device_selector.layer = Layer(matrix = self._matrix.submatrix[:, :3])
+		self._device_selector.layer = Layer(matrix = self._matrix)
 		self._device_selector.set_enabled(False)
 	
 
@@ -759,7 +759,8 @@ class Cntrlr(ControlSurface):
 		self._main_modes.add_mode('MixMode', [self._instrument, self._instrument.shift_button_layer, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer,])  # self._session.dial_nav_layer, self._mixer.dial_nav_layer, ])
 		self._main_modes.add_mode('ModSwitcher', [main_faders, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
-		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator, self._view_control.selector_layer], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
+		#self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator, self._view_control.selector_layer], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
+		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
 		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[0], DeviceSelector_button = self._encoder_button[2], Translations_button = self._encoder_button[3]) #, 
 	
 
@@ -991,7 +992,7 @@ class CntrlrModHandler(ModHandler):
 	
 
 	def _receive_cntrlr_encoder_grid_local(self, value, *a):
-		#debug('_receive_cntrlr_encoder_grid_local:', value)
+		debug('_receive_cntrlr_encoder_grid_local:', value)
 		if self.is_enabled() and self._active_mod:
 			self.clear_rings()
 			self._local = value
