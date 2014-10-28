@@ -526,6 +526,7 @@ class RingedGrid(Grid):
 
 	def local(self, value):
 		#if not self._local == bool(value):
+		#debug(self._name, 'internal receive local', value)
 		self._local = bool(value)
 		self.restore()
 	

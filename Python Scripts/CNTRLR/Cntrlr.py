@@ -548,6 +548,7 @@ class Cntrlr(ControlSurface):
 		self._mixer.instrument_buttons_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											mute_buttons = self._key_matrix.submatrix[:4, 1:],
 											track_select_buttons = self._key_matrix.submatrix[4:8, 1:],))
+		self._mixer.set_enabled(True)
 	
 
 	def _setup_session_control(self):
@@ -750,7 +751,7 @@ class Cntrlr(ControlSurface):
 
 		self._instrument._main_modes.add_mode('audioloop', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer])
 		self._instrument._main_modes.add_mode('audioloop_shifted', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer])
-		self._instrument._main_modes.add_mode('audioloop_shifted_session', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session.clip_launch_layer, shifted_dials])
+		self._instrument._main_modes.add_mode('audioloop_shifted_session', [self._instrument.audioloop_layer, self._session, main_buttons, main_dials, self._session_zoom.buttons_layer, shifted_dials])
 		self._instrument.register_component(self._instrument._main_modes)
 		self._instrument.set_enabled(False)
 
@@ -964,7 +965,7 @@ class CntrlrModHandler(ModHandler):
 
 	def _receive_cntrlr_encoder_grid(self, x, y, value = -1, mode = None, green = None, custom = None, local = None, relative = None, *a, **K):
 		#debug('_receive_cntrlr_encoder_grid:', x, y, value, mode, green, custom, local, relative)
-		if self.is_enabled() and self._active_mod and self._cntrlr_encoder_grid and x < 4 and y < 3:
+		if self.is_enabled() and self._active_mod and self._cntrlr_encoder_grid and x < 4 and y < 2:
 			if value > -1:
 				if self._local:
 					self._cntrlr_encoder_grid.send_value(x, y, value, True)
@@ -975,8 +976,8 @@ class CntrlrModHandler(ModHandler):
 				mode and button.set_mode(mode)
 				green and button.set_green(green)
 				custom and button.set_custom(custom)
-			local and self._receive_cntrlr_encoder_grid_local(local)
-			relative and self._receive_cntrlr_encoder_grid_relative(relative)
+			not local is None and self._receive_cntrlr_encoder_grid_local(local)
+			not relative is None and self._receive_cntrlr_encoder_grid_relative(relative)
 	
 
 	def _receive_cntrlr_encoder_button_grid(self, x, y, value, *a, **k):
@@ -992,7 +993,7 @@ class CntrlrModHandler(ModHandler):
 	
 
 	def _receive_cntrlr_encoder_grid_local(self, value, *a):
-		debug('_receive_cntrlr_encoder_grid_local:', value)
+		#debug('_receive_cntrlr_encoder_grid_local:', value)
 		if self.is_enabled() and self._active_mod:
 			self.clear_rings()
 			self._local = value

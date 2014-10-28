@@ -161,6 +161,7 @@ class ChannelStripComponent(ChannelStripComponentBase):
 	def __init__(self, *a, **k):
 		super(ChannelStripComponent, self).__init__(*a, **k)
 		self._device_component = DeviceComponent()
+		self._device_component._show_msg_callback = lambda message: None
 		self._on_selected_track_changed.subject = self.song().view
 		self._fold_task = self._tasks.add(Task.sequence(Task.wait(TRACK_FOLD_DELAY), Task.run(self._do_fold_track))).kill()
 		#self._cue_volume_slot = self.register_disconnectable(ParameterSlot())
