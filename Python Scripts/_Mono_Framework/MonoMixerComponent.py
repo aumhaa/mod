@@ -379,7 +379,10 @@ class ChannelStripComponent(ChannelStripComponentBase):
 					self._arming_select_button.set_light(self.empty_color)
 				elif self._track.can_be_armed and (self._track.arm or self._track.implicit_arm):
 					if self._track == self.song().view.selected_track:
-						self._arming_select_button.set_light('Mixer.ArmSelected')
+						if self._track.arm:
+							self._arming_select_button.set_light('Mixer.ArmSelected')
+						else:
+							self._arming_select_button.set_light('Mixer.ArmSelectedImplicit')
 					else:
 						self._arming_select_button.set_light('Mixer.ArmUnselected')
 				elif self._track == self.song().view.selected_track:

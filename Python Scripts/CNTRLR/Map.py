@@ -150,7 +150,8 @@ class CntrlrColors:
 		SoloOff = LividRGB.OFF
 		MuteOn = LividRGB.YELLOW
 		MuteOff = LividRGB.OFF
-		ArmSelected = LividRGB.RED
+		ArmSelected = LividRGB.BiColor.WHITE.RED
+		ArmSelectedImplicit = LividRGB.MAGENTA
 		ArmUnselected = LividRGB.RED
 		ArmOff = LividRGB.OFF
 		StopClip = LividRGB.WHITE
