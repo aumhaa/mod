@@ -266,7 +266,7 @@ function cntrlr_key(x, y, val)
 
 function cntrlr_encoder_button_grid(x, y, val)
 {
-	ctl('buttons_'+(x + (y*4)), val);
+	ctl('buttons_'+(x + (Math.abs(y-1)*4)), val);
 }
 
 function grid(x, y, val)
@@ -866,7 +866,7 @@ var error_rect=[104, 56, 355, 49];
 var count_error_text="Drum Steppr:r requires 16 chains to be present in the Drum Rack. Add more chains and press here to initialize.";
 
 var Encoders = ['Encoder_0', 'Encoder_1', 'Encoder_2', 'Encoder_3', 'Encoder_4', 'Encoder_5', 'Encoder_6', 'Encoder_7', 'Encoder_8', 'Encoder_9', 'Encoder_10', 'Encoder_11'];
-var Dials =	 ['Repeat', 'Groove', 'Random', 'RotSize'];
+var Dials =	 ['Repeat', 'Groover', 'Random', 'RotSize'];
 var Warning = ['No device', 'was found.', 'Place a', 'DrumRack', 'next to', 'this mod', 'and press', '\"Detect',	'DrumRack\"', 'to', 'get', 'started.', ' '];
 var ChainNumbers = {0:12, 1:13, 2:14, 3:15, 4:8, 5:9, 6:10, 7:11, 8:4, 9:5, 10:6, 11:7, 12:0, 13:1, 14:2, 15:3}; 
 // called from init
@@ -1053,6 +1053,7 @@ function lcd(obj, type, val)
 function encoder(num, val)
 {
 	debug('encoder in', num, val, '\n');
+	var seq = ChainNumbers[selected_sequence_number];
 	if(live>0)
 	{
 		if(num<8)
