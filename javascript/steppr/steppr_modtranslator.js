@@ -9,7 +9,7 @@ setoutletassist(0,"latch messages, msgs from pattrstorage, etc.");
 setoutletassist(1,"to mods");
 setinletassist(0,"to pattrstorage");
 
-var DEBUG = true;
+var DEBUG = false;
 var DEBUG_UPDT = false;
 var DEBUG_LCD = false;
 var DEBUG_NEW = false;
@@ -170,7 +170,7 @@ function setup_modtranslations()
 		latch('PitchDn', 'buttons_2', 'button', 0, 1, 0, 1);
 		latch('PitchUp', 'buttons_3', 'button', 0, 1, 0, 1);
 		latch('sequence['+selected_sequence_number+']::repeat_enable', 'buttons_4', 'button', 0, 1, 0, 1);
-		latch('addmode', 'buttons_5', 'cycle', 0, 3, 0, 6);
+		latch('AutomatorStart', 'buttons_5', 'button', 0, 3, 0, 6);
 		latch('RotL', 'buttons_6', 'button', 0, 1, 0, 1);
 		latch('RotR', 'buttons_7', 'button', 0, 1, 0, 1);
 		var COLORS = [3, 127, 127, 127];

@@ -603,7 +603,7 @@ class Cntrlr(ControlSurface):
 	def _setup_device_selector(self):
 		self._device_selector = DeviceSelectorComponent(self)  # is_enabled = False)
 		self._device_selector.name = 'Device_Selector'
-		self._device_selector.layer = Layer(matrix = self._matrix)
+		self._device_selector.layer = Layer(matrix = self._matrix.submatrix[:15, :])
 		self._device_selector.set_enabled(False)
 	
 
@@ -623,6 +623,7 @@ class Cntrlr(ControlSurface):
 		self.monomodular.name = 'monomodular_switcher'
 		self.modhandler = CntrlrModHandler(self) # is_enabled = False)
 		self.modhandler.name = 'ModHandler' 
+		self.modhandler.lock_layer = AddLayerMode(self.modhandler, Layer(priority=8, lock_button=self._grid[15]))
 		self.modhandler.layer = Layer(priority = 8, cntrlr_encoder_grid = self._dial_matrix.submatrix[:, 1:3],
 										cntrlr_encoder_button_grid = self._dial_button_matrix,
 										cntrlr_grid = self._matrix,
@@ -683,9 +684,6 @@ class Cntrlr(ControlSurface):
 
 	def _setup_modswitcher(self):
 		self._modswitcher = ModesComponent(name = 'ModSwitcher')  # is_enabled = False)
-		#self._modswitcher.add_mode('mod', [self.modhandler])
-		#self._modswitcher.add_mode('instrument', [self._instrument, self._instrument.shift_button_layer, main_buttons, self._device.main_layer, self._device_navigator.main_layer]) #self._instrument.shift_button_layer, self._optional_translations])
-		#self._modswitcher.set_enabled(False)
 	
 
 	def _setup_viewcontrol(self):
@@ -709,15 +707,15 @@ class Cntrlr(ControlSurface):
 		main_dials=CompoundMode(self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
 		shifted_dials=CompoundMode(self._session.bank_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
 
-		self._modaltmode = ModesComponent(name = 'ModAltMode')
-		self._modaltmode.add_mode('disabled', None)
-		self._modaltmode.add_mode('enabled', [tuple([self._enable_mod_alt, self._disable_mod_alt])], behaviour = CancellableBehaviourWithRelease, toggle_value = 'Mod.AltOn')
-		self._modaltmode.selected_mode = 'disabled'
-		self._modaltmode.layer = Layer(priority = 4, toggle_button = self._encoder_button[1])
-		self._modaltmode.set_enabled(True)
+		self._modalt_mode = ModesComponent(name = 'ModAltMode')
+		self._modalt_mode.add_mode('disabled', None)
+		self._modalt_mode.add_mode('enabled', [tuple([self._enable_mod_alt, self._disable_mod_alt])], behaviour = CancellableBehaviourWithRelease, toggle_value = 'Mod.AltOn')
+		self._modalt_mode.selected_mode = 'disabled'
+		self._modalt_mode.layer = Layer(priority = 4, toggle_button = self._encoder_button[1])
+		self._modalt_mode.set_enabled(False)
 
 		self._modswitcher = ModesComponent(name = 'ModSwitcher')  # is_enabled = False)
-		self._modswitcher.add_mode('mod', [self.modhandler, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer,	main_dials])
+		self._modswitcher.add_mode('mod', [self.modhandler, self._modalt_mode, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer,	main_dials])
 		self._modswitcher.add_mode('instrument', [self._instrument, self._instrument.shift_button_layer, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer]) #self._instrument.shift_button_layer, self._optional_translations])
 		self._modswitcher.set_enabled(False)
 
@@ -760,7 +758,7 @@ class Cntrlr(ControlSurface):
 		self._main_modes.add_mode('ModSwitcher', [main_faders, main_dials, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, main_dials, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer, delay = .1)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
 		#self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator, self._view_control.selector_layer], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
-		self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_dials, main_faders, self._mixer.main_knobs_layer, self._device, self._device.main_layer, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
+		self._main_modes.add_mode('DeviceSelector', [DelayMode(self._device_selector, delay = .1), DelayMode(self.modhandler.lock_layer, delay = .1), main_buttons, main_dials, main_faders, self._mixer.main_knobs_layer, self._device, self._device.main_layer, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
 		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[0], DeviceSelector_button = self._encoder_button[2], Translations_button = self._encoder_button[3]) #, 
 	
 
@@ -799,15 +797,20 @@ class Cntrlr(ControlSurface):
 
 	def _enable_mod_alt(self):
 		debug('mod alt enabled!')
-		self.modhandler._alt_value(1)
-		self.modhandler.set_lock_button(self._encoder_button[0])
+		if self.modhandler.is_enabled():
+			self.modhandler._alt_value(1)
+			self._update_mod_alt_button()
 	
 
 	def _disable_mod_alt(self):
 		debug('mod alt disabled!')
-		self.modhandler._alt_value(0)
-		self.modhandler.set_lock_button(None)
-		self._main_modes._update_buttons(self._main_modes.selected_mode)
+		if self.modhandler.is_enabled():
+			self.modhandler._alt_value(0)
+			self._update_mod_alt_button()
+	
+
+	def _update_mod_alt_button(self):
+		self.modhandler.is_alted() and self._encoder_button[1].set_light('Mod.AltOn') or self._encoder_button[1].set_light('Mod.AltOff')
 	
 
 	def reset_controlled_track(self, track = None, *a):
