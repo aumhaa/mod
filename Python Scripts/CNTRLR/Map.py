@@ -17,6 +17,8 @@ FADER_BANKING = True
 
 DIAL_BANKING = True
 
+SHIFT_LOCK = False
+
 CNTRLR_BUTTONS = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]  #there are 16x2 of these
 
 CNTRLR_GRID = [0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15]	#there are 4x4 of these
@@ -194,6 +196,11 @@ class CntrlrColors:
 		ChainNavOff = LividRGB.OFF
 		ContainNavOn = LividRGB.CYAN
 		ContainNavOff = LividRGB.OFF
+	
+
+	class DeviceSelector:
+		AssignOn = LividRGB.BlinkFast.YELLOW
+		AssignOff = LividRGB.YELLOW
 	
 
 	class Mod:

@@ -114,6 +114,7 @@ class MonoButtonElement(ButtonElement):
 	
 
 	def reset(self, force = False):
+		self._darkened = 0;
 		self.force_next_send()
 		self.send_value(0)
 	
@@ -181,5 +182,10 @@ class MonoButtonElement(ButtonElement):
 			 data_byte1,
 			 data_byte2))
 			
+	
+
+	def release_parameter(self):
+		self._darkened = 0
+		super(MonoButtonElement, self).release_parameter()
 	
 

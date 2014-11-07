@@ -326,6 +326,8 @@ class CntrlrMonoInstrumentComponent(MonoInstrumentComponent):
 		self._matrix_modes = ModesComponent(name = 'MatrixModes')
 		super(CntrlrMonoInstrumentComponent, self).__init__(*a, **k)
 		self._offsets = [{'offset':DEFAULT_OFFSET, 'vertoffset':DEFAULT_VERTOFFSET, 'drumoffset':DEFAULT_DRUMOFFSET, 'scale':DEFAULT_SCALE, 'split':False, 'sequencer':True} for index in range(16)]
+		#self._keypad._note_sequencer._playhead_component._triplet_notes=tuple(range(12))
+		self._drumpad._step_sequencer._playhead_component._triplet_notes=tuple(range(12))
 		self._matrix_modes.add_mode('disabled', [DelayMode(self.update, delay = .1)], False)
 		self._matrix_modes.add_mode('enabled', [DelayMode(self.update, delay = .1)], True)
 		self._matrix_modes.selected_mode = 'disabled'
@@ -334,7 +336,9 @@ class CntrlrMonoInstrumentComponent(MonoInstrumentComponent):
 	def _setup_shift_mode(self):
 		self._shifted = False
 		self._shift_mode = ModesComponent()
-		self._shift_mode.add_mode('shift', tuple([self._enable_shift, self._disable_shift]), behaviour = ColoredCancellableBehaviourWithRelease(color = 'MonoInstrument.ShiftOn', off_color = 'MonoInstrument.ShiftOff'))
+		self._shift_mode.add_mode('shift', tuple([self._enable_shift, self._disable_shift]), behaviour = ColoredCancellableBehaviourWithRelease(color = 'MonoInstrument.ShiftOn', off_color = 'MonoInstrument.ShiftOff') if SHIFT_LOCK else BicoloredMomentaryBehaviour(color = 'MonoInstrument.ShiftOn', off_color = 'MonoInstrument.ShiftOff'))
+		self._shift_mode.add_mode('disabled', None)
+		self._shift_mode.selected_mode = 'disabled'
 	
 
 	def set_session_mode_button(self, button):
@@ -507,10 +511,8 @@ class Cntrlr(ControlSurface):
 		self._clip_creator = ClipCreator()
 		self._clip_creator.name = 'ClipCreator'
 		self._recorder = CntrlrSessionRecordingComponent(self._clip_creator, ViewControlComponent(), name = 'SessionRecorder', ) # is_enabled = False)
-		#self._recorder.layer = Layer(priority = 4, new_button = self._button[28], record_button = self._button[29], automation_button = self._button[30])\
 		self._recorder.main_layer = AddLayerMode(self._recorder, Layer(priority = 4, record_button = self._button[29]))
-		self._recorder.shift_layer = AddLayerMode(self._recorder, Layer(priority = 4, new_button = self._button[28], automation_button = self._button[29]))
-		#self._recorder.shift_layer = AddLayerMode(self._recorder, Layer(priority = 4, automation_button = self._button[29]))
+		self._recorder.shift_layer = AddLayerMode(self._recorder, Layer(priority = 4, automation_button = self._button[29]))
 		self._recorder.set_enabled(True)
 	
 
@@ -522,7 +524,7 @@ class Cntrlr(ControlSurface):
 		if self._mixer.channel_strip(0)._track:
 			self.song().view.selected_track = self._mixer.channel_strip(0)._track
 		self._mixer.select_dial_layer = AddLayerMode(self._mixer, Layer(priority = 5, 
-											track_select_dial = self._encoder[2],))
+											track_select_dial = self._encoder[3],))
 		self._mixer.main_faders_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											volume_controls = self._fader_matrix.submatrix[:4, :],
 											return_controls = self._fader_matrix.submatrix[4:6, :],
@@ -555,10 +557,10 @@ class Cntrlr(ControlSurface):
 		self._session.set_mixer(self._mixer)
 		self.set_highlighting_session_component(self._session)
 		self._session.bank_dial_layer = AddLayerMode(self._session, Layer(priority = 5, 
-									track_bank_dial = self._encoder[2], 
-									scene_bank_dial = self._encoder[3],))
+									track_bank_dial = self._encoder[3], 
+									scene_bank_dial = self._encoder[2],))
 		self._session.select_dial_layer = AddLayerMode(self._session, Layer(priority = 5,
-									scene_select_dial = self._encoder[3],))
+									scene_select_dial = self._encoder[2],))
 		self._session.clip_launch_layer = AddLayerMode(self._session, Layer(priority = 4,
 									clip_launch_buttons = self._matrix))
 		#self._session.layer = Layer(priority = 4, clip_launch_buttons = self._matrix)
@@ -567,7 +569,8 @@ class Cntrlr(ControlSurface):
 									scene_bank_up_button = self._button[15],
 									track_bank_left_button = self._button[12],
 									track_bank_right_button = self._button[13]))
-
+		self._session.scene_launch_layer = AddLayerMode(self._session._selected_scene, Layer(priority = 4, 
+									launch_button = self._button[28],))
 		self._session_zoom = SessionZoomingComponent(session = self._session, name = 'Session_Overview', enable_skinning = True)  # is_enabled = False)	 #
 		self._session_zoom.buttons_layer = AddLayerMode(self._session_zoom, Layer(priority = 4, button_matrix = self._matrix))
 		self._session_zoom.set_enabled(True)
@@ -592,7 +595,7 @@ class Cntrlr(ControlSurface):
 
 		self._device_navigator = DeviceNavigator(self._device, self._mixer, self)
 		self._device_navigator.name = 'Device_Navigator'
-		self._device_navigator.select_dial_layer = AddLayerMode(self._device_navigator, Layer(priority = 5, device_select_dial = self._encoder[1],))
+		self._device_navigator.select_dial_layer = AddLayerMode(self._device_navigator, Layer(priority = 5, device_select_dial = self._encoder[0],))
 		self._device_navigator.main_layer = AddLayerMode(self._device_navigator, Layer(priority = 4, 
 											prev_chain_button = self._encoder_button[8], 
 											next_chain_button = self._encoder_button[9], 
@@ -601,9 +604,10 @@ class Cntrlr(ControlSurface):
 	
 
 	def _setup_device_selector(self):
-		self._device_selector = DeviceSelectorComponent(self)  # is_enabled = False)
+		self._device_selector = DeviceSelectorComponent(self)
 		self._device_selector.name = 'Device_Selector'
-		self._device_selector.layer = Layer(matrix = self._matrix.submatrix[:15, :])
+		self._device_selector.layer = Layer(priority = 4 , matrix = self._matrix.submatrix[:13, :])
+		self._device_selector.assign_layer = AddLayerMode(self._device_selector, Layer(priority = 4, assign_button = self._grid[14]))
 		self._device_selector.set_enabled(False)
 	
 
@@ -616,7 +620,7 @@ class Cntrlr(ControlSurface):
 
 		self._optional_translations = CompoundMode(TranslationComponent(controls = self._fader, user_channel_offset = 4, channel = 4, name = 'FaderTranslation', is_enabled = False, layer = Layer(priority = 10)) if FADER_BANKING else None, 
 														TranslationComponent(controls = self._knobs, user_channel_offset = 4, channel = 4, name = 'DialTranslation', is_enabled = False, layer = Layer(priority = 10)) if DIAL_BANKING else None)
-
+	
 
 	def _setup_mod(self):
 		self.monomodular = get_monomodular(self)
@@ -693,16 +697,16 @@ class Cntrlr(ControlSurface):
 													next_scene_button=self._button[27], 
 													prev_scene_button = self._button[26]))
 		#self._view_control.set_enabled(False)
-		self._view_control.selector_layer = AddLayerMode(self._view_control, Layer(priority = 8, 
+		"""self._view_control.selector_layer = AddLayerMode(self._view_control, Layer(priority = 8, 
 													prev_track_button = self._grid[12], 
 													next_track_button = self._grid[13], 
 													next_scene_button = self._grid[15], 
-													prev_scene_button = self._grid[14]))
+													prev_scene_button = self._grid[14]))"""
 	
 
 	def _setup_modes(self):
 		main_buttons=CompoundMode(self._mixer.main_buttons_layer, self._transport, self._recorder.main_layer, self._device)
-		shifted_main_buttons=CompoundMode(self._mixer.solo_buttons_layer, self._recorder.shift_layer, self._device)
+		shifted_main_buttons=CompoundMode(self._mixer.solo_buttons_layer, self._recorder.shift_layer, self._session.scene_launch_layer, self._device)
 		main_faders=CompoundMode(self._mixer.main_faders_layer, self._mixer.master_fader_layer)
 		main_dials=CompoundMode(self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
 		shifted_dials=CompoundMode(self._session.bank_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on)
@@ -755,10 +759,10 @@ class Cntrlr(ControlSurface):
 		self._main_modes = ModesComponent(name = 'MainModes')
 		self._main_modes.add_mode('disabled', None)
 		self._main_modes.add_mode('MixMode', [self._instrument, self._instrument.shift_button_layer, main_faders, self._mixer.main_knobs_layer, self._device.main_layer, self._device_navigator.main_layer,])	 # self._session.dial_nav_layer, self._mixer.dial_nav_layer, ])
-		self._main_modes.add_mode('ModSwitcher', [main_faders, main_dials, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
+		#self._main_modes.add_mode('ModSwitcher', [main_faders, main_dials, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
+		self._main_modes.add_mode('ModSwitcher', [main_faders, main_dials, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher, delay = .1)], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, main_dials, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer, delay = .1)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
-		#self._main_modes.add_mode('DeviceSelector', [self._device_selector, main_buttons, main_faders, self._mixer.main_knobs_layer, self._device, self._device_navigator, self._view_control.selector_layer], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
-		self._main_modes.add_mode('DeviceSelector', [DelayMode(self._device_selector, delay = .1), DelayMode(self.modhandler.lock_layer, delay = .1), main_buttons, main_dials, main_faders, self._mixer.main_knobs_layer, self._device, self._device.main_layer, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
+		self._main_modes.add_mode('DeviceSelector', [DelayMode(self._device_selector, delay = .1), DelayMode(self.modhandler.lock_layer, delay = .1), DelayMode(self._device_selector.assign_layer, delay = .2), main_buttons, main_dials, main_faders, self._mixer.main_knobs_layer, self._device, self._device.main_layer, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
 		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[0], DeviceSelector_button = self._encoder_button[2], Translations_button = self._encoder_button[3]) #, 
 	
 
@@ -1033,9 +1037,9 @@ class CntrlrModHandler(ModHandler):
 
 	def set_cntrlr_keys(self, keys):
 		self._cntrlr_keys = keys
-		#if keys:
-		#	for key in keys.iterbuttons():
-		#		key and key.send_value(0, True)
+		if keys:
+			for key, _ in keys.iterbuttons():
+				key and key.set_darkened_value(0)
 		self._cntrlr_keys_value.subject = self._cntrlr_keys
 	
 
