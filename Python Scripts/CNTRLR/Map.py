@@ -13,11 +13,15 @@ Buttons are Note #'s and Faders/Rotaries are Controller #'s
 
 CHANNEL = 0		#main channel (0 - 15)
 
-FADER_BANKING = True
+FADER_BANKING = False	#When "True", the faders will be remapped to a User channel when in modMode.
 
-DIAL_BANKING = True
+DIAL_BANKING = False		#When "True", the dials will be remapped to a User channel when in modMode.
 
-SHIFT_LOCK = False
+EQS_INSTEAD_OF_MACROS = False  #Maps right dials to EQs when "True"
+
+SHIFT_LOCK = False		#Setting this flag to "True" will allow the shift control to be toggled when pressed quickly in the same manner as the top mode buttons.
+
+FREE_ENCODER_IS_CROSSFADER = False   #Setting this flag to "True" will cause the second top encoder to be assigned to the crossfader 
 
 CNTRLR_BUTTONS = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]  #there are 16x2 of these
 

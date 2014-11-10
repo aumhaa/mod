@@ -215,7 +215,7 @@ class CntrlrSessionComponent(SessionComponent):
 
 	@subject_slot('value')
 	def _on_scene_bank_dial_value(self, value):
-		debug('_on_scene_bank_dial_value', value)
+		#debug('_on_scene_bank_dial_value', value)
 		if value > 64:
 			self._bank_up()
 		else:
@@ -228,7 +228,7 @@ class CntrlrSessionComponent(SessionComponent):
 
 	@subject_slot('value')
 	def _on_track_bank_dial_value(self, value):
-		debug('_on_track_bank_dial_value', value)
+		#debug('_on_track_bank_dial_value', value)
 		if value > 64:
 			self._bank_left()
 		else:
@@ -326,11 +326,33 @@ class CntrlrMonoInstrumentComponent(MonoInstrumentComponent):
 		self._matrix_modes = ModesComponent(name = 'MatrixModes')
 		super(CntrlrMonoInstrumentComponent, self).__init__(*a, **k)
 		self._offsets = [{'offset':DEFAULT_OFFSET, 'vertoffset':DEFAULT_VERTOFFSET, 'drumoffset':DEFAULT_DRUMOFFSET, 'scale':DEFAULT_SCALE, 'split':False, 'sequencer':True} for index in range(16)]
-		#self._keypad._note_sequencer._playhead_component._triplet_notes=tuple(range(12))
+		self._keypad._note_sequencer._playhead_component._triplet_notes=tuple(range(12))
+		self._keypad._note_sequencer._note_editor._visible_steps = self._keypad_visible_steps
 		self._drumpad._step_sequencer._playhead_component._triplet_notes=tuple(range(12))
+		self._drumpad._step_sequencer._note_editor._visible_steps = self._drumpad_visible_steps
 		self._matrix_modes.add_mode('disabled', [DelayMode(self.update, delay = .1)], False)
 		self._matrix_modes.add_mode('enabled', [DelayMode(self.update, delay = .1)], True)
 		self._matrix_modes.selected_mode = 'disabled'
+	
+
+	def _keypad_visible_steps(self):
+		first_time = self._keypad._note_sequencer._note_editor.page_length * self._keypad._note_sequencer._note_editor._page_index
+		steps_per_page = self._keypad._note_sequencer._note_editor._get_step_count()
+		step_length = self._keypad._note_sequencer._note_editor._get_step_length()
+		indices = range(steps_per_page)
+		if self._keypad._note_sequencer._note_editor._is_triplet_quantization():
+			indices = filter(lambda k: k % 16 not in (13, 14, 15, 16), indices)
+		return [ (self._keypad._note_sequencer._note_editor._time_step(first_time + k * step_length), index) for k, index in enumerate(indices) ]
+	
+
+	def _drumpad_visible_steps(self):
+		first_time = self._drumpad._step_sequencer._note_editor.page_length * self._drumpad._step_sequencer._note_editor._page_index
+		steps_per_page = self._drumpad._step_sequencer._note_editor._get_step_count()
+		step_length = self._drumpad._step_sequencer._note_editor._get_step_length()
+		indices = range(steps_per_page)
+		if self._drumpad._step_sequencer._note_editor._is_triplet_quantization():
+			indices = filter(lambda k: k % 16 not in (13, 14, 15, 16), indices)
+		return [ (self._drumpad._step_sequencer._note_editor._time_step(first_time + k * step_length), index) for k, index in enumerate(indices) ]
 	
 
 	def _setup_shift_mode(self):
@@ -492,7 +514,7 @@ class Cntrlr(ControlSurface):
 
 	def _define_sysex(self):
 		self._livid_settings = LividSettings(model = 8, control_surface = self)
-		self.encoder_navigation_on = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_encoder_encosion_mode', message = [15, 0, 0, 0]) 
+		self.encoder_navigation_on = SendLividSysexMode(livid_settings = self._livid_settings, call = 'set_encoder_encosion_mode', message = [13, 0, 0, 0]) 
 	
 
 	def _setup_transport_control(self):
@@ -523,6 +545,8 @@ class Cntrlr(ControlSurface):
 		self._mixer.set_track_offset(0)
 		if self._mixer.channel_strip(0)._track:
 			self.song().view.selected_track = self._mixer.channel_strip(0)._track
+		if FREE_ENCODER_IS_CROSSFADER:
+			self._mixer.layer = Layer(priority = 4, crossfader_control = self._encoder[1])
 		self._mixer.select_dial_layer = AddLayerMode(self._mixer, Layer(priority = 5, 
 											track_select_dial = self._encoder[3],))
 		self._mixer.main_faders_layer = AddLayerMode(self._mixer, Layer(priority = 4,
@@ -541,9 +565,14 @@ class Cntrlr(ControlSurface):
 											solo_buttons = self._key_matrix.submatrix[8:12, 1:],))
 		self._mixer.stop_layer = AddLayerMode(self._mixer, Layer(priority = 4,
 											stop_clip_buttons = self._key_matrix.submatrix[8:12, 1:],))
-		self._mixer.main_knobs_layer = AddLayerMode(self._mixer, Layer(priority = 4,
-											send_controls = self._knob_left_matrix,
-											parameter_controls = self._knob_right_matrix))
+		if EQS_INSTEAD_OF_MACROS:
+			self._mixer.main_knobs_layer = AddLayerMode(self._mixer, Layer(priority = 4,
+												send_controls = self._knob_left_matrix,
+												eq_gain_controls = self._knob_right_matrix))
+		else:
+			self._mixer.main_knobs_layer = AddLayerMode(self._mixer, Layer(priority = 4,
+												send_controls = self._knob_left_matrix,
+												parameter_controls = self._knob_right_matrix))
 		self._mixer.master_fader_layer = AddLayerMode(self._mixer.master_strip(), Layer(priority = 4,
 											volume_control = self._fader[7]))
 		self._mixer.instrument_buttons_layer = AddLayerMode(self._mixer, Layer(priority = 4,
@@ -763,7 +792,7 @@ class Cntrlr(ControlSurface):
 		self._main_modes.add_mode('ModSwitcher', [main_faders, main_dials, self._mixer.main_knobs_layer, self._session.select_dial_layer, self._mixer.select_dial_layer, self._device_navigator.select_dial_layer, self.encoder_navigation_on, self._modswitcher, DelayMode(self._update_modswitcher, delay = .1)], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.ModSwitcher', off_color = 'ModeButtons.ModSwitcherDisabled'))
 		self._main_modes.add_mode('Translations', [main_faders, main_dials, self._mixer.main_knobs_layer, self._translations, DelayMode(self._translations.selector_layer, delay = .1)], behaviour = DefaultedBehaviour(default_mode = 'MixMode', color = 'ModeButtons.Translations', off_color = 'ModeButtons.TranslationsDisabled'))
 		self._main_modes.add_mode('DeviceSelector', [DelayMode(self._device_selector, delay = .1), DelayMode(self.modhandler.lock_layer, delay = .1), DelayMode(self._device_selector.assign_layer, delay = .2), main_buttons, main_dials, main_faders, self._mixer.main_knobs_layer, self._device, self._device.main_layer, self._device_navigator], behaviour = ColoredCancellableBehaviourWithRelease(color = 'ModeButtons.DeviceSelector', off_color = 'ModeButtons.DeviceSelectorDisabled'))
-		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[0], DeviceSelector_button = self._encoder_button[2], Translations_button = self._encoder_button[3]) #, 
+		self._main_modes.layer = Layer(priority = 4, ModSwitcher_button = self._encoder_button[2], DeviceSelector_button = self._encoder_button[0], Translations_button = self._encoder_button[3]) #, 
 	
 
 	def _setup_m4l_interface(self):
