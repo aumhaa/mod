@@ -25,6 +25,7 @@ from _Framework.NotifyingControlElement import NotifyingControlElement
 from _Framework.SceneComponent import SceneComponent
 from _Framework.SessionComponent import SessionComponent
 from _Framework.SliderElement import SliderElement
+from _Framework.SubjectSlot import *
 from _Framework.TransportComponent import TransportComponent
 from _Framework.PhysicalDisplayElement import *
 from _Framework.SubjectSlot import subject_slot, subject_slot_group
@@ -54,6 +55,7 @@ from _Mono_Framework.Mod import *
 from _Mono_Framework.Debug import *
 from _Mono_Framework.LividColors import *
 from _Mono_Framework.MonoInstrumentComponent import *
+from _Mono_Framework.OSCDisplay import OSCDisplay
 
 import _Mono_Framework.modRemixNet as RemixNet
 import _Mono_Framework.modOSC
@@ -72,11 +74,15 @@ from Push.LoopSelectorComponent import LoopSelectorComponent
 from Push.Actions import CreateInstrumentTrackComponent, CreateDefaultTrackComponent, CaptureAndInsertSceneComponent, DuplicateDetailClipComponent, DuplicateLoopComponent, SelectComponent, DeleteComponent, DeleteSelectedClipComponent, DeleteSelectedSceneComponent, CreateDeviceComponent
 
 
-
 DIRS = [47, 48, 50, 49]
 _NOTENAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
 NOTENAMES = [(_NOTENAMES[index%12] + ' ' + str(int(index/12))) for index in range(128)]
+
 from Map import *
+
+if OSC_TRANSMIT:
+	from _Mono_Framework.MonoButtonElement import DescriptiveMonoButtonElement as MonoButtonElement
+	from _Mono_Framework.MonoBridgeElement import OSCMonoBridgeElement as MonoBridgeElement
 
 MODE_DATA = {'Clips': 'L', 
 			'Clips_shifted': 'L', 
@@ -182,7 +188,7 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 	
 
 	def display_message(self, message, *a, **k):
-		debug('display_message', message)
+		#debug('display_message', message)
 		if not self._block_messages:
 			message = str(message) + '  '
 			self._message_to_send = [tuple([176, 34, self._translate_char(message[0])]), tuple([176, 35, self._translate_char(message[1])])]
@@ -221,7 +227,7 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 	def send_midi(self, messages):
 		if messages != self._last_sent_messages:
 			for message in  messages:
-				debug('sending message:', message)
+				#debug('sending message:', message)
 				ControlElement.send_midi(self, message)
 			self._last_sent_message = messages
 	
@@ -235,12 +241,12 @@ class BasePhysicalDisplayElement(PhysicalDisplayElement):
 		messages = []
 		if len(displays) is 1:
 			message = self._translate_string(' ' + str(displays[0].display_string))
-			debug('message len:', len(message), 'message:', message)
+			#debug('message len:', len(message), 'message:', message)
 			messages = [tuple([176, 34, message[-2]]), tuple([176, 35, message[-1]])]
 		elif len(displays):
 			for i in range(2):
 				messages.append(tuple([176, 34 + i, self._translate_char(self._build_display_message(displays[i]))]))
-		debug('messages to send:', messages)
+		#debug('messages to send:', messages)
 		return messages
 	
 
@@ -273,6 +279,30 @@ class BaseDisplayingModesComponent(ModesComponent):
 		if self.is_enabled():
 			#debug('setting data string to:', self._mode_data_string[selected])
 			self._data_source.set_display_string(self._mode_data_string[selected])
+	
+
+	def set_display(self, display, *a, **k):
+		if display:
+			display.set_data_sources([self._data_source])
+	
+
+
+class BaseDisplayingTranslationComponent(TranslationComponent):
+
+
+	def __init__(self, *a, **k):
+		super(BaseDisplayingTranslationComponent, self).__init__(*a, **k)
+		self._data_source = DisplayDataSource()
+	
+
+	def update(self):
+		super(BaseDisplayingTranslationComponent, self).update()
+		self._update_data_sources()
+	
+
+	def _update_data_sources(self):
+		if self.is_enabled():
+			self._data_source.set_display_string('U' + str(min(9, max(1, (self._channel-self._user_channel_offset+1)))))
 	
 
 	def set_display(self, display, *a, **k):
@@ -695,7 +725,7 @@ class Base(ControlSurface):
 		self._host_name = 'Base'
 		self._color_type = 'OhmRGB'
 		self.monomodular = None
-		self.oscServer = None
+		self.oscDisplay = None
 		self._rgb = 0
 		self._timer = 0
 		self._current_nav_buttons = []
@@ -705,9 +735,8 @@ class Base(ControlSurface):
 		self._shift_latching = LatchingShiftedBehaviour if SHIFT_LATCHING else ShiftedBehaviour
 		self._skin = Skin(BaseColors)
 		with self.component_guard():
+			self._setup_OSC_layer()
 			self._setup_monobridge()
-			if OSC_TRANSMIT:
-				self._setup_OSC_layer()
 			self._setup_controls()
 			self._setup_background()
 			self._define_sysex()
@@ -737,12 +766,6 @@ class Base(ControlSurface):
 
 	"""script initialization methods"""
 	def _initialize_hardware(self):
-		#self._send_sysex((240, 0, 1, 97, 12, 22, 16, 247))
-		#self._send_midi(STREAMINGON)
-		#self._send_midi(LINKFUNCBUTTONS)
-		#self._send_midi(DISABLECAPFADERNOTES)
-		#self._send_midi(ATONBUTTONMODE if AFTERTOUCH is True else ATOFFBUTTONMODE)
-		
 		self._livid_settings.send('set_streaming_enabled', STREAMINGON)
 		self._livid_settings.send('set_function_button_leds_linked', [1])
 		self._livid_settings.send('set_capacitive_fader_note_output_enabled', [1])
@@ -765,7 +788,7 @@ class Base(ControlSurface):
 	
 
 	def _setup_monobridge(self):
-		self._monobridge = MonoBridgeElement(self)
+		self._monobridge = MonoBridgeElement(self, osc_display = self.oscDisplay)
 		self._monobridge.name = 'MonoBridge'
 	
 
@@ -775,13 +798,13 @@ class Base(ControlSurface):
 
 	def _setup_controls(self):
 		is_momentary = True
-		self._fader = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_TOUCHSTRIPS[index], Live.MidiMap.MapMode.absolute, 'Fader_' + str(index), index, self, mapping_feedback_delay = -1) for index in range(9)]
+		self._fader = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_TOUCHSTRIPS[index], Live.MidiMap.MapMode.absolute, 'Fader_' + str(index), index, self, mapping_feedback_delay = -1, monobridge = self._monobridge) for index in range(9)]
 		self._fader_matrix = ButtonMatrixElement(name = 'FaderMatrix', rows = [self._fader[:8]])
-		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_BUTTONS[index], name = 'Button_' + str(index), script = self, skin = self._skin) for index in range(8)]
-		self._pad = [BlockingMonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_PADS[index], name = 'Pad_' + str(index), script = self, skin = self._skin) for index in range(32)]
+		self._button = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_BUTTONS[index], name = 'Button_' + str(index), script = self, skin = self._skin, monobridge = self._monobridge) for index in range(8)]
+		self._pad = [BlockingMonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_PADS[index], name = 'Pad_' + str(index), script = self, skin = self._skin, monobridge = self._monobridge) for index in range(32)]
 		self._pad_doublepress = [DoublePressElement(pad) for pad in self._pad]
-		self._pad_CC = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_PADS[index], Live.MidiMap.MapMode.absolute, 'Pad_CC_' + str(index), index, self) for index in range(32)]
-		self._touchpad = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_TOUCHPADS[index], name = 'TouchPad_' + str(index), script = self, resource_type = PrioritizedResource, skin = self._skin) for index in range(8)]
+		self._pad_CC = [MonoEncoderElement(MIDI_CC_TYPE, CHANNEL, BASE_PADS[index], Live.MidiMap.MapMode.absolute, 'Pad_CC_' + str(index), index, self, monobridge = self._monobridge) for index in range(32)]
+		self._touchpad = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_TOUCHPADS[index], name = 'TouchPad_' + str(index), script = self, resource_type = PrioritizedResource, skin = self._skin, monobridge = self._monobridge) for index in range(8)]
 		self._touchpad_matrix = ButtonMatrixElement(name = 'TouchPadMatrix', rows = [self._touchpad],)
 		self._touchpad_multi = MultiElement(self._touchpad[0], self._touchpad[1], self._touchpad[2], self._touchpad[3], self._touchpad[4], self._touchpad[5], self._touchpad[6], self._touchpad[7],)
 		self._runner = [MonoButtonElement(is_momentary, MIDI_NOTE_TYPE, CHANNEL, BASE_RUNNERS[index], name = 'Runner_' + str(index), script = self, skin = self._skin) for index in range(8)]
@@ -934,10 +957,13 @@ class Base(ControlSurface):
 			controls.append(button)
 		for fader, _ in self._fader_matrix.iterbuttons():
 			controls.append(fader)
-		self._translations = TranslationComponent(controls, 10)
+		if CAP_BUTTON_TRANSLATIONS:
+			for button, _ in self._touchpad_matrix.iterbuttons():
+				controls.append(button)
+		self._translations = BaseDisplayingTranslationComponent(controls, 10)
 		self._translations.name = 'TranslationComponent'
 		self._translations._channel = 10
-		self._translations.layer = Layer(priority = 10, channel_selector_buttons = self._nav_buttons)
+		self._translations.layer = Layer(priority = 10, channel_selector_buttons = self._nav_buttons, display = self._display)
 		self._translations.set_enabled(False)
 	
 
@@ -1027,19 +1053,8 @@ class Base(ControlSurface):
 	
 
 	def _setup_OSC_layer(self):
-		self._OSC_id = 0
-		if hasattr(__builtins__, 'control_surfaces') or (isinstance(__builtins__, dict) and 'control_surfaces' in __builtins__.keys()):
-			for cs in __builtins__['control_surfaces']:
-				if cs is self:
-					break
-				elif isinstance(cs, Base):
-					self._OSC_id += 1
-
-		self._prefix = '/Live/Base/'+str(self._OSC_id)
-		self._outPrt = OSC_OUTPORT
-		if not self.oscServer is None:
-			self.oscServer.shutdown()
-		self.oscServer = RemixNet.OSCServer('localhost', self._outPrt, 'localhost', 10001)
+		self.oscDisplay = OSCDisplay(prefix = '/Live/0', model_name = 'Base', model = Base, outport = OSC_OUTPORT)
+		self.oscDisplay.set_enabled(OSC_TRANSMIT)
 	
 
 	def _setup_modswitcher(self):
@@ -1123,13 +1138,13 @@ class Base(ControlSurface):
 	
 
 	def _notify_descriptors(self):
-		if OSC_TRANSMIT:
-			for pad in self._pad:
-				self.oscServer.sendOSC(self._prefix+'/'+pad.name+'/lcd_name/', str(self.generate_strip_string(pad._descriptor)))
-			for touchpad in self._touchpad:
-				self.oscServer.sendOSC(self._prefix+'/'+touchpad.name+'/lcd_name/', str(self.generate_strip_string(touchpad._descriptor)))
-			for button in self._button:
-				self.oscServer.sendOSC(self._prefix+'/'+button.name+'/lcd_name/', str(self.generate_strip_string(button._descriptor)))
+		"""for pad in self._pad:
+			self.oscDisplay.sendOSC(pad.name+'lcd_name', str(self.generate_strip_string(pad._descriptor)))
+		for touchpad in self._touchpad:
+			self.oscDisplay.sendOSC(touchpad.name+'lcd_name', str(self.generate_strip_string(touchpad._descriptor)))
+		for button in self._button:
+			self.oscDisplay.sendOSC(button.name+'/lcd_name', str(self.generate_strip_string(button._descriptor)))
+		"""
 	
 
 	def _get_devices(self, track):
@@ -1204,7 +1219,7 @@ class Base(ControlSurface):
 		self._monobridge._send('Device_Name', 'lcd_value', str(self.generate_strip_string(name)))
 		self.touched()
 		if OSC_TRANSMIT:
-			self.oscServer.sendOSC(self._prefix+'/glob/device/', str(self.generate_strip_string(name)))
+			self.oscDisplay.sendOSC('glob/device', str(self.generate_strip_string(name)))
 	
 
 	def _on_device_bank_changed(self):
@@ -1258,22 +1273,6 @@ class Base(ControlSurface):
 		return ret
 	
 
-	def notification_to_bridge(self, name, value, sender):
-		#self.log_message('monobridge:' + str(name) + str(value))
-		if isinstance(sender, MonoEncoderElement):
-			if OSC_TRANSMIT:
-				self.oscServer.sendOSC(self._prefix+'/'+sender.name+'/lcd_name/', str(self.generate_strip_string(name)))
-				self.oscServer.sendOSC(self._prefix+'/'+sender.name+'/lcd_value/', str(self.generate_strip_string(value)))
-			self._monobridge._send(sender.name, 'lcd_name', str(self.generate_strip_string(name)))
-			self._monobridge._send(sender.name, 'lcd_value', str(self.generate_strip_string(value)))
-		else:
-			self._monobridge._send(name, 'lcd_name', str(self.generate_strip_string(name)))
-			self._monobridge._send(name, 'lcd_value', str(self.generate_strip_string(value)))
-			if OSC_TRANSMIT:
-				self.oscServer.sendOSC(self._prefix+'/'+name+'/lcd_name/', str(self.generate_strip_string(name)))
-				self.oscServer.sendOSC(self._prefix+'/'+name+'/lcd_value/', str(self.generate_strip_string(value)))
-	
-
 	def touched(self):
 		if self._touched is 0:
 			self._monobridge._send('touch', 'on')
@@ -1295,10 +1294,7 @@ class Base(ControlSurface):
 
 	"""general functionality"""
 	def disconnect(self):
-		self._send_midi(STREAMINGOFF)
-		if not self.oscServer is None:
-			self.oscServer.shutdown()
-		self.oscServer = None
+		self._livid_settings.send('set_streaming_enabled', STREAMINGOFF)
 		self.log_message("--------------= Base log closed =--------------")
 		super(Base, self).disconnect()
 		#rebuild_sys()

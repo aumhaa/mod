@@ -7,11 +7,13 @@ Created by amounra on 2014-7-26.
 This file allows the reassignment of the controls from their default arrangement.  The order is from left to right; 
 Buttons are Note #'s and Faders/Rotaries are Controller #'s
 """
-OSC_TRANSMIT = False
+OSC_TRANSMIT = True
 
-OSC_OUTPORT = 9001
+OSC_OUTPORT = 7400
 
 SHIFT_LATCHING = False
+
+CAP_BUTTON_TRANSLATIONS = False   #include the top 8 capacitive touch buttons in UserMode translations.
 
 CHANNEL = 0		#main channel (0 - 15)
 
