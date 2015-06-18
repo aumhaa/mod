@@ -4,11 +4,11 @@
 		"appversion" : 		{
 			"major" : 6,
 			"minor" : 1,
-			"revision" : 3,
+			"revision" : 9,
 			"architecture" : "x86"
 		}
 ,
-		"rect" : [ 314.0, 44.0, 955.0, 803.0 ],
+		"rect" : [ 314.0, 45.0, 955.0, 803.0 ],
 		"bgcolor" : [ 1.0, 1.0, 1.0, 0.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 1,
@@ -94,7 +94,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -404,7 +404,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -988,7 +988,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -1570,7 +1570,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -2196,7 +2196,7 @@
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_order" : 8,
-							"parameter_longname" : "Repeat",
+							"parameter_longname" : "repeat",
 							"parameter_shortname" : "repeat",
 							"parameter_type" : 1,
 							"parameter_mmax" : 6.0,
@@ -2283,7 +2283,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -3209,7 +3209,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -3300,7 +3300,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -4262,7 +4262,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -4846,7 +4846,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -5689,7 +5689,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -7040,7 +7040,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -7517,7 +7517,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -8296,6 +8296,8 @@
 					"hint" : "Scale mode",
 					"id" : "obj-147",
 					"maxclass" : "live.tab",
+					"num_lines_patching" : 0,
+					"num_lines_presentation" : 0,
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "float" ],
@@ -8332,7 +8334,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -8710,7 +8712,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -9078,7 +9080,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -9509,7 +9511,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -10648,7 +10650,7 @@
 					"fontname" : "Arial",
 					"fontsize" : 10.0,
 					"id" : "obj-37",
-					"items" : [ "AU DLS Synth 1", ",", "IAC Bus 1", ",", "Base8 Base_Controls", ",", "Base8 Port 2", ",", "from Max 1", ",", "from Max 2" ],
+					"items" : [ "AU DLS Synth 1", ",", "IAC Bus Bus 1", ",", "from Max 1", ",", "from Max 2" ],
 					"maxclass" : "umenu",
 					"numinlets" : 1,
 					"numoutlets" : 3,
@@ -10798,7 +10800,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -12028,7 +12030,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -12595,7 +12597,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -13580,7 +13582,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -13618,7 +13620,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -13655,7 +13657,7 @@
 														"appversion" : 														{
 															"major" : 6,
 															"minor" : 1,
-															"revision" : 3,
+															"revision" : 9,
 															"architecture" : "x86"
 														}
 ,
@@ -13934,7 +13936,7 @@
 														"appversion" : 														{
 															"major" : 6,
 															"minor" : 1,
-															"revision" : 3,
+															"revision" : 9,
 															"architecture" : "x86"
 														}
 ,
@@ -14458,7 +14460,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -14806,7 +14808,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -15477,7 +15479,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -15778,7 +15780,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -16615,7 +16617,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -17538,7 +17540,7 @@
 						"appversion" : 						{
 							"major" : 6,
 							"minor" : 1,
-							"revision" : 3,
+							"revision" : 9,
 							"architecture" : "x86"
 						}
 ,
@@ -17575,7 +17577,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -18181,7 +18183,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -18611,7 +18613,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -19145,7 +19147,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -20265,7 +20267,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -20384,7 +20386,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -20862,7 +20864,7 @@
 										"appversion" : 										{
 											"major" : 6,
 											"minor" : 1,
-											"revision" : 3,
+											"revision" : 9,
 											"architecture" : "x86"
 										}
 ,
@@ -23048,43 +23050,43 @@
  ],
 		"parameters" : 		{
 			"obj-3" : [ "sequencer", "sequencer", 0 ],
-			"obj-104" : [ "_steps", "_steps", 0 ],
 			"obj-130" : [ "sequence", "sequence", 1 ],
-			"obj-69" : [ "Sequence Loop In Point[1]", "loop_out", 0 ],
-			"obj-97" : [ "Lock sequence to note number", "notelock", 0 ],
-			"obj-124" : [ "chord_thin", "chord_thin", 0 ],
-			"obj-83" : [ "Eighth notes or triplets", "8ths3lets", 0 ],
-			"obj-191" : [ "Groove", "Groove", 9 ],
 			"obj-193" : [ "Time Divisions", "timediv", 0 ],
-			"obj-200" : [ "Repeat", "repeat", 8 ],
-			"obj-223" : [ "behaviors", "behaviors", 0 ],
-			"obj-171" : [ "Random Weighting", "Rnd", 10 ],
-			"obj-147" : [ "mode", "mode", 141 ],
-			"obj-21" : [ "View-Edit", "view", 0 ],
-			"obj-107" : [ "Add step now", "addnow", 0 ],
-			"obj-33" : [ "Playback Direction", "direction", 0 ],
 			"obj-66" : [ "Sequence Loop In Point", "loop_in", 0 ],
+			"obj-147" : [ "mode", "mode", 141 ],
+			"obj-200" : [ "repeat", "repeat", 8 ],
+			"obj-97" : [ "Lock sequence to note number", "notelock", 0 ],
+			"obj-33" : [ "Playback Direction", "direction", 0 ],
+			"obj-21" : [ "View-Edit", "view", 0 ],
+			"obj-104" : [ "_steps", "_steps", 0 ],
+			"obj-69" : [ "Sequence Loop In Point[1]", "loop_out", 0 ],
+			"obj-129" : [ "chord_steps", "chord_steps", 0 ],
+			"obj-191" : [ "Groove", "Groove", 9 ],
+			"obj-223" : [ "behaviors", "behaviors", 0 ],
 			"obj-197" : [ "Repeat Enable", "repeat_enable", 140 ],
-			"obj-129" : [ "chord_steps", "chord_steps", 0 ]
+			"obj-83" : [ "Eighth notes or triplets", "8ths3lets", 0 ],
+			"obj-124" : [ "chord_thin", "chord_thin", 0 ],
+			"obj-171" : [ "Random Weighting", "Rnd", 10 ],
+			"obj-107" : [ "Add step now", "addnow", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
 				"name" : "thru.maxpat",
-				"bootpath" : "/Users/amounra/monomodular_git/aumhaa_blocks/drumsteppr",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/steppr",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "gettherect.js",
-				"bootpath" : "/Users/amounra/monomodular_git/aumhaa_blocks/drumsteppr",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/steppr",
 				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "ruleswidget.js",
-				"bootpath" : "/Users/amounra/monomodular_git/aumhaa_blocks/drumsteppr",
+				"bootpath" : "/Users/amounra/Documents/Max/Packages/mod/javascript/steppr",
 				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1
